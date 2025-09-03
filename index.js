@@ -1,4 +1,3 @@
-
 const canvas = document.querySelector("canvas");
 
 const scene = new THREE.Scene();
@@ -27,53 +26,84 @@ const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-// Load GLTFLoader script dynamically
-const gltfScript = document.createElement('script');
-gltfScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
-gltfScript.onload = function() {
-  console.log('GLTFLoader loaded successfully');
-  
-  const loader = new THREE.GLTFLoader();
-  
-  loader.load(
-    "https://raw.githubusercontent.com/accipiter69/fixar/main/models/anim.glb",
-    (gltf) => {
-      console.log("Model loaded successfully:", gltf);
-      scene.remove(cube);
-      scene.add(gltf.scene);
-      
-      // Position and scale the model
-      gltf.scene.position.set(0, 0, 0);
-      gltf.scene.scale.set(1, 1, 1);
-      
-      // Play animations if available
-      if (gltf.animations && gltf.animations.length > 0) {
-        const mixer = new THREE.AnimationMixer(gltf.scene);
-        const action = mixer.clipAction(gltf.animations[0]);
-        action.play();
-        
-        // Update animation in render loop
-        const clock = new THREE.Clock();
-        const originalAnimate = window.animate;
-        window.animate = function() {
-          requestAnimationFrame(window.animate);
-          mixer.update(clock.getDelta());
-          renderer.render(scene, camera);
-        };
+// Load the three-gltf-loader
+const script = document.createElement("script");
+script.src =
+  "https://cdn.jsdelivr.net/npm/three-gltf-loader@1.111.0/index.min.js";
+
+script.onload = function () {
+  console.log("Three GLTF Loader loaded successfully");
+
+  setTimeout(() => {
+    let loader = null;
+
+    // Check what's actually available
+    console.log("Checking THREE object keys:", Object.keys(THREE));
+    console.log(
+      "Window keys with GLTF:",
+      Object.keys(window).filter((k) => k.toLowerCase().includes("gltf"))
+    );
+
+    if (typeof THREE.GLTFLoader !== "undefined") {
+      console.log("GLTFLoader found in THREE.GLTFLoader");
+      loader = new THREE.GLTFLoader();
+    } else if (typeof GLTFLoader !== "undefined") {
+      console.log("GLTFLoader found as global GLTFLoader");
+      loader = new GLTFLoader();
+    } else if (window.THREE && window.THREE.GLTFLoader) {
+      console.log("GLTFLoader found in window.THREE.GLTFLoader");
+      loader = new window.THREE.GLTFLoader();
+    } else {
+      // Try to create it manually - some loaders work this way
+      try {
+        console.log("Trying to create loader directly...");
+        loader = new THREE.GLTFLoader();
+        console.log("Direct creation worked!");
+      } catch (e) {
+        console.log("Direct creation failed:", e.message);
+        console.log("Using simple fetch approach instead");
+
+        // Fallback: use fetch to load the GLB directly
+        fetch(
+          "https://raw.githubusercontent.com/accipiter69/fixar/main/models/anim.glb"
+        )
+          .then((response) => response.arrayBuffer())
+          .then((data) => {
+            console.log("GLB file downloaded:", data.byteLength, "bytes");
+            console.log("Cannot parse without GLTFLoader - keeping cube");
+          })
+          .catch((error) => {
+            console.error("Failed to download GLB:", error);
+          });
+        return;
       }
-    },
-    (progress) => {
-      console.log("Loading progress:", progress);
-    },
-    (error) => {
-      console.error("Error loading model:", error);
     }
-  );
+
+    if (loader) {
+      console.log("Starting to load model...");
+      loader.load(
+        "https://raw.githubusercontent.com/accipiter69/fixar/main/models/anim.glb",
+        (gltf) => {
+          console.log("Model loaded successfully:", gltf);
+          scene.remove(cube);
+          scene.add(gltf.scene);
+        },
+        (progress) => {
+          console.log("Loading progress:", progress);
+        },
+        (error) => {
+          console.error("Error loading model:", error);
+        }
+      );
+    }
+  }, 200);
 };
-gltfScript.onerror = function() {
-  console.error('Failed to load GLTFLoader script');
+
+script.onerror = function () {
+  console.error("Failed to load three-gltf-loader");
 };
-document.head.appendChild(gltfScript);
+
+document.head.appendChild(script);
 
 function animate() {
   requestAnimationFrame(animate);
