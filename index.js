@@ -1,117 +1,159 @@
-const canvas = document.querySelector("canvas");
+// document.addEventListener("DOMContentLoaded", () => {
+//   const container = document.getElementById("three-container");
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  75,
-  canvas.clientWidth / canvas.clientHeight,
-  0.1,
-  1000
-);
-const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+//   const scene = new THREE.Scene();
+//   let mixer;
 
-renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+//   const camera = new THREE.PerspectiveCamera(
+//     75,
+//     container.clientWidth / container.clientHeight,
+//     0.1,
+//     1000
+//   );
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
+//   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+//   renderer.setSize(container.clientWidth, container.clientHeight);
+//   renderer.setPixelRatio(window.devicePixelRatio);
+//   renderer.shadowMap.enabled = true;
+//   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+//   renderer.setClearColor(0x000000, 0);
+//   container.appendChild(renderer.domElement);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-directionalLight.position.set(50, 50, 50);
-scene.add(directionalLight);
+//   const controls = new THREE.OrbitControls(camera, renderer.domElement);
+//   controls.enableDamping = true;
+//   controls.dampingFactor = 0.05;
+//   controls.enableZoom = false;
+//   controls.enablePan = false;
 
-camera.position.z = 5;
+//   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+//   scene.add(ambientLight);
 
-// Add a test cube first
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+//   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+//   directionalLight.position.set(5, 5, 5);
+//   directionalLight.castShadow = true;
+//   directionalLight.shadow.mapSize.width = 2048;
+//   directionalLight.shadow.mapSize.height = 2048;
+//   scene.add(directionalLight);
 
-// Load the three-gltf-loader
-const script = document.createElement("script");
-script.src =
-  "https://cdn.jsdelivr.net/npm/three-gltf-loader@1.111.0/index.min.js";
+//   const dracoLoader = new THREE.DRACOLoader();
+//   dracoLoader.setDecoderPath(
+//     "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+//   );
 
-script.onload = function () {
-  console.log("Three GLTF Loader loaded successfully");
+//   const loader = new THREE.GLTFLoader();
+//   loader.setDRACOLoader(dracoLoader);
 
-  setTimeout(() => {
-    let loader = null;
+//   loader.load(
+//     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+anim.glb",
+//     (gltf) => {
+//       const model = gltf.scene;
 
-    // Check what's actually available
-    console.log("Checking THREE object keys:", Object.keys(THREE));
-    console.log(
-      "Window keys with GLTF:",
-      Object.keys(window).filter((k) => k.toLowerCase().includes("gltf"))
-    );
+//       const box = new THREE.Box3().setFromObject(model);
+//       const size = box.getSize(new THREE.Vector3());
 
-    if (typeof THREE.GLTFLoader !== "undefined") {
-      console.log("GLTFLoader found in THREE.GLTFLoader");
-      loader = new THREE.GLTFLoader();
-    } else if (typeof GLTFLoader !== "undefined") {
-      console.log("GLTFLoader found as global GLTFLoader");
-      loader = new GLTFLoader();
-    } else if (window.THREE && window.THREE.GLTFLoader) {
-      console.log("GLTFLoader found in window.THREE.GLTFLoader");
-      loader = new window.THREE.GLTFLoader();
-    } else {
-      // Try to create it manually - some loaders work this way
-      try {
-        console.log("Trying to create loader directly...");
-        loader = new THREE.GLTFLoader();
-        console.log("Direct creation worked!");
-      } catch (e) {
-        console.log("Direct creation failed:", e.message);
-        console.log("Using simple fetch approach instead");
+//       const maxDim = Math.max(size.x, size.y, size.z);
+//       const scale = 60 / maxDim;
+//       model.scale.setScalar(scale);
 
-        // Fallback: use fetch to load the GLB directly
-        fetch(
-          "https://raw.githubusercontent.com/accipiter69/fixar/main/models/anim.glb"
-        )
-          .then((response) => response.arrayBuffer())
-          .then((data) => {
-            console.log("GLB file downloaded:", data.byteLength, "bytes");
-            console.log("Cannot parse without GLTFLoader - keeping cube");
-          })
-          .catch((error) => {
-            console.error("Failed to download GLB:", error);
-          });
-        return;
-      }
-    }
+//       model.position.set(0, 0, 0);
 
-    if (loader) {
-      console.log("Starting to load model...");
-      loader.load(
-        "https://raw.githubusercontent.com/accipiter69/fixar/main/models/anim.glb",
-        (gltf) => {
-          console.log("Model loaded successfully:", gltf);
-          scene.remove(cube);
-          scene.add(gltf.scene);
-        },
-        (progress) => {
-          console.log("Loading progress:", progress);
-        },
-        (error) => {
-          console.error("Error loading model:", error);
-        }
-      );
-    }
-  }, 200);
-};
+//       const scaledBox = new THREE.Box3().setFromObject(model);
+//       const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+//       model.position.sub(scaledCenter);
 
-script.onerror = function () {
-  console.error("Failed to load three-gltf-loader");
-};
+//       scene.add(model);
 
-document.head.appendChild(script);
+//       let bodyElement = null;
+//       let originalColor = null;
 
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render(scene, camera);
-}
+//       model.traverse((child) => {
+//         if (child.name === "Mesh491_1") {
+//           bodyElement = child;
+//           if (child.material && child.material.color) {
+//             originalColor = child.material.color.clone();
+//           }
+//         }
 
-animate();
+//         if (child.isMesh && child.material) {
+//           if (child.material.color) {
+//             const color = child.material.color;
+//             const r = Math.round(color.r * 255);
+//             const g = Math.round(color.g * 255);
+//             const b = Math.round(color.b * 255);
 
-console.log("3D scene with model loading initialized");
+//             if (r > 200 && g < 50 && b < 50) {
+//               console.log(`Red element found: ${child.name || "unnamed"}`, {
+//                 r: r,
+//                 g: g,
+//                 b: b,
+//                 hex: `#${r.toString(16).padStart(2, "0")}${g
+//                   .toString(16)
+//                   .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`,
+//               });
+//             }
+//           }
+//         }
+//       });
+
+//       console.log("bodyElement:", bodyElement);
+
+//       // Перевіряємо наявність кнопок перед додаванням слухачів
+//       const resetButton = document.getElementById("resetColor");
+//       const greenButton = document.getElementById("greenColor");
+
+//       if (resetButton) {
+//         resetButton.addEventListener("click", () => {
+//           if (bodyElement && bodyElement.material && originalColor) {
+//             bodyElement.material.color.copy(originalColor);
+//           }
+//         });
+//       }
+
+//       if (greenButton) {
+//         greenButton.addEventListener("click", () => {
+//           if (bodyElement && bodyElement.material) {
+//             bodyElement.material.color.setHex(0x00ff00);
+//           }
+//         });
+//       }
+
+//       if (gltf.animations && gltf.animations.length > 0) {
+//         mixer = new THREE.AnimationMixer(model);
+//         const action = mixer.clipAction(gltf.animations[0]);
+//         action.play();
+//       }
+
+//       controls.target.set(0, 0, 0);
+//       camera.position.set(0, 2, 8);
+//       camera.lookAt(0, 0, 0);
+
+//       animate();
+//     },
+//     undefined,
+//     (error) => {
+//       console.error("Error loading model:", error);
+//     }
+//   );
+
+//   const clock = new THREE.Clock();
+
+//   function animate() {
+//     requestAnimationFrame(animate);
+
+//     const delta = clock.getDelta();
+//     if (mixer) mixer.update(delta);
+
+//     controls.update();
+//     camera.lookAt(0, 0, 0);
+
+//     renderer.render(scene, camera);
+//   }
+
+//   window.addEventListener("resize", () => {
+//     if (container) {
+//       camera.aspect = container.clientWidth / container.clientHeight;
+//       camera.updateProjectionMatrix();
+//       renderer.setSize(container.clientWidth, container.clientHeight);
+//     }
+//   });
+// });
