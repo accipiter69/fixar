@@ -1,4 +1,37 @@
+// Мапінг моделей дронів
+const droneModels = {
+  "FIXAR 025": "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025.glb",
+  "FIXAR 007 LE":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007++LE.glb",
+  "FIXAR 007 NG":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG.glb",
+};
+
+// Об'єднаний DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
+  // ============================================
+  // ЗАГАЛЬНІ СЕЛЕКТОРИ
+  // ============================================
+  const resultDrone = document.querySelector("[data-choice=drone]");
+  const resultColor = document.querySelector("[data-choice=color]");
+  const resultModule = document.querySelector("[data-choice=module]");
+  const sliderBg = document.querySelector(".slider-bg");
+  const sliderParent = document.querySelector(".applications-big-slider");
+  const closeSliderBtn = sliderParent.querySelector(".close-slider");
+
+  const optional = document.querySelector("#optional");
+  const telemetryOnly = document.querySelector("#telemetry-only");
+  const telemetryVideo = document.querySelector("#telemetry-video-links");
+
+  const modulesLinksParameters = {
+    telemetryOnly: ["RGB Mapping Cameras", "Multispectral", "Lidar"],
+    telemetryVideo: ["All"],
+  };
+  optional.style.display = "none";
+  telemetryOnly.style.display = "none";
+  // ============================================
+  // THREE.JS - 3D МОДЕЛЬ
+  // ============================================
   const container = document.getElementById("three-container");
 
   if (!container) {
@@ -9,50 +42,99 @@ document.addEventListener("DOMContentLoaded", () => {
   const scene = new THREE.Scene();
   let mixer;
 
-  // Система управління анімаціями
+  // Об'єкт для зберігання завантажених моделей (глобально доступний)
+  window.loadedModels = {};
+  const loadedModels = window.loadedModels; // Локальний аліас для зручності
+  let currentDroneModel = "FIXAR 025"; // Модель за замовчуванням
+
+  // Зберігаємо початкові кольори board частин для FIXAR 025
+  window.originalBoardColors = {
+    board_001: null,
+    board_002: null,
+    board_003: null,
+  };
+
+  // Система управління анімаціями для кожної моделі окремо
   window.animations = {
-    actions: [],
-    mixer: null,
+    models: {
+      "FIXAR 025": { actions: [], mixer: null },
+      "FIXAR 007 LE": { actions: [], mixer: null },
+      "FIXAR 007 NG": { actions: [], mixer: null },
+    },
+    currentModel: "FIXAR 025",
 
     play: (index) => {
-      if (window.animations.actions[index]) {
-        const action = window.animations.actions[index];
+      const model = window.animations.models[window.animations.currentModel];
+      if (model && model.actions[index]) {
+        const action = model.actions[index];
         action.enabled = true;
         action.weight = 1;
         action.play();
-        console.log(`Запущено анімацію ${index}`);
       }
     },
 
     stop: (index) => {
-      if (window.animations.actions[index]) {
-        const action = window.animations.actions[index];
+      const model = window.animations.models[window.animations.currentModel];
+      if (model && model.actions[index]) {
+        const action = model.actions[index];
         action.stop();
         action.enabled = false;
         action.weight = 0;
         action.time = 0;
-        console.log(`Зупинено анімацію ${index}`);
       }
     },
 
     stopAll: () => {
-      window.animations.actions.forEach((action, index) => {
-        action.stop();
-        action.enabled = false;
-        action.weight = 0;
-        action.time = 0;
-        console.log(`Зупинено анімацію ${index}`);
-      });
+      const model = window.animations.models[window.animations.currentModel];
+      if (model) {
+        model.actions.forEach((action) => {
+          const clip = action.getClip();
+          const isFlightAnimation = clip.name.toLowerCase().includes("flight");
+          if (!isFlightAnimation) {
+            action.stop();
+            action.enabled = false;
+            action.weight = 0;
+            action.time = 0;
+          }
+        });
+      }
     },
+  };
 
-    list: () => {
-      console.log("Доступні анімації:");
-      window.animations.actions.forEach((action, index) => {
-        console.log(
-          `${index}: ${action.getClip().name} (активна: ${action.isRunning()})`
-        );
-      });
-    },
+  // Функція для програвання анімації за назвою
+  window.playAnimationByName = (animationName, droneName = null) => {
+    const targetDrone = droneName || window.animations.currentModel;
+    const model = window.animations.models[targetDrone];
+
+    if (!model || !model.actions) {
+      console.warn(`Модель ${targetDrone} не має анімацій`);
+      return false;
+    }
+
+    // Знаходимо анімацію за назвою
+    const index = model.actions.findIndex((action) => {
+      const clip = action.getClip();
+      return clip.name === animationName;
+    });
+
+    // Зупиняємо всі анімації крім flight
+    window.animations.stopAll();
+
+    if (index === -1) {
+      console.warn(
+        `Анімація "${animationName}" не знайдена для моделі ${targetDrone}`
+      );
+      return false;
+    }
+
+    // Програємо нову анімацію
+    const action = model.actions[index];
+    action.enabled = true;
+    action.weight = 1;
+    action.reset();
+    action.play();
+
+    return true;
   };
 
   const camera = new THREE.PerspectiveCamera(
@@ -73,16 +155,92 @@ document.addEventListener("DOMContentLoaded", () => {
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
+  controls.enableZoom = false;
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  // Обмеження вертикального кута обертання
+  // Дозволяємо дивитися зверху і збоку, але не знизу (максимум 5° нижче горизонталі)
+  controls.minPolarAngle = 0; // Можна дивитися зверху
+  controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180; // 90° + 5° = не більше 5° знизу
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(5, 5, 5);
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 2048;
-  directionalLight.shadow.mapSize.height = 2048;
-  scene.add(directionalLight);
+  // Світло з правого верху
+  const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
+  directionalLight1.position.set(5, 5, 5);
+  scene.add(directionalLight1);
+
+  // Світло з лівого боку
+  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+  directionalLight2.position.set(-5, 3, 3);
+  scene.add(directionalLight2);
+
+  // Світло спереду
+  const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
+  directionalLight3.position.set(0, 2, 5);
+  scene.add(directionalLight3);
+
+  // Світло зверху над моделлю
+  const directionalLight4 = new THREE.DirectionalLight(0xffffff, 0.5);
+  directionalLight4.position.set(0, 10, 0);
+  scene.add(directionalLight4);
+
+  // Світло знизу моделі для освітлення нижньої частини
+  const directionalLight5 = new THREE.DirectionalLight(0xffffff, 0.6);
+  directionalLight5.position.set(0, -10, 0);
+  scene.add(directionalLight5);
+
+  // Функція для показу потрібної моделі
+  window.showDroneModel = (droneName) => {
+    // Ховаємо всі моделі
+    Object.keys(window.loadedModels).forEach((modelName) => {
+      if (window.loadedModels[modelName]) {
+        window.loadedModels[modelName].visible = false;
+      }
+    });
+
+    // Показуємо потрібну модель
+    if (window.loadedModels[droneName]) {
+      window.loadedModels[droneName].visible = true;
+      currentDroneModel = droneName;
+      window.animations.currentModel = droneName;
+    } else {
+      console.warn(`Модель ${droneName} ще не завантажена`);
+    }
+  };
+
+  // Функція для зміни кольору елементів за назвою матеріалу
+  window.changeColorByMaterialName = (
+    materialName,
+    hexColor,
+    droneName = null
+  ) => {
+    const targetDrone = droneName || currentDroneModel;
+    const model = window.loadedModels[targetDrone];
+
+    if (!model) {
+      console.warn(`Модель ${targetDrone} не завантажена`);
+      return 0;
+    }
+
+    let changedCount = 0;
+
+    model.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const matName = child.material.name || "";
+        if (matName === materialName) {
+          if (child.material.color) {
+            child.material.color.setHex(
+              parseInt(hexColor.replace("#", ""), 16)
+            );
+            changedCount++;
+          }
+        }
+      }
+    });
+
+    return changedCount;
+  };
 
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath(
@@ -92,213 +250,124 @@ document.addEventListener("DOMContentLoaded", () => {
   const loader = new THREE.GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
 
-  loader.load(
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+anim.glb",
-    (gltf) => {
-      const model = gltf.scene;
-      model.scale.setScalar(0.05);
+  // Функція для завантаження моделі
+  const loadDroneModel = (droneName, showAfterLoad = false) => {
+    const modelUrl = droneModels[droneName];
+    if (!modelUrl) {
+      console.error(`URL для моделі ${droneName} не знайдено`);
+      return;
+    }
 
-      // Виправляємо проблеми з видимістю пропелерів
-      console.log("=== Налаштування видимості пропелерів ===");
-      let propellerCount = 0;
-      model.traverse((child) => {
-        if (child.isMesh) {
-          // Виключаємо frustum culling для всіх мешів
-          child.frustumCulled = false;
+    console.log(`Завантаження моделі: ${droneName}`);
 
-          // Якщо це пропелер (частина кістки), налаштовуємо додатково
-          if (child.parent && child.parent.type === "Bone") {
-            child.castShadow = true;
-            child.receiveShadow = false;
-            child.matrixAutoUpdate = true;
-            propellerCount++;
-            console.log(
-              `Пропелер ${propellerCount}:`,
-              child.name || "unnamed",
-              "Кістка:",
-              child.parent.name
-            );
-          }
-        }
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        const model = gltf.scene;
+        // Моделі 007 LE і 007 NG в 2 рази більші
+        const scale =
+          droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+        model.scale.setScalar(scale);
+        model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
 
-        if (child.type === "Bone") {
-          child.matrixAutoUpdate = true;
-          console.log("Кістка:", child.name);
-        }
-      });
+        // Зберігаємо модель
+        loadedModels[droneName] = model;
 
-      console.log(`Знайдено ${propellerCount} мешів пропелерів`);
-
-      scene.add(model);
-
-      // Set up camera
-      camera.position.set(0, 2, 8);
-      camera.lookAt(0, 0, 0);
-      controls.target.set(0, 0, 0);
-
-      // Animation
-      if (gltf.animations && gltf.animations.length > 0) {
-        mixer = new THREE.AnimationMixer(model);
-        window.animations.mixer = mixer;
-
-        console.log("Знайдено анімацій:", gltf.animations.length);
-
-        // Аналізуємо треки ArmatureAction для розуміння які кістки анімуються
-        const armatureAnimation = gltf.animations.find(
-          (anim) => anim.name === "ArmatureAction"
-        );
-        if (armatureAnimation) {
-          console.log("=== Аналіз треків ArmatureAction ===");
-          armatureAnimation.tracks.forEach((track, index) => {
-            console.log(`Трек ${index}:`, track.name, "Тип:", track.type);
-          });
-
-          const armatureAction = mixer.clipAction(armatureAnimation);
-          armatureAction.setLoop(THREE.LoopRepeat);
-          armatureAction.timeScale = 1;
-          armatureAction.enabled = true;
-          armatureAction.play();
-          console.log("ArmatureAction запущено постійно (пропелери)");
-        }
-
-        // Решту анімацій додаємо в реєстр для управління (крім ArmatureAction)
-        gltf.animations.forEach((animation, index) => {
-          if (animation.name !== "ArmatureAction") {
-            console.log(
-              `Анімація ${index}:`,
-              animation.name,
-              "Треки:",
-              animation.tracks.length
-            );
-
-            // Створюємо action і зберігаємо його (але НЕ запускаємо)
-            const action = mixer.clipAction(animation);
-
-            // Спеціальне налаштування для Lidar1
-            if (animation.name === "Lidar1") {
-              action.setLoop(THREE.LoopOnce);
-              action.clampWhenFinished = true;
-            } else {
-              action.setLoop(THREE.LoopRepeat);
-            }
-
-            action.timeScale = 1;
-            action.enabled = false;
-            action.weight = 0;
-            action.time = 0;
-            action.stop();
-            action.reset();
-
-            window.animations.actions.push(action);
-            console.log(
-              `Створено action ${window.animations.actions.length - 1}: ${
-                animation.name
-              }`
-            );
+        // Виключаємо frustum culling для всіх мешів
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.frustumCulled = false;
           }
         });
 
-        // Виводимо інструкції для користувача
-        console.log("\n=== УПРАВЛІННЯ АНІМАЦІЯМИ ===");
-        console.log(
-          "ПРИМІТКА: Тільки ArmatureAction (пропелери) працює постійно"
-        );
-        console.log("Всі інші анімації зупинені за замовчуванням");
-        console.log("animations.list() - показати всі анімації");
-        console.log("animations.play(index) - запустити анімацію за індексом");
-        console.log("animations.stop(index) - зупинити анімацію за індексом");
-        console.log("animations.stopAll() - зупинити всі анімації");
-        console.log("================================\n");
-
-        // Налаштування кнопки toggle-camera для анімації Lidar1
-        const toggleCameraButton = document.getElementById("toggle-camera");
-        if (toggleCameraButton) {
-          let lidarState = "closed"; // 'closed' або 'open'
-
-          toggleCameraButton.addEventListener("click", () => {
-            const lidarAnimation = window.animations.actions[2]; // Lidar1 під індексом 2
-
-            if (lidarAnimation) {
-              if (lidarState === "closed") {
-                // Відкриваємо - програємо анімацію вперед
-                lidarAnimation.reset();
-                lidarAnimation.enabled = true;
-                lidarAnimation.weight = 1;
-                lidarAnimation.timeScale = 1; // Вперед
-                lidarAnimation.setLoop(THREE.LoopOnce);
-                lidarAnimation.clampWhenFinished = true;
-                lidarAnimation.play();
-                lidarState = "open";
-                console.log("Lidar1 відкривається");
-              } else {
-                // Закриваємо - програємо анімацію назад
-                lidarAnimation.paused = false; // Розблокуємо якщо заблокована
-                lidarAnimation.time = lidarAnimation.getClip().duration; // Встановлюємо час в кінець
-                lidarAnimation.timeScale = -1; // Назад
-                lidarAnimation.play();
-                lidarState = "closed";
-                console.log("Lidar1 закривається");
-              }
-            }
-          });
-
-          console.log("Кнопка toggle-camera налаштована для Lidar1 анімації");
-        } else {
-          console.log("Кнопка toggle-camera не знайдена");
-        }
-
-        // Налаштування кнопки change-color для зміни кольору червоних частин
-        const changeColorButton = document.getElementById("change-color");
-        if (changeColorButton) {
-          // Знаходимо всі червоні елементи
-          const redElements = [];
+        // Зберігаємо початкові кольори board частин для FIXAR 025
+        if (droneName === "FIXAR 025") {
+          const boardNames = ["board_001", "board_002", "board_003"];
 
           model.traverse((child) => {
-            if (child.isMesh && child.material && child.material.color) {
-              const color = child.material.color;
-              const r = Math.round(color.r * 255);
-              const g = Math.round(color.g * 255);
-              const b = Math.round(color.b * 255);
-
-              // Перевіряємо чи це червоний колір (як у попередньому коді)
-              if (r > 200 && g < 50 && b < 50) {
-                redElements.push(child);
-                console.log(
-                  `Знайдено червоний елемент: ${child.name || "unnamed"}`
-                );
+            if (child.isMesh && child.name && boardNames.includes(child.name)) {
+              if (child.material && child.material.color) {
+                // Зберігаємо копію початкового кольору
+                window.originalBoardColors[child.name] = {
+                  r: child.material.color.r,
+                  g: child.material.color.g,
+                  b: child.material.color.b,
+                };
               }
             }
           });
-
-          changeColorButton.addEventListener("click", () => {
-            redElements.forEach((element) => {
-              if (element.material && element.material.color) {
-                element.material.color.setHex(0x4d784e); // Змінюємо на #4D784E
-                console.log(
-                  `Змінено колір елемента: ${element.name || "unnamed"}`
-                );
-              }
-            });
-            console.log(
-              `Змінено колір ${redElements.length} червоних елементів на #4D784E`
-            );
-          });
-
-          console.log(
-            `Кнопка change-color налаштована. Знайдено ${redElements.length} червоних елементів`
-          );
-        } else {
-          console.log("Кнопка change-color не знайдена");
         }
-      }
 
-      animate();
-    },
-    undefined,
-    (error) => {
-      console.error("Error loading model:", error);
-    }
-  );
+        scene.add(model);
+
+        // Налаштування камери тільки для першої завантаженої моделі
+        if (droneName === "FIXAR 025") {
+          camera.position.set(0, 2, 8);
+          camera.lookAt(0, 0, 0);
+          controls.target.set(0, 0, 0);
+        }
+
+        // Animation
+        if (gltf.animations && gltf.animations.length > 0) {
+          const modelMixer = new THREE.AnimationMixer(model);
+
+          // Зберігаємо mixer для цієї конкретної моделі
+          if (window.animations.models[droneName]) {
+            window.animations.models[droneName].mixer = modelMixer;
+          }
+
+          // Для першої моделі також зберігаємо в глобальний mixer
+          if (droneName === "FIXAR 025") {
+            mixer = modelMixer;
+          }
+
+          // Animations found: gltf.animations.length
+
+          // Обробляємо всі анімації
+          gltf.animations.forEach((animation, index) => {
+            const action = modelMixer.clipAction(animation);
+            action.timeScale = 1;
+
+            // Перевіряємо чи це анімація пропелерів (містить "flight" у назві)
+            const isFlightAnimation = animation.name
+              .toLowerCase()
+              .includes("flight");
+
+            if (isFlightAnimation) {
+              // Анімація пропелерів - запускаємо одразу з безкінечним циклом
+              action.setLoop(THREE.LoopRepeat, Infinity);
+              action.enabled = true;
+              action.weight = 1;
+              action.play();
+            } else {
+              // Решту анімацій налаштовуємо для одноразового програвання
+              action.setLoop(THREE.LoopOnce);
+              action.clampWhenFinished = true; // Зупиняємось на останньому кадрі
+              action.enabled = false;
+              action.weight = 0;
+              action.time = 0;
+              action.stop();
+              action.reset();
+            }
+
+            // Зберігаємо в масив анімацій для цієї моделі
+            if (window.animations.models[droneName]) {
+              window.animations.models[droneName].actions.push(action);
+            }
+          });
+        }
+
+        // Запускаємо анімацію тільки для першої моделі
+        if (droneName === "FIXAR 025") {
+          animate();
+        }
+      },
+      undefined,
+      (error) => {
+        console.error(`Помилка завантаження моделі ${droneName}:`, error);
+      }
+    );
+  };
 
   const clock = new THREE.Clock();
 
@@ -306,7 +375,14 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(animate);
 
     const delta = clock.getDelta();
-    if (mixer) mixer.update(delta);
+
+    // Оновлюємо всі mixer-и для всіх завантажених моделей
+    Object.keys(window.animations.models).forEach((modelName) => {
+      const model = window.animations.models[modelName];
+      if (model && model.mixer) {
+        model.mixer.update(delta);
+      }
+    });
 
     controls.update();
     renderer.render(scene, camera);
@@ -319,4 +395,988 @@ document.addEventListener("DOMContentLoaded", () => {
       renderer.setSize(container.clientWidth, container.clientHeight);
     }
   });
+
+  // Завантажуємо моделі: спочатку FIXAR 025 (за замовчуванням), потім інші
+  loadDroneModel("FIXAR 025", true); // Показуємо одразу
+
+  // Завантажуємо інші моделі в фоні після невеликої затримки
+  setTimeout(() => {
+    loadDroneModel("FIXAR 007 LE", false);
+    loadDroneModel("FIXAR 007 NG", false);
+  }, 1000);
+
+  // ============================================
+  // SWIPER - APPLICATIONS SLIDER
+  // ============================================
+  var swiper = new Swiper(".swiper.is--applications", {
+    slidesPerView: "auto",
+    spaceBetween: 19,
+
+    navigation: {
+      nextEl: ".sw-button-next",
+      prevEl: ".sw-button-prev",
+    },
+  });
+
+  var swiper2 = new Swiper(".swiper.is--applications-big", {
+    slidesPerView: 1,
+    spaceBetween: 10,
+
+    navigation: {
+      nextEl: ".s-button.s-button-next",
+      prevEl: ".s-button.s-button-prev",
+    },
+
+    on: {
+      slideChange: function () {
+        // Тепер просто використовуємо activeIndex
+        // Всі слайди реальні, без прихованих
+        updateProgressIndicators(this.activeIndex);
+      },
+    },
+  });
+
+  // ============================================
+  // ЗБЕРЕЖЕННЯ ШАБЛОНІВ СЛАЙДІВ ДРУГОГО СЛАЙДЕРА
+  // ============================================
+
+  // Глобальне сховище шаблонів слайдів для другого слайдера
+  window.bigSliderTemplates = {};
+
+  // Функція для збереження всіх слайдів як шаблонів
+  function saveBigSliderTemplates() {
+    const allBigSlides = document.querySelectorAll(
+      ".swiper.is--applications-big .swiper-slide"
+    );
+
+    allBigSlides.forEach((slide) => {
+      const appName = slide.getAttribute("data-application-name");
+      if (appName) {
+        // Зберігаємо клон слайда з усім вмістом
+        window.bigSliderTemplates[appName] = slide.cloneNode(true);
+      }
+    });
+
+    console.log(
+      `Збережено ${
+        Object.keys(window.bigSliderTemplates).length
+      } шаблонів слайдів`
+    );
+  }
+
+  // Зберігаємо шаблони при завантаженні
+  saveBigSliderTemplates();
+
+  // ============================================
+  // ВІДКРИТТЯ/ЗАКРИТТЯ ДРУГОГО СЛАЙДЕРА
+  // ============================================
+
+  // Функція для відкриття другого слайдера на потрібному слайді
+  function openBigSlider(visibleSlideIndex) {
+    // Просто переходимо до потрібного слайда
+    // Тепер індекси співпадають: 3-й слайд першого = 3-й слайд другого
+    swiper2.slideTo(visibleSlideIndex, 0); // 0 = без анімації
+
+    // Оновлюємо індикатори прогресу для вибраного слайда
+    updateProgressIndicators(visibleSlideIndex);
+
+    // Відкриваємо слайдер
+    if (sliderBg) sliderBg.style.display = "block";
+    if (sliderParent) sliderParent.classList.add("is--active");
+  }
+
+  // Функція для закриття другого слайдера
+  function closeBigSlider() {
+    if (sliderBg) sliderBg.style.display = "none";
+    if (sliderParent) sliderParent.classList.remove("is--active");
+  }
+
+  // Додаємо обробники кліку на слайди першого слайдера
+  function addSlideClickHandlers() {
+    const firstSliderSlides = document.querySelectorAll(
+      ".swiper.is--applications .swiper-slide"
+    );
+
+    firstSliderSlides.forEach((slide) => {
+      slide.addEventListener("click", () => {
+        // Перевіряємо чи слайд видимий
+        if (slide.style.display === "none") return;
+
+        // Знаходимо всі слайди першого слайдера
+        const allSlides = document.querySelectorAll(
+          ".swiper.is--applications .swiper-slide"
+        );
+
+        // Рахуємо індекс серед видимих слайдів
+        let visibleIndex = 0;
+        for (let i = 0; i < allSlides.length; i++) {
+          if (allSlides[i].style.display !== "none") {
+            // Порівнюємо сам елемент, а не індекс
+            if (allSlides[i] === slide) {
+              break;
+            }
+            visibleIndex++;
+          }
+        }
+
+        // Відкриваємо другий слайдер на відповідному слайді
+        openBigSlider(visibleIndex);
+      });
+    });
+  }
+
+  // Додаємо обробники кліку
+  addSlideClickHandlers();
+
+  // Обробник закриття другого слайдера
+  if (closeSliderBtn) {
+    closeSliderBtn.addEventListener("click", () => {
+      closeBigSlider();
+    });
+  }
+
+  // Функція для фільтрації слайдів application на основі обраного модуля
+  function filterApplicationSlides(moduleItem) {
+    const allSlides = document.querySelectorAll(
+      ".swiper.is--applications .swiper-slide"
+    );
+    const totalApplicationsEl = document.querySelector(".total-applications");
+    const activeApplicationsEl = document.querySelector(".active-applications");
+
+    const totalCount = allSlides.length;
+    let activeCount = totalCount;
+
+    if (!moduleItem) {
+      // Якщо модуль не обрано - показуємо всі слайди
+      allSlides.forEach((slide) => {
+        slide.style.display = "";
+      });
+      swiper.update();
+
+      // Оновлюємо лічильники
+      if (totalApplicationsEl) totalApplicationsEl.textContent = totalCount;
+      if (activeApplicationsEl) activeApplicationsEl.textContent = totalCount;
+      return;
+    }
+
+    // Отримуємо всі елементи .for-application для обраного модуля
+    const forApplicationElements =
+      moduleItem.querySelectorAll(".for-application");
+    if (!forApplicationElements || forApplicationElements.length === 0) {
+      // Якщо немає інформації про застосування - показуємо всі слайди
+      allSlides.forEach((slide) => {
+        slide.style.display = "";
+      });
+      swiper.update();
+
+      // Оновлюємо лічильники
+      if (totalApplicationsEl) totalApplicationsEl.textContent = totalCount;
+      if (activeApplicationsEl) activeApplicationsEl.textContent = totalCount;
+      return;
+    }
+
+    // Збираємо всі назви застосувань з елементів
+    const applications = Array.from(forApplicationElements).map((el) =>
+      el.textContent.trim()
+    );
+
+    // Фільтруємо слайди та рахуємо активні
+    activeCount = 0;
+    allSlides.forEach((slide) => {
+      const applicationName = slide.getAttribute("data-application-name");
+
+      if (applicationName && applications.includes(applicationName)) {
+        slide.style.display = "";
+        activeCount++;
+      } else {
+        slide.style.display = "none";
+      }
+    });
+
+    // Оновлюємо лічильники
+    if (totalApplicationsEl) totalApplicationsEl.textContent = totalCount;
+    if (activeApplicationsEl) activeApplicationsEl.textContent = activeCount;
+
+    // Оновлюємо swiper після зміни видимості слайдів
+    swiper.update();
+  }
+
+  // Функція для оновлення індикаторів прогресу
+  function updateProgressIndicators(activeSlideIndex = 0) {
+    const progressContainer = document.querySelector(
+      ".applications-big-slider-progress"
+    );
+
+    if (!progressContainer) return;
+
+    // Отримуємо кількість слайдів безпосередньо зі swiper2
+    // Тепер всі слайди видимі, немає прихованих
+    const visibleCount = swiper2.slides.length;
+
+    // Встановлюємо grid-template-columns для відображення всіх індикаторів в один рядок
+    progressContainer.style.gridTemplateColumns = `repeat(${visibleCount}, 1fr)`;
+
+    // Очищаємо контейнер
+    progressContainer.innerHTML = "";
+
+    // Створюємо індикатори для кожного слайда
+    for (let i = 0; i < visibleCount; i++) {
+      const indicator = document.createElement("div");
+      indicator.className = "applications-big-slider-progress-item";
+
+      // Додаємо клас is--active для індикаторів до поточного включно
+      if (i <= activeSlideIndex) {
+        indicator.classList.add("is--active");
+      }
+
+      progressContainer.appendChild(indicator);
+    }
+  }
+
+  // Функція для фільтрації слайдів у другому слайдері (swiper2)
+  function filterApplicationSlidesBig(moduleItem) {
+    if (!moduleItem) {
+      // Якщо модуль не обрано - відновлюємо всі слайди з шаблонів
+      swiper2.removeAllSlides();
+
+      const allSlideTemplates = Object.values(window.bigSliderTemplates);
+      allSlideTemplates.forEach((slideTemplate) => {
+        const clone = slideTemplate.cloneNode(true);
+        // Очищаємо inline стилі ширини
+        clone.style.width = "";
+        clone.style.marginRight = "";
+        swiper2.appendSlide(clone);
+      });
+
+      // Оновлюємо swiper після додавання слайдів
+      swiper2.update();
+
+      // Ховаємо sliderBg та sliderParent
+      if (sliderBg) sliderBg.style.display = "none";
+      if (sliderParent) sliderParent.classList.remove("is--active");
+
+      // Очищаємо індикатори прогресу
+      const progressContainer = document.querySelector(
+        ".applications-big-slider-progress"
+      );
+      if (progressContainer) progressContainer.innerHTML = "";
+
+      return;
+    }
+
+    // Отримуємо всі елементи .for-application для обраного модуля
+    const forApplicationElements =
+      moduleItem.querySelectorAll(".for-application");
+
+    if (!forApplicationElements || forApplicationElements.length === 0) {
+      // Якщо немає інформації про застосування - показуємо всі слайди
+      swiper2.removeAllSlides();
+
+      const allSlideTemplates = Object.values(window.bigSliderTemplates);
+      allSlideTemplates.forEach((slideTemplate) => {
+        const clone = slideTemplate.cloneNode(true);
+        // Очищаємо inline стилі ширини
+        clone.style.width = "";
+        clone.style.marginRight = "";
+        swiper2.appendSlide(clone);
+      });
+
+      // Оновлюємо swiper після додавання слайдів
+      swiper2.update();
+
+      updateProgressIndicators(0);
+      return;
+    }
+
+    // Збираємо всі назви застосувань з елементів
+    const applications = Array.from(forApplicationElements).map((el) =>
+      el.textContent.trim()
+    );
+
+    // Очищаємо другий слайдер
+    swiper2.removeAllSlides();
+
+    // Додаємо тільки потрібні слайди з шаблонів
+    applications.forEach((appName) => {
+      if (window.bigSliderTemplates[appName]) {
+        const clone = window.bigSliderTemplates[appName].cloneNode(true);
+        // Очищаємо inline стилі ширини
+        clone.style.width = "";
+        clone.style.marginRight = "";
+        swiper2.appendSlide(clone);
+      }
+    });
+
+    // Оновлюємо swiper після додавання слайдів
+    swiper2.update();
+
+    // Оновлюємо індикатори прогресу (починаємо з 0 індексу)
+    updateProgressIndicators(0);
+  }
+
+  // ============================================
+  // DROPDOWN (TECHNOLOGIES, MODULES)
+  // ============================================
+  function initDropdown(
+    blockSelector,
+    listSelector,
+    itemsSelector,
+    onlyVisible = false
+  ) {
+    const blocks = document.querySelectorAll(blockSelector);
+
+    blocks.forEach((block) => {
+      const list = block.querySelector(listSelector);
+      let items = Array.from(block.querySelectorAll(itemsSelector));
+
+      // Фільтруємо тільки видимі елементи якщо потрібно
+      if (onlyVisible) {
+        items = items.filter((item) => {
+          const style = window.getComputedStyle(item);
+          return style.display !== "none";
+        });
+      }
+
+      if (!block || !list || !items || items.length === 0) {
+        return;
+      }
+
+      const btn = block.querySelector(".model_form-technologies-btn");
+
+      if (!btn) {
+        return;
+      }
+
+      // Клонуємо кнопку для видалення старих обробників подій
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+
+      if (items.length > 3) {
+        // Скидаємо maxHeight для коректного обчислення висоти
+        list.style.maxHeight = "none";
+
+        // Скидаємо клас collapsed
+        newBtn.classList.add("collapsed");
+
+        const listRect = block.getBoundingClientRect();
+        const itemRect = items[2].getBoundingClientRect();
+        const btnText = newBtn.querySelector(".load-more-text");
+        const span = newBtn.querySelector(".number-of-technologies");
+        const height = itemRect.bottom - listRect.top;
+
+        // Встановлюємо початковий згорнутий стан
+        list.style.maxHeight = `${height}px`;
+        span.textContent = `${items.length - 3}`;
+
+        newBtn.addEventListener("click", () => {
+          if (newBtn.classList.contains("collapsed")) {
+            list.style.maxHeight = list.scrollHeight + "px";
+            btnText.textContent = "Show less";
+            span.textContent = `${items.length - 3}`;
+            newBtn.classList.remove("collapsed");
+          } else {
+            list.style.maxHeight = `${height}px`;
+            btnText.textContent = "Show more";
+            span.textContent = `${items.length - 3}`;
+            newBtn.classList.add("collapsed");
+          }
+        });
+      } else {
+        // Якщо елементів 3 або менше - показуємо всі і ховаємо кнопку
+        list.style.maxHeight = "none";
+        newBtn.style.display = "none";
+      }
+    });
+  }
+
+  // Ініціалізація блоків технологій
+  initDropdown(
+    ".model_form-technologies-elem",
+    ".model_form-technologies-wrp",
+    ".model_form-technologies-item"
+  );
+
+  // Ініціалізація блоків модулів (тільки видимі елементи)
+  initDropdown(
+    ".modules-list-drop",
+    ".modules-list-wrp",
+    ".modules-item",
+    true
+  );
+  initDropdown(
+    ".modules-list-drop",
+    ".modules-list-wrp",
+    ".modules-link",
+    true
+  );
+
+  // ============================================
+  // FORM - CONFIGURATOR
+  // ============================================
+  const form = document.querySelector(".model_form");
+
+  if (form) {
+    const submitBtn = form.querySelector(".submit");
+    const droneBtns = document.querySelectorAll(".nav_config-drones-item");
+
+    submitBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData);
+      // Редірект на сторінку з параметрами
+      window.location.href = `/configurator-form?${params.toString()}`;
+    });
+
+    // Встановлюємо перший дрон як активний за замовчуванням
+    if (droneBtns.length > 0) {
+      droneBtns[0].classList.add("is--active");
+      const defalutDroneValue = droneBtns[0].getAttribute("data-drone-name");
+
+      if (resultDrone) {
+        resultDrone.querySelector("h3").textContent = defalutDroneValue;
+        resultDrone.querySelector("p").textContent = droneBtns[0].getAttribute(
+          "data-choice-description"
+        );
+        resultDrone
+          .querySelector("img")
+          .setAttribute(
+            "src",
+            droneBtns[0].querySelector("img").getAttribute("src")
+          );
+      }
+
+      // Input для drone model
+      const hidenDroneInput = document.createElement("input");
+      hidenDroneInput.setAttribute("type", "hidden");
+      hidenDroneInput.setAttribute("name", "Drone Model");
+      hidenDroneInput.setAttribute("value", defalutDroneValue);
+      form.prepend(hidenDroneInput);
+
+      // Drone selects clicks
+      droneBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const droneValue = btn.getAttribute("data-drone-name");
+          const modulesList = document.querySelectorAll(".modules-item");
+
+          // Diselect module
+          modulesList.forEach((m) => {
+            const input = m.querySelector("input");
+            if (input) {
+              input.checked = false;
+            }
+          });
+
+          // Ховаємо resultModule при зміні дрона
+          if (resultModule) {
+            resultModule.style.display = "none";
+          }
+
+          // Скидаємо фільтрацію application слайдів
+          filterApplicationSlides(null);
+          filterApplicationSlidesBig(null);
+
+          // Зупиняємо всі анімації крім flight при зміні дрона
+          if (window.animations && window.animations.stopAll) {
+            window.animations.stopAll();
+          }
+
+          droneBtns.forEach((btn) => {
+            btn.classList.remove("is--active");
+          });
+          hidenDroneInput.setAttribute("value", droneValue);
+
+          btn.classList.add("is--active");
+          filterAddons();
+          filterDataLinks();
+
+          // Перезапускаємо dropdown для модулів після фільтрації
+          initDropdown(
+            ".modules-list-drop",
+            ".modules-list-wrp",
+            ".modules-item",
+            true
+          );
+          initDropdown(
+            ".modules-list-drop",
+            ".modules-list-wrp",
+            ".modules-link",
+            true
+          );
+
+          // Скидаємо вибір modules-link
+          resetModulesLinkSelection();
+
+          // Перефільтровуємо modules-link блоки
+          filterModulesLinksByCategory();
+
+          if (resultDrone) {
+            resultDrone.querySelector("h3").textContent = droneValue;
+            resultDrone.querySelector("p").textContent = btn.getAttribute(
+              "data-choice-description"
+            );
+            resultDrone
+              .querySelector("img")
+              .setAttribute(
+                "src",
+                btn.querySelector("img").getAttribute("src")
+              );
+          }
+          // Показуємо відповідну модель дрону
+          if (window.showDroneModel) {
+            window.showDroneModel(droneValue);
+          }
+        });
+      });
+    }
+
+    // ============================================
+    // COLOR FIELDS
+    // ============================================
+    const colorFields = document.querySelectorAll(".radio_input-color");
+    const colorName = document.querySelector("[data-color-name]");
+    const colorDescription = document.querySelector("[data-color-description]");
+
+    if (resultColor && colorFields.length > 0) {
+      const firstColorField = colorFields[0];
+      resultColor.querySelector("[data-res-color-name]").textContent =
+        firstColorField.value;
+      resultColor.querySelector("p").textContent =
+        firstColorField.dataset.description;
+
+      // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
+      const colorBtn = firstColorField.parentElement?.querySelector(
+        ".model_form-color-btn"
+      );
+
+      if (colorBtn) {
+        const bgColor = window.getComputedStyle(colorBtn).backgroundColor;
+        resultColor.querySelector(
+          ".model_form-color-btn-res"
+        ).style.backgroundColor = bgColor;
+      }
+    }
+
+    colorFields.forEach((field) => {
+      const name = field.value;
+      const descr = field.dataset.description;
+
+      field.addEventListener("change", () => {
+        if (resultColor) {
+          resultColor.querySelector("[data-res-color-name]").textContent =
+            field.value;
+          resultColor.querySelector("p").textContent =
+            field.dataset.description;
+
+          // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
+          const colorBtn = field.parentElement?.querySelector(
+            ".model_form-color-btn"
+          );
+
+          if (colorBtn) {
+            const bgColor = window.getComputedStyle(colorBtn).backgroundColor;
+            resultColor.querySelector(
+              ".model_form-color-btn-res"
+            ).style.backgroundColor = bgColor;
+          }
+        }
+
+        if (colorName) colorName.textContent = name;
+        if (colorDescription) colorDescription.textContent = descr;
+
+        // Шукаємо батьківський елемент з кольором
+        let btn = field.closest(".model_form-color-btn");
+
+        if (!btn) {
+          btn = field.closest(".model_form-color-item");
+        }
+
+        if (!btn) {
+          btn = field.parentElement;
+        }
+
+        if (!btn) {
+          console.error("❌ Не знайдено батьківський елемент!");
+          return;
+        }
+
+        // Шукаємо елемент .model_form-color-btn з кольором
+        let colorElement = btn.querySelector(".model_form-color-btn");
+        if (!colorElement && btn.classList.contains("model_form-color-btn")) {
+          colorElement = btn;
+        }
+        if (!colorElement) {
+          colorElement = field
+            .closest("label")
+            ?.querySelector(".model_form-color-btn");
+        }
+        if (!colorElement) {
+          colorElement = field.parentElement?.querySelector(
+            ".model_form-color-btn"
+          );
+        }
+
+        let colorValue;
+        if (colorElement) {
+          const styles = window.getComputedStyle(colorElement);
+          colorValue = styles.backgroundColor;
+        } else {
+          colorValue = window.getComputedStyle(btn).backgroundColor;
+        }
+
+        // Конвертуємо RGB в HEX
+        const rgbMatch = colorValue.match(/\d+/g);
+
+        if (rgbMatch && rgbMatch.length >= 3) {
+          const r = parseInt(rgbMatch[0]);
+          const g = parseInt(rgbMatch[1]);
+          const b = parseInt(rgbMatch[2]);
+          const hexColor = `#${r.toString(16).padStart(2, "0")}${g
+            .toString(16)
+            .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+
+          // Змінюємо колір елементів з матеріалом "red" у всіх моделях одразу
+          if (window.changeColorByMaterialName) {
+            const droneModels = ["FIXAR 025", "FIXAR 007 LE", "FIXAR 007 NG"];
+            let notLoadedModels = [];
+
+            // Функція для зміни кольору в моделі (шукаємо за матеріалом "red")
+            const changeColorInModel = (modelName) => {
+              const changedCount = window.changeColorByMaterialName(
+                "red",
+                hexColor,
+                modelName
+              );
+
+              if (changedCount === 0) {
+                notLoadedModels.push(modelName);
+              }
+            };
+
+            // Змінюємо колір в завантажених моделях
+            droneModels.forEach(changeColorInModel);
+
+            // Якщо є незавантажені моделі, чекаємо і пробуємо знову
+            if (notLoadedModels.length > 0) {
+              setTimeout(() => {
+                notLoadedModels.forEach((modelName) => {
+                  window.changeColorByMaterialName("red", hexColor, modelName);
+                });
+              }, 1500);
+            }
+
+            // Обробка board частин для FIXAR 025
+            // Перевіряємо чи обраний колір червоний
+            const isRedColor = r > 200 && r > g + 50 && r > b + 50;
+
+            const boardNames = ["board_001", "board_002", "board_003"];
+            const model025 = window.loadedModels["FIXAR 025"];
+
+            if (model025) {
+              model025.traverse((child) => {
+                if (child.isMesh && boardNames.includes(child.name)) {
+                  if (child.material && child.material.color) {
+                    if (isRedColor) {
+                      // Якщо обраний червоний - повертаємо початковий колір
+                      const originalColor =
+                        window.originalBoardColors[child.name];
+                      if (originalColor) {
+                        child.material.color.setRGB(
+                          originalColor.r,
+                          originalColor.g,
+                          originalColor.b
+                        );
+                      }
+                    } else {
+                      // Якщо НЕ червоний - фарбуємо в обраний колір
+                      child.material.color.setHex(
+                        parseInt(hexColor.replace("#", ""), 16)
+                      );
+                    }
+                  }
+                }
+              });
+            }
+          }
+        }
+      });
+    });
+
+    // ============================================
+    // FILTER ADDONS
+    // ============================================
+    function filterAddons() {
+      const activeDrone = document.querySelector(
+        ".nav_config-drones-item.is--active"
+      );
+
+      if (!activeDrone) return;
+
+      const activeDroneName = activeDrone.getAttribute("data-drone-name");
+      const modulesList = document.querySelectorAll(".modules-item");
+
+      modulesList.forEach((item) => {
+        const forDroneElement = item.querySelector(".for-drone-model");
+        if (!forDroneElement) return;
+
+        const dronesNamesStr = forDroneElement.textContent;
+        const models = dronesNamesStr.split(",").map((word) => word.trim());
+
+        // Перевірка чи activeDroneName є в масиві models
+        if (models.includes(activeDroneName)) {
+          item.style.display = "block";
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+
+    filterAddons();
+
+    // ============================================
+    // FILTER DATA LINKS
+    // ============================================
+    function filterDataLinks() {
+      const activeDrone = document.querySelector(
+        ".nav_config-drones-item.is--active"
+      );
+
+      if (!activeDrone) return;
+
+      const activeDroneName = activeDrone.getAttribute("data-drone-name");
+      const modulesList = document.querySelectorAll(".modules-link");
+
+      modulesList.forEach((item) => {
+        const forDroneElement = item.querySelector(".for-drone-model");
+        if (!forDroneElement) return;
+
+        const dronesNamesStr = forDroneElement.textContent;
+        const models = dronesNamesStr.split(",").map((word) => word.trim());
+
+        // Перевірка чи activeDroneName є в масиві models
+        if (models.includes(activeDroneName)) {
+          item.style.display = "block";
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+    filterDataLinks();
+
+    // ============================================
+    // MODULES-LINK FILTERING FUNCTIONS
+    // ============================================
+
+    // Функція скидання вибору modules-link
+    function resetModulesLinkSelection() {
+      const allModulesLinkInputs = document.querySelectorAll(
+        ".modules-link input"
+      );
+      allModulesLinkInputs.forEach((input) => {
+        input.checked = false;
+      });
+
+      // Ховаємо optional блок
+      if (optional) {
+        optional.style.display = "none";
+      }
+    }
+
+    // Функція фільтрації modules-link блоків по категорії modules-item
+    function filterModulesLinksByCategory() {
+      // Знаходимо активний modules-item (checked input)
+      const activeModuleInput = document.querySelector(
+        ".modules-item input:checked"
+      );
+
+      if (!activeModuleInput) {
+        // Якщо немає активного - ховаємо telemetryOnly, показуємо telemetryVideo
+        if (telemetryOnly) {
+          telemetryOnly.style.display = "none";
+        }
+        if (telemetryVideo) {
+          telemetryVideo.style.display = "flex";
+        }
+        return;
+      }
+
+      // Знаходимо найближчий h2 (категорію)
+      const moduleItem = activeModuleInput.closest(".modules-item");
+      if (!moduleItem) return;
+
+      // Шукаємо h2 в батьківських елементах
+      let categoryH2 = null;
+      let parent = moduleItem.parentElement;
+
+      while (parent && !categoryH2) {
+        categoryH2 = parent.querySelector("h2");
+        if (categoryH2) break;
+        parent = parent.parentElement;
+      }
+
+      if (!categoryH2) return;
+
+      const category = categoryH2.textContent.trim().toLowerCase();
+
+      // Застосовуємо правила фільтрації (порівняння в нижньому регістрі)
+      const telemetryOnlyCategories = modulesLinksParameters.telemetryOnly.map(
+        (cat) => cat.toLowerCase()
+      );
+      if (telemetryOnlyCategories.includes(category)) {
+        // Показуємо telemetryOnly
+        if (telemetryOnly) {
+          telemetryOnly.style.display = "flex";
+        }
+      } else {
+        // Ховаємо telemetryOnly
+        if (telemetryOnly) {
+          telemetryOnly.style.display = "none";
+        }
+      }
+
+      // telemetryVideo завжди показуємо
+      if (telemetryVideo) {
+        telemetryVideo.style.display = "flex";
+      }
+    }
+
+    // Функція обробки вибору modules-link (для показу optional блоку)
+    function handleModulesLinkSelection() {
+      const allModulesLinkInputs = document.querySelectorAll(
+        ".modules-link input"
+      );
+
+      allModulesLinkInputs.forEach((input) => {
+        input.addEventListener("change", () => {
+          if (input.checked) {
+            // Отримуємо value обраного input
+            const value = input.value || "";
+
+            // Отримуємо активний дрон
+            const activeDrone = document.querySelector(
+              ".nav_config-drones-item.is--active"
+            );
+            const activeDroneName = activeDrone
+              ? activeDrone.getAttribute("data-drone-name")
+              : "";
+
+            // Перевіряємо умови для показу optional
+            if (activeDroneName === "FIXAR 025" && value.includes("DTC")) {
+              if (optional) {
+                optional.style.display = "flex";
+              }
+            } else {
+              if (optional) {
+                optional.style.display = "none";
+              }
+            }
+          } else {
+            // Якщо дізчекнули - ховаємо optional
+            if (optional) {
+              optional.style.display = "none";
+            }
+          }
+        });
+      });
+    }
+
+    // Ініціалізація обробників для modules-link
+    handleModulesLinkSelection();
+
+    // Початкова фільтрація modules-link блоків
+    filterModulesLinksByCategory();
+
+    // ============================================
+    // MODULE ANIMATIONS
+    // ============================================
+    const modulesList = document.querySelectorAll(".modules-item");
+    modulesList.forEach((moduleItem) => {
+      const input = moduleItem.querySelector("input");
+      if (input) {
+        input.addEventListener("change", () => {
+          if (input.checked) {
+            const animationName = input.value;
+
+            // Дізчекаємо всі інші модулі
+            modulesList.forEach((otherModule) => {
+              const otherInput = otherModule.querySelector("input");
+              if (otherInput && otherInput !== input) {
+                otherInput.checked = false;
+              }
+            });
+
+            // Оновлюємо блок resultModule
+            if (resultModule) {
+              // Отримуємо дані з вибраного модуля
+              const moduleImg = moduleItem.querySelector("img");
+              const moduleTitle = moduleItem.querySelector("h3");
+              const moduleDescription = moduleItem.querySelector(
+                "[data-module-description]"
+              );
+
+              // Оновлюємо resultModule
+              if (moduleImg) {
+                const resultImg = resultModule.querySelector("img");
+                if (resultImg) {
+                  resultImg.setAttribute("src", moduleImg.getAttribute("src"));
+                }
+              }
+
+              if (moduleTitle) {
+                const resultTitle = resultModule.querySelector("h3");
+                if (resultTitle) {
+                  resultTitle.textContent = moduleTitle.textContent;
+                }
+              }
+
+              if (moduleDescription) {
+                const resultDesc = resultModule.querySelector(
+                  "[data-module-description]"
+                );
+                if (resultDesc) {
+                  resultDesc.textContent = moduleDescription.textContent;
+                }
+              }
+
+              // Показуємо блок resultModule
+              resultModule.style.display = "flex";
+            }
+
+            // Фільтруємо application слайди на основі обраного модуля
+            filterApplicationSlides(moduleItem);
+            filterApplicationSlidesBig(moduleItem);
+
+            // Скидаємо вибір modules-link
+            resetModulesLinkSelection();
+
+            // Фільтруємо modules-link блоки по категорії
+            filterModulesLinksByCategory();
+
+            // Програємо анімацію
+            if (window.playAnimationByName) {
+              window.playAnimationByName(animationName);
+            }
+          } else {
+            // Якщо дізчекнули - ховаємо блок і зупиняємо всі анімації крім flight
+            if (resultModule) {
+              resultModule.style.display = "none";
+            }
+
+            // Скидаємо фільтрацію application слайдів
+            filterApplicationSlides(null);
+            filterApplicationSlidesBig(null);
+
+            // Скидаємо вибір modules-link
+            resetModulesLinkSelection();
+
+            // Ховаємо telemetryOnly та optional
+            filterModulesLinksByCategory();
+
+            if (window.animations && window.animations.stopAll) {
+              window.animations.stopAll();
+            }
+          }
+        });
+      }
+    });
+  }
 });
