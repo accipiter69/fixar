@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultDataLinkOptional = document.querySelector(
     "[data-choice=link-optional]"
   );
-
+  const resultModuleBadge = document.querySelector(".model_scene-gimbal");
+  const resultLinkBadge = document.querySelector(".range-selected");
   const sliderBg = document.querySelector(".slider-bg");
   const sliderParent = document.querySelector(".applications-big-slider");
   const closeSliderBtn = sliderParent.querySelector(".close-slider");
@@ -886,6 +887,10 @@ document.addEventListener("DOMContentLoaded", () => {
             resultDataLinkOptional.style.display = "none";
           }
 
+          // Ховаємо badges при зміні дрона
+          updateModuleBadge(null);
+          updateLinkBadge(null);
+
           // Скидаємо фільтрацію application слайдів
           filterApplicationSlides(null);
           filterApplicationSlidesBig(null);
@@ -1209,6 +1214,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (resultDataLinkOptional) {
         resultDataLinkOptional.style.display = "none";
       }
+      // Ховаємо link badge
+      updateLinkBadge(null);
     }
 
     // Функція фільтрації modules-link блоків по категорії modules-item
@@ -1325,12 +1332,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Оновлюємо resultDataLink
             updateDataLinkResult(modulesLinkItem);
+
+            // Оновлюємо link badge (only for non-optional)
+            updateLinkBadge(modulesLinkItem);
           } else {
             // Якщо дізчекнули - ховаємо optional та result блок
             if (optional) {
               optional.style.display = "none";
             }
             updateDataLinkResult(null);
+
+            // Ховаємо link badge
+            updateLinkBadge(null);
           }
         });
       });
@@ -1404,6 +1417,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateOptionalResult(optionalItem) {
       updateResultBlock(optionalItem, resultDataLinkOptional);
+    }
+
+    // ============================================
+    // BADGE UPDATE FUNCTIONS
+    // ============================================
+
+    /**
+     * Оновлює badge з категорією модуля
+     * @param {HTMLElement|null} moduleItem - Елемент обраного модуля, або null для ховання
+     */
+    function updateModuleBadge(moduleItem) {
+      if (!resultModuleBadge) return;
+
+      if (!moduleItem) {
+        resultModuleBadge.style.display = "none";
+        return;
+      }
+
+      // Знаходимо категорію h2 через DOM traversal (така ж логіка як filterModulesLinksByCategory)
+      let categoryH2 = null;
+      let parent = moduleItem.parentElement;
+
+      while (parent && !categoryH2) {
+        categoryH2 = parent.querySelector("h2");
+        if (categoryH2) break;
+        parent = parent.parentElement;
+      }
+
+      if (!categoryH2) {
+        console.warn("Could not find category h2 for module badge");
+        resultModuleBadge.style.display = "none";
+        return;
+      }
+
+      const categoryText = categoryH2.textContent.trim();
+
+      // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
+      const badgeTextElement = resultModuleBadge.querySelector(".text-16");
+      if (badgeTextElement) {
+        badgeTextElement.textContent = categoryText;
+        resultModuleBadge.style.display = "flex";
+      } else {
+        console.warn("Could not find .text-16 element inside resultModuleBadge");
+        resultModuleBadge.style.display = "none";
+      }
+    }
+
+    /**
+     * Оновлює badge з назвою data link
+     * @param {HTMLElement|null} modulesLinkItem - Елемент обраного modules-link, або null для ховання
+     */
+    function updateLinkBadge(modulesLinkItem) {
+      if (!resultLinkBadge) return;
+
+      if (!modulesLinkItem) {
+        resultLinkBadge.style.display = "none";
+        return;
+      }
+
+      // Отримуємо текст з .text-16 елемента modules-link
+      const linkTextElement = modulesLinkItem.querySelector(".text-16");
+
+      if (!linkTextElement) {
+        console.warn("Could not find .text-16 element in modules-link item");
+        resultLinkBadge.style.display = "none";
+        return;
+      }
+
+      const linkText = linkTextElement.textContent.trim();
+
+      // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
+      const badgeTextElement = resultLinkBadge.querySelector(".text-16");
+      if (badgeTextElement) {
+        badgeTextElement.textContent = linkText;
+        resultLinkBadge.style.display = "flex";
+      } else {
+        console.warn("Could not find .text-16 element inside resultLinkBadge");
+        resultLinkBadge.style.display = "none";
+      }
     }
 
     // ============================================
@@ -1504,12 +1596,18 @@ document.addEventListener("DOMContentLoaded", () => {
               resultModule.style.display = "flex";
             }
 
+            // Оновлюємо module badge
+            updateModuleBadge(moduleItem);
+
             // Фільтруємо application слайди на основі обраного модуля
             filterApplicationSlides(moduleItem);
             filterApplicationSlidesBig(moduleItem);
 
             // Скидаємо вибір modules-link
             resetModulesLinkSelection();
+
+            // Ховаємо link badge (module changed, data link reset)
+            updateLinkBadge(null);
 
             // Фільтруємо modules-link блоки по категорії
             filterModulesLinksByCategory();
@@ -1523,6 +1621,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (resultModule) {
               resultModule.style.display = "none";
             }
+
+            // Ховаємо module badge
+            updateModuleBadge(null);
 
             // Скидаємо фільтрацію application слайдів
             filterApplicationSlides(null);
@@ -1555,6 +1656,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (resultDataLinkOptional) {
       resultDataLinkOptional.style.display = "none";
+    }
+    // Початково ховаємо badges
+    if (resultModuleBadge) {
+      resultModuleBadge.style.display = "none";
+    }
+    if (resultLinkBadge) {
+      resultLinkBadge.style.display = "none";
     }
   }
 });
