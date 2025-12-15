@@ -1,5 +1,3 @@
-console.log("penis");
-
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025": "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025.glb",

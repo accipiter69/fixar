@@ -829,6 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const formData = new FormData(form);
       const params = new URLSearchParams(formData);
+      console.log("Form data to be sent:", Object.fromEntries(formData));
       // Редірект на сторінку з параметрами
       window.location.href = `/configurator-form?${params.toString()}`;
     });
@@ -1667,4 +1668,333 @@ document.addEventListener("DOMContentLoaded", () => {
       resultLinkBadge.style.display = "none";
     }
   }
+
+  // ============================================
+  // URL QUERY PARAMETERS
+  // ============================================
+
+  // Helper function for delays
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Parse URL parameters
+  function parseUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const params = {};
+
+    for (const [key, value] of urlParams) {
+      params[key] = value; // URLSearchParams automatically decodes '+' to spaces
+    }
+
+    return params;
+  }
+
+  // Apply drone selection
+  function applyDroneSelection(droneName) {
+    return new Promise((resolve) => {
+      const droneBtn = document.querySelector(
+        `[data-drone-name="${droneName}"]`
+      );
+
+      if (!droneBtn) {
+        console.warn(
+          `Drone "${droneName}" not found. Available drones:`,
+          Array.from(document.querySelectorAll("[data-drone-name]")).map(
+            (btn) => btn.getAttribute("data-drone-name")
+          )
+        );
+        resolve(false);
+        return;
+      }
+
+      if (droneBtn.classList.contains("is--active")) {
+        console.log(`Drone "${droneName}" already selected`);
+        resolve(true);
+        return;
+      }
+
+      droneBtn.click();
+      console.log(`Applied drone: ${droneName}`);
+      resolve(true);
+    });
+  }
+
+  // Apply color selection
+  function applyColorSelection(colorName) {
+    const colorInput = document.querySelector(
+      `.radio_input-color[value="${colorName}"]`
+    );
+
+    if (!colorInput) {
+      console.warn(
+        `Color "${colorName}" not found. Available colors:`,
+        Array.from(document.querySelectorAll(".radio_input-color")).map(
+          (input) => input.value
+        )
+      );
+      return false;
+    }
+
+    if (colorInput.checked) {
+      console.log(`Color "${colorName}" already selected`);
+      return true;
+    }
+
+    colorInput.checked = true;
+    colorInput.dispatchEvent(new Event("change", { bubbles: true }));
+    console.log(`Applied color: ${colorName}`);
+    return true;
+  }
+
+  // Apply module selection
+  function applyModuleSelection(moduleValue) {
+    return new Promise((resolve) => {
+      const moduleInput = document.querySelector(
+        `.modules-item input[value="${moduleValue}"]`
+      );
+
+      if (!moduleInput) {
+        console.warn(
+          `Module "${moduleValue}" not found. Available modules:`,
+          Array.from(document.querySelectorAll(".modules-item input"))
+            .filter((input) => {
+              const item = input.closest(".modules-item");
+              return item && item.style.display !== "none";
+            })
+            .map((input) => input.value)
+        );
+        resolve(false);
+        return;
+      }
+
+      const moduleItem = moduleInput.closest(".modules-item");
+      if (moduleItem && moduleItem.style.display === "none") {
+        console.warn(
+          `Module "${moduleValue}" is not available for selected drone`
+        );
+        resolve(false);
+        return;
+      }
+
+      if (moduleInput.checked) {
+        console.log(`Module "${moduleValue}" already selected`);
+        resolve(true);
+        return;
+      }
+
+      moduleInput.checked = true;
+      moduleInput.dispatchEvent(new Event("change", { bubbles: true }));
+      console.log(`Applied module: ${moduleValue}`);
+      resolve(true);
+    });
+  }
+
+  // Apply data link selection
+  function applyDataLinkSelection(linkValue) {
+    return new Promise((resolve) => {
+      const linkInput = document.querySelector(
+        `.modules-link input:not(#optional input)[value="${linkValue}"]`
+      );
+
+      if (!linkInput) {
+        console.warn(
+          `Data Link "${linkValue}" not found. Available links:`,
+          Array.from(
+            document.querySelectorAll(
+              ".modules-link input:not(#optional input)"
+            )
+          )
+            .filter((input) => {
+              const item = input.closest(".modules-link");
+              return item && item.style.display !== "none";
+            })
+            .map((input) => input.value)
+        );
+        resolve(false);
+        return;
+      }
+
+      const linkItem = linkInput.closest(".modules-link");
+      if (linkItem && linkItem.style.display === "none") {
+        console.warn(
+          `Data Link "${linkValue}" is not available for selected configuration`
+        );
+        resolve(false);
+        return;
+      }
+
+      if (linkInput.checked) {
+        console.log(`Data Link "${linkValue}" already selected`);
+        resolve(true);
+        return;
+      }
+
+      linkInput.checked = true;
+      linkInput.dispatchEvent(new Event("change", { bubbles: true }));
+      console.log(`Applied data link: ${linkValue}`);
+      resolve(true);
+    });
+  }
+
+  // Apply optional data link selection
+  function applyOptionalDataLinkSelection(optionalValue) {
+    return new Promise((resolve) => {
+      const optional = document.querySelector("#optional");
+      if (!optional || optional.style.display === "none") {
+        console.warn(
+          `Optional data link not available (requires FIXAR 025 + DTC)`
+        );
+        resolve(false);
+        return;
+      }
+
+      const optionalInput = document.querySelector(
+        `#optional input[value="${optionalValue}"]`
+      );
+
+      if (!optionalInput) {
+        console.warn(
+          `Optional Data Link "${optionalValue}" not found. Available:`,
+          Array.from(document.querySelectorAll("#optional input")).map(
+            (input) => input.value
+          )
+        );
+        resolve(false);
+        return;
+      }
+
+      if (optionalInput.checked) {
+        console.log(`Optional Data Link "${optionalValue}" already selected`);
+        resolve(true);
+        return;
+      }
+
+      optionalInput.checked = true;
+      optionalInput.dispatchEvent(new Event("change", { bubbles: true }));
+      console.log(`Applied optional data link: ${optionalValue}`);
+      resolve(true);
+    });
+  }
+
+  // Main function to apply URL parameters
+  async function applyUrlParameters() {
+    const params = parseUrlParameters();
+
+    if (Object.keys(params).length === 0) {
+      return;
+    }
+
+    console.log("Applying URL parameters:", params);
+
+    // CRITICAL SEQUENCE:
+
+    // 1. Drone Model (resets everything else)
+    if (params["Drone Model"]) {
+      await applyDroneSelection(params["Drone Model"]);
+      await delay(300); // Allow filterAddons/filterDataLinks to complete
+    }
+
+    // 2. Color (independent)
+    if (params["color"]) {
+      applyColorSelection(params["color"]);
+      await delay(100);
+    }
+
+    // 3. Module (filters data links)
+    if (params["module"]) {
+      await applyModuleSelection(params["module"]);
+      await delay(300); // Allow filterModulesLinksByCategory to complete
+    }
+
+    // 4. Data Link
+    if (params["Data Link"]) {
+      await applyDataLinkSelection(params["Data Link"]);
+      await delay(200); // Allow #optional to appear if DTC
+    }
+
+    // 5. Data Link Optional
+    if (params["Data Link Optional"]) {
+      await applyOptionalDataLinkSelection(params["Data Link Optional"]);
+    }
+
+    console.log("URL parameters applied successfully");
+  }
+
+  // Generate share URL from current configuration
+  function generateShareUrl() {
+    const form = document.querySelector(".model_form");
+    if (!form) {
+      console.error("Form not found");
+      return null;
+    }
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+
+    // Add form data to URLSearchParams
+    for (const [key, value] of formData) {
+      if (value && value.trim() !== "") {
+        params.append(key, value);
+      }
+    }
+
+    // Build complete URL
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?${params.toString()}`;
+
+    return shareUrl;
+  }
+
+  // Initialize share button
+  function initShareButton() {
+    const shareBtn = document.querySelector("#share-link");
+
+    if (!shareBtn) {
+      console.warn('Share button with id="share-link" not found');
+      return;
+    }
+
+    shareBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      const shareUrl = generateShareUrl();
+
+      if (!shareUrl) {
+        return;
+      }
+
+      // Copy to clipboard using modern API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(shareUrl)
+          .then(() => {
+            console.log("Share URL copied to clipboard:", shareUrl);
+
+            // Visual feedback - temporarily change button text
+            const originalText = shareBtn.textContent;
+            shareBtn.textContent = "Copied!";
+            setTimeout(() => {
+              shareBtn.textContent = originalText;
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error("Failed to copy to clipboard:", err);
+            // Fallback: Show URL in prompt for manual copy
+            prompt("Copy this link to share:", shareUrl);
+          });
+      } else {
+        // Fallback for older browsers
+        prompt("Copy this link to share:", shareUrl);
+      }
+    });
+  }
+
+  // Initialize share button
+  initShareButton();
+
+  // Apply URL parameters after a delay to ensure DOM is ready
+  setTimeout(() => {
+    applyUrlParameters();
+  }, 1500);
 });
