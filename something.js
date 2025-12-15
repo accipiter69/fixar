@@ -15,6 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultDrone = document.querySelector("[data-choice=drone]");
   const resultColor = document.querySelector("[data-choice=color]");
   const resultModule = document.querySelector("[data-choice=module]");
+  const resultDataLink = document.querySelector("[data-choice=link]");
+  const resultDataLinkOptional = document.querySelector(
+    "[data-choice=link-optional]"
+  );
+  const resultModuleBadge = document.querySelector(".model_scene-gimbal");
+  const resultLinkBadge = document.querySelector(".range-selected");
   const sliderBg = document.querySelector(".slider-bg");
   const sliderParent = document.querySelector(".applications-big-slider");
   const closeSliderBtn = sliderParent.querySelector(".close-slider");
@@ -871,6 +877,20 @@ document.addEventListener("DOMContentLoaded", () => {
             resultModule.style.display = "none";
           }
 
+          // Ховаємо resultDataLink при зміні дрона
+          if (resultDataLink) {
+            resultDataLink.style.display = "none";
+          }
+
+          // Ховаємо resultDataLinkOptional при зміні дрона
+          if (resultDataLinkOptional) {
+            resultDataLinkOptional.style.display = "none";
+          }
+
+          // Ховаємо badges при зміні дрона
+          updateModuleBadge(null);
+          updateLinkBadge(null);
+
           // Скидаємо фільтрацію application слайдів
           filterApplicationSlides(null);
           filterApplicationSlidesBig(null);
@@ -1168,6 +1188,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Функція скидання вибору modules-link
     function resetModulesLinkSelection() {
+      // Дізчекаємо всі modules-link inputs
       const allModulesLinkInputs = document.querySelectorAll(
         ".modules-link input"
       );
@@ -1175,10 +1196,26 @@ document.addEventListener("DOMContentLoaded", () => {
         input.checked = false;
       });
 
+      // Дізчекаємо всі optional inputs
+      const optionalInputs = document.querySelectorAll("#optional input");
+      optionalInputs.forEach((input) => {
+        input.checked = false;
+      });
+
       // Ховаємо optional блок
       if (optional) {
         optional.style.display = "none";
       }
+
+      // Ховаємо result блоки
+      if (resultDataLink) {
+        resultDataLink.style.display = "none";
+      }
+      if (resultDataLinkOptional) {
+        resultDataLinkOptional.style.display = "none";
+      }
+      // Ховаємо link badge
+      updateLinkBadge(null);
     }
 
     // Функція фільтрації modules-link блоків по категорії modules-item
@@ -1247,8 +1284,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
       allModulesLinkInputs.forEach((input) => {
         input.addEventListener("change", () => {
+          // Ігноруємо inputs з #optional (вони обробляються окремо)
+          if (input.closest("#optional")) {
+            return;
+          }
+          // СПОЧАТКУ: Дізчекаємо всі інші modules-link inputs (radio behavior)
+          // Виключаємо optional inputs - вони скидаються окремо нижче
+          const allInputs = document.querySelectorAll(".modules-link input");
+          allInputs.forEach((otherInput) => {
+            if (otherInput !== input && !otherInput.closest("#optional")) {
+              otherInput.checked = false;
+            }
+          });
+
+          // Дізчекаємо всі optional inputs (cross-deselection)
+          const optionalInputs = document.querySelectorAll("#optional input");
+          optionalInputs.forEach((optInput) => {
+            optInput.checked = false;
+          });
+          updateOptionalResult(null);
+
           if (input.checked) {
-            // Отримуємо value обраного input
+            // Отримуємо value для перевірки умови optional
             const value = input.value || "";
 
             // Отримуємо активний дрон
@@ -1259,7 +1316,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ? activeDrone.getAttribute("data-drone-name")
               : "";
 
-            // Перевіряємо умови для показу optional
+            // Показуємо optional блок якщо FIXAR 025 + DTC
             if (activeDroneName === "FIXAR 025" && value.includes("DTC")) {
               if (optional) {
                 optional.style.display = "flex";
@@ -1269,11 +1326,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 optional.style.display = "none";
               }
             }
+
+            // Знаходимо батьківський .modules-link елемент
+            const modulesLinkItem = input.closest(".modules-link");
+
+            // Оновлюємо resultDataLink
+            updateDataLinkResult(modulesLinkItem);
+
+            // Оновлюємо link badge (only for non-optional)
+            updateLinkBadge(modulesLinkItem);
           } else {
-            // Якщо дізчекнули - ховаємо optional
+            // Якщо дізчекнули - ховаємо optional та result блок
             if (optional) {
               optional.style.display = "none";
             }
+            updateDataLinkResult(null);
+
+            // Ховаємо link badge
+            updateLinkBadge(null);
           }
         });
       });
@@ -1284,6 +1354,193 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Початкова фільтрація modules-link блоків
     filterModulesLinksByCategory();
+
+    // ============================================
+    // DATA LINK RESULT UPDATE FUNCTIONS
+    // ============================================
+
+    // Універсальна функція для оновлення result блоків
+    function updateResultBlock(sourceItem, resultBlock) {
+      if (!resultBlock) return;
+
+      if (!sourceItem) {
+        resultBlock.style.display = "none";
+        return;
+      }
+
+      let hasData = false;
+
+      // Копіюємо img src
+      const srcImg = sourceItem.querySelector("img");
+      if (srcImg) {
+        const destImg = resultBlock.querySelector("img");
+        if (destImg) {
+          destImg.setAttribute("src", srcImg.getAttribute("src"));
+          hasData = true;
+        }
+      }
+
+      // Копіюємо h3 text
+      const srcTitle = sourceItem.querySelector("h3");
+      if (srcTitle) {
+        const destTitle = resultBlock.querySelector("h3");
+        if (destTitle) {
+          destTitle.textContent = srcTitle.textContent;
+          hasData = true;
+        }
+      }
+
+      // Копіюємо description (primary: .range .text-16, fallback: .text-16)
+      const srcDesc =
+        sourceItem.querySelector(".range .text-16") ||
+        sourceItem.querySelector(".text-16");
+      if (srcDesc) {
+        const destDesc =
+          resultBlock.querySelector("p") ||
+          resultBlock.querySelector(".text-16");
+        if (destDesc) {
+          destDesc.textContent = srcDesc.textContent;
+          hasData = true;
+        }
+      }
+
+      // Показуємо блок тільки якщо скопіювали хоча б щось
+      if (hasData) {
+        resultBlock.style.display = "flex";
+      }
+    }
+
+    // Wrapper функції для зручності
+    function updateDataLinkResult(modulesLinkItem) {
+      updateResultBlock(modulesLinkItem, resultDataLink);
+    }
+
+    function updateOptionalResult(optionalItem) {
+      updateResultBlock(optionalItem, resultDataLinkOptional);
+    }
+
+    // ============================================
+    // BADGE UPDATE FUNCTIONS
+    // ============================================
+
+    /**
+     * Оновлює badge з категорією модуля
+     * @param {HTMLElement|null} moduleItem - Елемент обраного модуля, або null для ховання
+     */
+    function updateModuleBadge(moduleItem) {
+      if (!resultModuleBadge) return;
+
+      if (!moduleItem) {
+        resultModuleBadge.style.display = "none";
+        return;
+      }
+
+      // Знаходимо категорію h2 через DOM traversal (така ж логіка як filterModulesLinksByCategory)
+      let categoryH2 = null;
+      let parent = moduleItem.parentElement;
+
+      while (parent && !categoryH2) {
+        categoryH2 = parent.querySelector("h2");
+        if (categoryH2) break;
+        parent = parent.parentElement;
+      }
+
+      if (!categoryH2) {
+        console.warn("Could not find category h2 for module badge");
+        resultModuleBadge.style.display = "none";
+        return;
+      }
+
+      const categoryText = categoryH2.textContent.trim();
+
+      // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
+      const badgeTextElement = resultModuleBadge.querySelector(".text-16");
+      if (badgeTextElement) {
+        badgeTextElement.textContent = categoryText;
+        resultModuleBadge.style.display = "flex";
+      } else {
+        console.warn(
+          "Could not find .text-16 element inside resultModuleBadge"
+        );
+        resultModuleBadge.style.display = "none";
+      }
+    }
+
+    /**
+     * Оновлює badge з назвою data link
+     * @param {HTMLElement|null} modulesLinkItem - Елемент обраного modules-link, або null для ховання
+     */
+    function updateLinkBadge(modulesLinkItem) {
+      if (!resultLinkBadge) return;
+
+      if (!modulesLinkItem) {
+        resultLinkBadge.style.display = "none";
+        return;
+      }
+
+      // Отримуємо текст з .text-16 елемента modules-link
+      const linkTextElement = modulesLinkItem.querySelector(".text-16");
+
+      if (!linkTextElement) {
+        console.warn("Could not find .text-16 element in modules-link item");
+        resultLinkBadge.style.display = "none";
+        return;
+      }
+
+      const linkText = linkTextElement.textContent.trim();
+
+      // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
+      const badgeTextElement = resultLinkBadge.querySelector(".text-16");
+      if (badgeTextElement) {
+        badgeTextElement.textContent = linkText;
+        resultLinkBadge.style.display = "flex";
+      } else {
+        console.warn("Could not find .text-16 element inside resultLinkBadge");
+        resultLinkBadge.style.display = "none";
+      }
+    }
+
+    // ============================================
+    // OPTIONAL DATA LINK HANDLER
+    // ============================================
+
+    // Обробник для optional inputs з event delegation
+    function handleOptionalSelection() {
+      const optionalContainer = document.querySelector("#optional");
+      if (!optionalContainer) return;
+
+      optionalContainer.addEventListener("change", (e) => {
+        const input = e.target;
+        if (input.tagName !== "INPUT") return;
+
+        // Дізчекаємо всі інші optional inputs (radio behavior)
+        const optionalInputs = optionalContainer.querySelectorAll("input");
+        optionalInputs.forEach((otherInput) => {
+          if (otherInput !== input) {
+            otherInput.checked = false;
+          }
+        });
+
+        if (input.checked) {
+          // Знаходимо батьківський .modules-link елемент
+          const optionalItem = input.closest(".modules-link");
+
+          if (!optionalItem) {
+            console.warn("Could not find parent element for optional input");
+            return;
+          }
+
+          // Оновлюємо resultDataLinkOptional
+          updateOptionalResult(optionalItem);
+        } else {
+          // Якщо дізчекнули - ховаємо блок
+          updateOptionalResult(null);
+        }
+      });
+    }
+
+    // Ініціалізуємо обробник одразу після визначення
+    handleOptionalSelection();
 
     // ============================================
     // MODULE ANIMATIONS
@@ -1341,12 +1598,18 @@ document.addEventListener("DOMContentLoaded", () => {
               resultModule.style.display = "flex";
             }
 
+            // Оновлюємо module badge
+            updateModuleBadge(moduleItem);
+
             // Фільтруємо application слайди на основі обраного модуля
             filterApplicationSlides(moduleItem);
             filterApplicationSlidesBig(moduleItem);
 
             // Скидаємо вибір modules-link
             resetModulesLinkSelection();
+
+            // Ховаємо link badge (module changed, data link reset)
+            updateLinkBadge(null);
 
             // Фільтруємо modules-link блоки по категорії
             filterModulesLinksByCategory();
@@ -1360,6 +1623,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (resultModule) {
               resultModule.style.display = "none";
             }
+
+            // Ховаємо module badge
+            updateModuleBadge(null);
 
             // Скидаємо фільтрацію application слайдів
             filterApplicationSlides(null);
@@ -1378,5 +1644,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     });
+
+    // ============================================
+    // ПОЧАТКОВА ІНІЦІАЛІЗАЦІЯ RESULT БЛОКІВ
+    // ============================================
+
+    // Початково ховаємо result блоки
+    if (resultModule) {
+      resultModule.style.display = "none";
+    }
+    if (resultDataLink) {
+      resultDataLink.style.display = "none";
+    }
+    if (resultDataLinkOptional) {
+      resultDataLinkOptional.style.display = "none";
+    }
+    // Початково ховаємо badges
+    if (resultModuleBadge) {
+      resultModuleBadge.style.display = "none";
+    }
+    if (resultLinkBadge) {
+      resultLinkBadge.style.display = "none";
+    }
   }
 });
