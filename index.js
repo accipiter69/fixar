@@ -12,6 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // ЗАГАЛЬНІ СЕЛЕКТОРИ
   // ============================================
+
+  const form = document.querySelector(".model_form");
+  const submitBtn = form.querySelector(".submit");
+
   const resultDrone = document.querySelector("[data-choice=drone]");
   const resultColor = document.querySelector("[data-choice=color]");
   const resultModule = document.querySelector("[data-choice=module]");
@@ -28,14 +32,55 @@ document.addEventListener("DOMContentLoaded", () => {
   const optional = document.querySelector("#optional");
   const telemetryOnly = document.querySelector("#telemetry-only");
   const telemetryVideo = document.querySelector("#telemetry-video-links");
+  const configureDataLinkSection = document.querySelector(
+    "#configure-data-link"
+  );
 
   const modulesLinksParameters = {
     telemetryOnly: ["RGB Mapping Cameras", "Multispectral", "Lidar"],
     telemetryVideo: ["All"],
   };
-  optional.style.display = "none";
-  telemetryOnly.style.display = "none";
-  telemetryVideo.style.display = "none";
+
+  // Delay initial hiding to allow load more function to calculate properly
+  setTimeout(() => {
+    optional.style.display = "none";
+    telemetryOnly.style.display = "none";
+    telemetryVideo.style.display = "none";
+  }, 500);
+
+  const orderTooltip = document.querySelector(".order-now-tooltip");
+  const orderBtn = orderTooltip.querySelector(".u-btn-order");
+
+  orderBtn.addEventListener("click", () => {
+    submitBtn.click();
+  });
+
+  const orderTooltipTl = gsap.timeline({ paused: true });
+
+  // Use fromTo to define both visible and hidden states
+  orderTooltipTl.fromTo(
+    orderTooltip,
+    { opacity: 1, pointerEvents: "auto" }, // FROM: visible state (position 0)
+    { opacity: 0, pointerEvents: "none", duration: 0.3 } // TO: hidden state (position 1)
+  );
+
+  // Initialize timeline to hidden state (position 1)
+  // This allows reverse() to work correctly
+  orderTooltipTl.progress(1);
+
+  // Створюємо ScrollTrigger
+  ScrollTrigger.create({
+    trigger: ".model_form",
+    //markers: true,
+    start: "top center",
+    end: "bottom bottom",
+    onLeave: () => {
+      orderTooltipTl.play();
+    },
+    onEnterBack: () => {
+      orderTooltipTl.reverse();
+    },
+  });
   // ============================================
   // THREE.JS - 3D МОДЕЛЬ
   // ============================================
@@ -489,13 +534,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Відкриваємо слайдер
     if (sliderBg) sliderBg.style.display = "block";
-    if (sliderParent) sliderParent.classList.add("is--active");
+    if (sliderParent) {
+      disableScroll();
+      sliderParent.style.display = "flex";
+      sliderParent.classList.add("is--active");
+    }
   }
 
   // Функція для закриття другого слайдера
   function closeBigSlider() {
     if (sliderBg) sliderBg.style.display = "none";
-    if (sliderParent) sliderParent.classList.remove("is--active");
+    if (sliderParent) {
+      enableScroll();
+      sliderParent.classList.remove("is--active");
+      sliderParent.style.display = "none";
+    }
   }
 
   // Додаємо обробники кліку на слайди першого слайдера
@@ -820,7 +873,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // FORM - CONFIGURATOR
   // ============================================
-  const form = document.querySelector(".model_form");
 
   if (form) {
     const submitBtn = form.querySelector(".submit");
@@ -891,7 +943,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Ховаємо badges при зміні дрона
           updateModuleBadge(null);
-          updateLinkBadge(null);
+          // updateLinkBadge(null);
+
+          // Hide orderTooltip (modules deselected)
+          updateOrderTooltipVisibility();
 
           // Скидаємо фільтрацію application слайдів
           filterApplicationSlides(null);
@@ -1217,7 +1272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultDataLinkOptional.style.display = "none";
       }
       // Ховаємо link badge
-      updateLinkBadge(null);
+      // updateLinkBadge(null);
     }
 
     // Функція фільтрації modules-link блоків по категорії modules-item
@@ -1336,7 +1391,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateDataLinkResult(modulesLinkItem);
 
             // Оновлюємо link badge (only for non-optional)
-            updateLinkBadge(modulesLinkItem);
+            // updateLinkBadge(modulesLinkItem);
           } else {
             // Якщо дізчекнули - ховаємо optional та result блок
             if (optional) {
@@ -1345,7 +1400,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateDataLinkResult(null);
 
             // Ховаємо link badge
-            updateLinkBadge(null);
+            // updateLinkBadge(null);
           }
         });
       });
@@ -1469,38 +1524,108 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /**
-     * Оновлює badge з назвою data link
-     * @param {HTMLElement|null} modulesLinkItem - Елемент обраного modules-link, або null для ховання
+     * Shows or hides orderTooltip based on whether any module is selected
+     * Works cooperatively with ScrollTrigger
      */
-    function updateLinkBadge(modulesLinkItem) {
-      if (!resultLinkBadge) return;
-
-      if (!modulesLinkItem) {
-        resultLinkBadge.style.display = "none";
+    function updateOrderTooltipVisibility() {
+      // Safety check: ensure tooltip and timeline exist
+      if (!orderTooltip || !orderTooltipTl) {
+        console.warn("orderTooltip or orderTooltipTl is not defined");
         return;
       }
 
-      // Отримуємо текст з .text-16 елемента modules-link
-      const linkTextElement = modulesLinkItem.querySelector(".text-16");
+      const modulesList = document.querySelectorAll(".modules-item");
+      let hasSelectedModule = false;
 
-      if (!linkTextElement) {
-        console.warn("Could not find .text-16 element in modules-link item");
-        resultLinkBadge.style.display = "none";
-        return;
-      }
+      modulesList.forEach((moduleItem) => {
+        const input = moduleItem.querySelector("input");
+        if (input && input.checked) {
+          hasSelectedModule = true;
+          console.log("✅ Found checked module:", input.value);
+        }
+      });
 
-      const linkText = linkTextElement.textContent.trim();
+      console.log("📊 Module selected:", hasSelectedModule);
 
-      // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
-      const badgeTextElement = resultLinkBadge.querySelector(".text-16");
-      if (badgeTextElement) {
-        badgeTextElement.textContent = linkText;
-        resultLinkBadge.style.display = "flex";
+      if (hasSelectedModule) {
+        // Show tooltip: set display and reverse timeline to visible state
+        console.log("👁️ Showing tooltip - setting display: flex");
+        orderTooltip.style.display = "flex";
+        console.log("🎬 Reversing timeline to show tooltip");
+
+        // Reverse the timeline to position 0 (visible state)
+        orderTooltipTl.reverse();
       } else {
-        console.warn("Could not find .text-16 element inside resultLinkBadge");
-        resultLinkBadge.style.display = "none";
+        // Hide tooltip: animate, then set display none
+        console.log("🚫 Hiding tooltip - playing timeline");
+        orderTooltipTl.play();
+        // Set display none after animation completes
+        setTimeout(() => {
+          if (orderTooltipTl.progress() === 1) {
+            console.log("✅ Animation complete - setting display: none");
+            orderTooltip.style.display = "none";
+          }
+        }, 300); // Match animation duration
       }
     }
+
+    /**
+     * Shows or hides the Configure Data Link section based on whether any module is selected
+     */
+    function updateConfigureDataLinkVisibility() {
+      if (!configureDataLinkSection) return;
+
+      // Check if any module is selected
+      const modulesList = document.querySelectorAll(".modules-item");
+      let hasSelectedModule = false;
+
+      modulesList.forEach((moduleItem) => {
+        const input = moduleItem.querySelector("input");
+        if (input && input.checked) {
+          hasSelectedModule = true;
+        }
+      });
+
+      if (hasSelectedModule) {
+        configureDataLinkSection.style.display = "flex";
+      } else {
+        configureDataLinkSection.style.display = "none";
+      }
+    }
+
+    // /**
+    //  * Оновлює badge з назвою data link
+    //  * @param {HTMLElement|null} modulesLinkItem - Елемент обраного modules-link, або null для ховання
+    //  */
+    // function updateLinkBadge(modulesLinkItem) {
+    //   if (!resultLinkBadge) return;
+
+    //   if (!modulesLinkItem) {
+    //     resultLinkBadge.style.display = "none";
+    //     return;
+    //   }
+
+    //   // Отримуємо текст з .text-16 елемента modules-link
+    //   const linkTextElement = modulesLinkItem.querySelector(".text-16");
+
+    //   if (!linkTextElement) {
+    //     console.warn("Could not find .text-16 element in modules-link item");
+    //     resultLinkBadge.style.display = "none";
+    //     return;
+    //   }
+
+    //   const linkText = linkTextElement.textContent.trim();
+
+    //   // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
+    //   const badgeTextElement = resultLinkBadge.querySelector(".text-16");
+    //   if (badgeTextElement) {
+    //     badgeTextElement.textContent = linkText;
+    //     resultLinkBadge.style.display = "flex";
+    //   } else {
+    //     console.warn("Could not find .text-16 element inside resultLinkBadge");
+    //     resultLinkBadge.style.display = "none";
+    //   }
+    // }
 
     // ============================================
     // OPTIONAL DATA LINK HANDLER
@@ -1603,6 +1728,12 @@ document.addEventListener("DOMContentLoaded", () => {
             // Оновлюємо module badge
             updateModuleBadge(moduleItem);
 
+            // Show orderTooltip (module selected)
+            updateOrderTooltipVisibility();
+
+            // Show Configure Data Link section (module selected)
+            updateConfigureDataLinkVisibility();
+
             // Фільтруємо application слайди на основі обраного модуля
             filterApplicationSlides(moduleItem);
             filterApplicationSlidesBig(moduleItem);
@@ -1611,7 +1742,7 @@ document.addEventListener("DOMContentLoaded", () => {
             resetModulesLinkSelection();
 
             // Ховаємо link badge (module changed, data link reset)
-            updateLinkBadge(null);
+            // updateLinkBadge(null);
 
             // Фільтруємо modules-link блоки по категорії
             filterModulesLinksByCategory();
@@ -1628,6 +1759,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Ховаємо module badge
             updateModuleBadge(null);
+
+            // Hide orderTooltip (no module selected)
+            updateOrderTooltipVisibility();
+
+            // Hide Configure Data Link section (no module selected)
+            updateConfigureDataLinkVisibility();
 
             // Скидаємо фільтрацію application слайдів
             filterApplicationSlides(null);
@@ -1665,9 +1802,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resultModuleBadge) {
       resultModuleBadge.style.display = "none";
     }
-    if (resultLinkBadge) {
-      resultLinkBadge.style.display = "none";
-    }
+    // if (resultLinkBadge) {
+    //   resultLinkBadge.style.display = "none";
+    // }
+
+    // Set initial orderTooltip state (hidden since no modules selected initially)
+    updateOrderTooltipVisibility();
+
+    // Set initial Configure Data Link section state (hidden since no data links selected initially)
+    updateConfigureDataLinkVisibility();
   }
 
   // ============================================
@@ -1972,12 +2115,15 @@ document.addEventListener("DOMContentLoaded", () => {
           .then(() => {
             console.log("Share URL copied to clipboard:", shareUrl);
 
-            // Visual feedback - temporarily change button text
-            const originalText = shareBtn.textContent;
-            shareBtn.textContent = "Copied!";
-            setTimeout(() => {
-              shareBtn.textContent = originalText;
-            }, 2000);
+            // Visual feedback - temporarily change button text (only .btn-text to keep icon)
+            const btnText = shareBtn.querySelector(".btn-text");
+            if (btnText) {
+              const originalText = btnText.textContent;
+              btnText.textContent = "Copied!";
+              setTimeout(() => {
+                btnText.textContent = originalText;
+              }, 2000);
+            }
           })
           .catch((err) => {
             console.error("Failed to copy to clipboard:", err);
