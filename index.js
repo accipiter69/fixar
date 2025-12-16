@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   optional.style.display = "none";
   telemetryOnly.style.display = "none";
+  telemetryVideo.style.display = "none";
   // ============================================
   // THREE.JS - 3D МОДЕЛЬ
   // ============================================
@@ -1227,12 +1228,12 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       if (!activeModuleInput) {
-        // Якщо немає активного - ховаємо telemetryOnly, показуємо telemetryVideo
+        // Якщо немає активного - ховаємо telemetryOnly і telemetryVideo
         if (telemetryOnly) {
           telemetryOnly.style.display = "none";
         }
         if (telemetryVideo) {
-          telemetryVideo.style.display = "flex";
+          telemetryVideo.style.display = "none";
         }
         return;
       }
