@@ -1,3 +1,8 @@
+tippy(".swiper-slide.is--applications", {
+  placement: "bottom",
+  arrow: true,
+});
+
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025": "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025.glb",
@@ -28,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const sliderBg = document.querySelector(".slider-bg");
   const sliderParent = document.querySelector(".applications-big-slider");
   const closeSliderBtn = sliderParent.querySelector(".close-slider");
+
+  const whatsElsePopap = document.querySelector(".whats-else-popap");
+  const closeWhatsElseBtn = whatsElsePopap?.querySelector(".close-whats-else");
 
   const optional = document.querySelector("#optional");
   const telemetryOnly = document.querySelector("#telemetry-only");
@@ -551,6 +559,63 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ============================================
+  // WHAT'S ELSE POPUP
+  // ============================================
+
+  // Функція для відкриття попапу "What's Else"
+  function openWhatsElsePopup(technologyItem) {
+    if (!whatsElsePopap || !technologyItem) return;
+
+    // Отримуємо дані з обраного елемента технології
+    const img = technologyItem.querySelector("img");
+    const h3 = technologyItem.querySelector("h3");
+    const firstP = technologyItem.querySelector("p");
+
+    // Отримуємо елементи попапу
+    const popupImg = whatsElsePopap.querySelector("img");
+    const popupH2 = whatsElsePopap.querySelector("h2");
+    const popupP = whatsElsePopap.querySelector("p");
+
+    // Заповнюємо попап даними
+    if (img && popupImg) {
+      popupImg.setAttribute("src", img.getAttribute("src"));
+    }
+    if (h3 && popupH2) {
+      popupH2.textContent = h3.textContent;
+    }
+    if (firstP && popupP) {
+      popupP.textContent = firstP.textContent;
+    }
+
+    // Показуємо попап і підложку
+    if (sliderBg) sliderBg.style.display = "block";
+    whatsElsePopap.style.display = "flex";
+    whatsElsePopap.style.opacity = "1";
+    whatsElsePopap.classList.add("is--active");
+
+    // Вимикаємо скрол
+    if (typeof disableScroll === "function") {
+      disableScroll();
+    }
+  }
+
+  // Функція для закриття попапу "What's Else"
+  function closeWhatsElsePopup() {
+    if (!whatsElsePopap) return;
+
+    // Ховаємо попап і підложку
+    if (sliderBg) sliderBg.style.display = "none";
+    whatsElsePopap.style.opacity = "0";
+    whatsElsePopap.style.display = "none";
+    whatsElsePopap.classList.remove("is--active");
+
+    // Вмикаємо скрол
+    if (typeof enableScroll === "function") {
+      enableScroll();
+    }
+  }
+
   // Додаємо обробники кліку на слайди першого слайдера
   function addSlideClickHandlers() {
     const firstSliderSlides = document.querySelectorAll(
@@ -869,6 +934,31 @@ document.addEventListener("DOMContentLoaded", () => {
     ".modules-link",
     true
   );
+
+  // ============================================
+  // WHAT'S ELSE POPUP EVENT LISTENERS
+  // ============================================
+
+  // Обробники для відкриття попапу при кліку на технології
+  const technologyItems = document.querySelectorAll(
+    ".model_form-technologies-item"
+  );
+  technologyItems.forEach((item) => {
+    const technologyLink = item.querySelector(".text-16.is--technologies-link");
+    if (technologyLink) {
+      technologyLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        openWhatsElsePopup(item);
+      });
+    }
+  });
+
+  // Обробник для закриття попапу
+  if (closeWhatsElseBtn) {
+    closeWhatsElseBtn.addEventListener("click", () => {
+      closeWhatsElsePopup();
+    });
+  }
 
   // ============================================
   // FORM - CONFIGURATOR
@@ -1805,6 +1895,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // if (resultLinkBadge) {
     //   resultLinkBadge.style.display = "none";
     // }
+
+    // Початково ховаємо What's Else попап
+    if (whatsElsePopap) {
+      whatsElsePopap.style.display = "none";
+      whatsElsePopap.style.opacity = "0";
+    }
 
     // Set initial orderTooltip state (hidden since no modules selected initially)
     updateOrderTooltipVisibility();
