@@ -222,33 +222,28 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.minPolarAngle = 0; // Можна дивитися зверху
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180; // 90° + 5° = не більше 5° знизу
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  // Рівномірне ambient освітлення
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(ambientLight);
 
-  // Світло з правого верху
-  const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight1.position.set(5, 5, 5);
-  scene.add(directionalLight1);
+  // Directional світло зверху
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(0, 2, 0);
+  scene.add(directionalLight);
 
-  // Світло з лівого боку
-  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
-  directionalLight2.position.set(-5, 3, 3);
-  scene.add(directionalLight2);
+  // SpotLight - прожекторне світло
+  const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+  spotLight.position.set(0, 10, 0); // Позиція прожектора
+  spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
+  spotLight.penumbra = 0.3; // М'якість країв
+  spotLight.distance = 50; // Максимальна відстань світла
+  spotLight.decay = 2; // Затухання
 
-  // Світло спереду
-  const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
-  directionalLight3.position.set(0, 2, 5);
-  scene.add(directionalLight3);
+  // Target - куди світить прожектор (центр моделі)
+  spotLight.target.position.set(0, 0, 0);
 
-  // Світло зверху над моделлю
-  const directionalLight4 = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight4.position.set(0, 10, 0);
-  scene.add(directionalLight4);
-
-  // Світло знизу моделі для освітлення нижньої частини
-  const directionalLight5 = new THREE.DirectionalLight(0xffffff, 0.6);
-  directionalLight5.position.set(0, -10, 0);
-  scene.add(directionalLight5);
+  scene.add(spotLight);
+  scene.add(spotLight.target);
 
   // Функція для показу потрібної моделі
   window.showDroneModel = (droneName) => {
