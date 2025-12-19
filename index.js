@@ -118,6 +118,52 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // ============================================
+  // ПРОГРЕС-БАР ЗАВАНТАЖЕННЯ 3D МОДЕЛІ
+  // ============================================
+  let progressBarContainer = null;
+  let progressBarFill = null;
+
+  // Створення прогрес-бару
+  progressBarContainer = document.createElement('div');
+  progressBarContainer.id = 'model-loading-progress-container';
+  progressBarContainer.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: none;
+  `;
+
+  const progressBarTrack = document.createElement('div');
+  progressBarTrack.style.cssText = `
+    width: 220px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.13);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  `;
+
+  progressBarFill = document.createElement('div');
+  progressBarFill.style.cssText = `
+    width: 0%;
+    height: 100%;
+    background-color: #FFFFFF;
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+  `;
+
+  // Зібрати та додати до DOM
+  progressBarTrack.appendChild(progressBarFill);
+  progressBarContainer.appendChild(progressBarTrack);
+  container.appendChild(progressBarContainer);
+
   const scene = new THREE.Scene();
   let mixer;
 
@@ -334,9 +380,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log(`Завантаження моделі: ${droneName}`);
 
-    loader.load(
-      modelUrl,
-      (gltf) => {
+    // Progress callback - показує прогрес завантаження тільки для FIXAR 025
+    const onProgressCallback = (xhr) => {
+      if (droneName === "FIXAR 025" && progressBarFill) {
+        if (xhr.lengthComputable) {
+          const percentComplete = (xhr.loaded / xhr.total) * 100;
+          progressBarFill.style.width = percentComplete + '%';
+          console.log(`Loading ${droneName}: ${Math.round(percentComplete)}%`);
+        }
+      }
+    };
+
+    // Load callback - обробляє завантажену модель
+    const onLoadCallback = (gltf) => {
         const model = gltf.scene;
         // Моделі 007 LE і 007 NG в 2 рази більші
         const scale =
@@ -435,11 +491,41 @@ document.addEventListener("DOMContentLoaded", () => {
         if (droneName === "FIXAR 025") {
           animate();
         }
-      },
-      undefined,
-      (error) => {
-        console.error(`Помилка завантаження моделі ${droneName}:`, error);
+
+        // Ховаємо прогрес-бар після завантаження FIXAR 025
+        if (droneName === "FIXAR 025" && progressBarContainer) {
+          progressBarContainer.style.transition = 'opacity 0.5s ease-out';
+          progressBarContainer.style.opacity = '0';
+
+          setTimeout(() => {
+            if (progressBarContainer && progressBarContainer.parentNode) {
+              progressBarContainer.parentNode.removeChild(progressBarContainer);
+            }
+          }, 500);
+        }
+      };
+
+    // Error callback - обробляє помилки завантаження
+    const onErrorCallback = (error) => {
+      console.error(`Помилка завантаження моделі ${droneName}:`, error);
+
+      // Ховаємо прогрес-бар при помилці для FIXAR 025
+      if (droneName === "FIXAR 025" && progressBarContainer) {
+        progressBarContainer.style.opacity = '0';
+        setTimeout(() => {
+          if (progressBarContainer && progressBarContainer.parentNode) {
+            progressBarContainer.parentNode.removeChild(progressBarContainer);
+          }
+        }, 500);
       }
+    };
+
+    // Завантаження моделі з усіма callbacks
+    loader.load(
+      modelUrl,
+      onLoadCallback,
+      onProgressCallback,
+      onErrorCallback
     );
   };
 
