@@ -37,7 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const navContainer = document.querySelector(".nav_container");
   const navConfigBg = document.querySelector(".nav_config_bg");
   const mobileDropdown = document.querySelector(".nav_drop-toggle");
-  const mobileDropdownCurrent = mobileDropdown?.querySelector(".nav_drop-current");
+  const mobileDropdownCurrent =
+    mobileDropdown?.querySelector(".nav_drop-current");
   const mobileDropdownImage = mobileDropdownCurrent?.querySelector("img");
   const mobileDropdownText = mobileDropdownCurrent?.querySelector(".text-16");
   const sliderParent = document.querySelector(".applications-big-slider");
@@ -1028,7 +1029,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (resultDrone) {
         const droneName = defalutDroneValue;
-        const description = droneBtns[0].getAttribute("data-choice-description");
+        const description = droneBtns[0].getAttribute(
+          "data-choice-description"
+        );
         const imageSrc = droneBtns[0].querySelector("img").getAttribute("src");
 
         updateDroneDisplay(droneName, description, imageSrc);
