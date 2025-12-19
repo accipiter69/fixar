@@ -104,7 +104,7 @@ function initLoaders() {
 // ============================================
 // DRONE MODEL LOADING
 // ============================================
-async function loadDroneModel(droneName, loader) {
+async function loadDroneModel(droneName, loader, progressBarFill = null, progressBarContainer = null) {
   return new Promise((resolve, reject) => {
     const modelUrl = droneModels[droneName];
 
@@ -113,34 +113,63 @@ async function loadDroneModel(droneName, loader) {
       return;
     }
 
-    console.log(`Завантаження моделі: ${droneName}`);
-
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        const model = gltf.scene;
-
-        // Моделі 007 LE і 007 NG в 2 рази більші
-        const scale =
-          droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-        model.scale.setScalar(scale);
-
-        // Виключаємо frustum culling для всіх мешів
-        model.traverse((child) => {
-          if (child.isMesh) {
-            child.frustumCulled = false;
-          }
-        });
-
-        console.log(`Модель ${droneName} завантажена успішно`);
-        resolve({ model, animations: gltf.animations || [] });
-      },
-      undefined,
-      (error) => {
-        console.error(`Помилка завантаження моделі ${droneName}:`, error);
-        reject(error);
+    // Progress callback
+    const onProgressCallback = (xhr) => {
+      if (progressBarFill && xhr.lengthComputable) {
+        const percentComplete = (xhr.loaded / xhr.total) * 100;
+        progressBarFill.style.width = percentComplete + '%';
       }
-    );
+    };
+
+    // Load callback
+    const onLoadCallback = (gltf) => {
+      const model = gltf.scene;
+
+      // Моделі 007 LE і 007 NG в 2 рази більші
+      const scale =
+        droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+      model.scale.setScalar(scale);
+
+      // Виключаємо frustum culling для всіх мешів
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.frustumCulled = false;
+        }
+      });
+
+      // Ховаємо прогрес-бар після завантаження
+      if (progressBarContainer) {
+        progressBarContainer.style.transition = 'opacity 0.5s ease-out';
+        progressBarContainer.style.opacity = '0';
+
+        setTimeout(() => {
+          if (progressBarContainer && progressBarContainer.parentNode) {
+            progressBarContainer.parentNode.removeChild(progressBarContainer);
+          }
+        }, 500);
+      }
+
+      resolve({ model, animations: gltf.animations || [] });
+    };
+
+    // Error callback
+    const onErrorCallback = (error) => {
+      console.error(`Помилка завантаження моделі ${droneName}:`, error);
+
+      // Ховаємо прогрес-бар при помилці
+      if (progressBarContainer) {
+        progressBarContainer.style.opacity = '0';
+        setTimeout(() => {
+          if (progressBarContainer && progressBarContainer.parentNode) {
+            progressBarContainer.parentNode.removeChild(progressBarContainer);
+          }
+        }, 500);
+      }
+
+      reject(error);
+    };
+
+    loader.load(modelUrl, onLoadCallback, onProgressCallback, onErrorCallback);
   });
 }
 
@@ -150,10 +179,6 @@ async function loadDroneModel(droneName, loader) {
 function applyColorToModel(model, colorName, droneName) {
   const hexColor = colorMap[colorName] || "#FF0000";
 
-  console.log(`Застосування кольору ${colorName} (${hexColor}) до моделі`);
-
-  let changedCount = 0;
-
   // Змінюємо колір матеріалів з назвою "red"
   model.traverse((child) => {
     if (child.isMesh && child.material) {
@@ -161,13 +186,10 @@ function applyColorToModel(model, colorName, droneName) {
       if (matName === "red") {
         if (child.material.color) {
           child.material.color.setHex(parseInt(hexColor.replace("#", ""), 16));
-          changedCount++;
         }
       }
     }
   });
-
-  console.log(`Змінено кольорів: ${changedCount}`);
 
   // Спеціальна обробка board частин для FIXAR 025
   if (droneName === "FIXAR 025") {
@@ -182,14 +204,6 @@ function applyColorToModel(model, colorName, droneName) {
             // Якщо НЕ червоний - фарбуємо в обраний колір
             child.material.color.setHex(
               parseInt(hexColor.replace("#", ""), 16)
-            );
-            console.log(
-              `Board частина ${child.name} пофарбована в ${hexColor}`
-            );
-          } else {
-            // Якщо червоний - залишаємо оригінальний колір
-            console.log(
-              `Board частина ${child.name} залишена з оригінальним кольором`
             );
           }
         }
@@ -331,6 +345,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // ============================================
+  // ПРОГРЕС-БАР ЗАВАНТАЖЕННЯ 3D МОДЕЛІ
+  // ============================================
+  let progressBarContainer = null;
+  let progressBarFill = null;
+
+  // Створення прогрес-бару
+  progressBarContainer = document.createElement('div');
+  progressBarContainer.id = 'model-loading-progress-container';
+  progressBarContainer.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: none;
+  `;
+
+  const progressBarTrack = document.createElement('div');
+  progressBarTrack.style.cssText = `
+    width: 220px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.13);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  `;
+
+  progressBarFill = document.createElement('div');
+  progressBarFill.style.cssText = `
+    width: 0%;
+    height: 100%;
+    background-color: #FFFFFF;
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+  `;
+
+  // Зібрати та додати до DOM
+  progressBarTrack.appendChild(progressBarFill);
+  progressBarContainer.appendChild(progressBarTrack);
+  container.appendChild(progressBarContainer);
+
   try {
     // 3. Initialize Three.js scene
     console.log("Ініціалізація Three.js сцени...");
@@ -344,7 +404,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log(`Завантаження моделі ${params.droneModel}...`);
     const { model, animations } = await loadDroneModel(
       params.droneModel,
-      loader
+      loader,
+      progressBarFill,
+      progressBarContainer
     );
     scene.add(model);
 

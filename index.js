@@ -386,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (xhr.lengthComputable) {
           const percentComplete = (xhr.loaded / xhr.total) * 100;
           progressBarFill.style.width = percentComplete + '%';
-          console.log(`Loading ${droneName}: ${Math.round(percentComplete)}%`);
         }
       }
     };
