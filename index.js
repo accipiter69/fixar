@@ -5,11 +5,12 @@ tippy(".swiper-slide.is--applications", {
 
 // Мапінг моделей дронів
 const droneModels = {
-  "FIXAR 025": "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025.glb",
+  "FIXAR 025":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(6).glb",
   "FIXAR 007 LE":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007++LE.glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE.glb",
   "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG.glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(1).glb",
 };
 
 // Об'єднаний DOMContentLoaded
@@ -31,6 +32,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultModuleBadge = document.querySelector(".model_scene-gimbal");
   const resultLinkBadge = document.querySelector(".range-selected");
   const sliderBg = document.querySelector(".slider-bg");
+
+  // Mobile dropdown elements (only for mobile <= 767px)
+  const navContainer = document.querySelector(".nav_container");
+  const navConfigBg = document.querySelector(".nav_config_bg");
+  const mobileDropdown = document.querySelector(".nav_drop-toggle");
+  const mobileDropdownCurrent = mobileDropdown?.querySelector(".nav_drop-current");
+  const mobileDropdownImage = mobileDropdownCurrent?.querySelector("img");
+  const mobileDropdownText = mobileDropdownCurrent?.querySelector(".text-16");
   const sliderParent = document.querySelector(".applications-big-slider");
   const closeSliderBtn = sliderParent.querySelector(".close-slider");
 
@@ -55,6 +64,15 @@ document.addEventListener("DOMContentLoaded", () => {
     telemetryOnly.style.display = "none";
     telemetryVideo.style.display = "none";
   }, 500);
+
+  // Mobile dropdown toggle (only for mobile <= 767px)
+  if (window.innerWidth <= 767 && mobileDropdown) {
+    mobileDropdown.addEventListener("click", () => {
+      mobileDropdown.classList.toggle("is--active");
+      if (navConfigBg) navConfigBg.classList.toggle("is--active");
+      if (navContainer) navContainer.classList.toggle("is--active");
+    });
+  }
 
   const orderTooltip = document.querySelector(".order-now-tooltip");
   const orderBtn = orderTooltip.querySelector(".u-btn-order");
@@ -956,6 +974,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================
+  // HELPER FUNCTIONS
+  // ============================================
+
+  /**
+   * Оновлює відображення обраного дрону в result блоці та мобільному дропдауні
+   * @param {string} droneName - Назва дрону (з data-drone-name)
+   * @param {string} droneDescription - Опис дрону (з data-choice-description)
+   * @param {string} imageSrc - URL зображення дрону
+   */
+  function updateDroneDisplay(droneName, droneDescription, imageSrc) {
+    // Оновлення desktop result блоку
+    if (resultDrone) {
+      resultDrone.querySelector("h3").textContent = droneName;
+      resultDrone.querySelector("p").textContent = droneDescription;
+      resultDrone.querySelector("img").setAttribute("src", imageSrc);
+    }
+
+    // Оновлення мобільного дропдауна (тільки на мобільних пристроях)
+    if (window.innerWidth <= 767) {
+      if (mobileDropdownImage && imageSrc) {
+        // Звичайний <img> використовує стандартний атрибут src
+        mobileDropdownImage.setAttribute("src", imageSrc);
+      }
+
+      if (mobileDropdownText && droneName) {
+        mobileDropdownText.textContent = droneName;
+      }
+    }
+  }
+
+  // ============================================
   // FORM - CONFIGURATOR
   // ============================================
 
@@ -978,16 +1027,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const defalutDroneValue = droneBtns[0].getAttribute("data-drone-name");
 
       if (resultDrone) {
-        resultDrone.querySelector("h3").textContent = defalutDroneValue;
-        resultDrone.querySelector("p").textContent = droneBtns[0].getAttribute(
-          "data-choice-description"
-        );
-        resultDrone
-          .querySelector("img")
-          .setAttribute(
-            "src",
-            droneBtns[0].querySelector("img").getAttribute("src")
-          );
+        const droneName = defalutDroneValue;
+        const description = droneBtns[0].getAttribute("data-choice-description");
+        const imageSrc = droneBtns[0].querySelector("img").getAttribute("src");
+
+        updateDroneDisplay(droneName, description, imageSrc);
       }
 
       // Input для drone model
@@ -1071,18 +1115,10 @@ document.addEventListener("DOMContentLoaded", () => {
           // Перефільтровуємо modules-link блоки
           filterModulesLinksByCategory();
 
-          if (resultDrone) {
-            resultDrone.querySelector("h3").textContent = droneValue;
-            resultDrone.querySelector("p").textContent = btn.getAttribute(
-              "data-choice-description"
-            );
-            resultDrone
-              .querySelector("img")
-              .setAttribute(
-                "src",
-                btn.querySelector("img").getAttribute("src")
-              );
-          }
+          const droneDescription = btn.getAttribute("data-choice-description");
+          const droneImage = btn.querySelector("img").getAttribute("src");
+
+          updateDroneDisplay(droneValue, droneDescription, droneImage);
           // Показуємо відповідну модель дрону
           if (window.showDroneModel) {
             window.showDroneModel(droneValue);
