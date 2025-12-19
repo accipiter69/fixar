@@ -10,8 +10,8 @@ const droneModels = {
 // Мапінг кольорів
 const colorMap = {
   Red: "#FF0000",
-  Green: "#4d784e",
-  Grey: "#ccc",
+  Green: "#50533c",
+  Grey: "#C2C2C2",
 };
 
 // ============================================
