@@ -620,7 +620,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   var swiper = new Swiper(".swiper.is--applications", {
     slidesPerView: "auto",
-    spaceBetween: 16,
+    spaceBetween: 8,
+
+    breakpoints: {
+      992: {
+        spaceBetween: 16,
+      },
+    },
 
     navigation: {
       nextEl: ".sw-button-next",
