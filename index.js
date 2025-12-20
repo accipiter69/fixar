@@ -125,8 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let progressBarFill = null;
 
   // Створення прогрес-бару
-  progressBarContainer = document.createElement('div');
-  progressBarContainer.id = 'model-loading-progress-container';
+  progressBarContainer = document.createElement("div");
+  progressBarContainer.id = "model-loading-progress-container";
   progressBarContainer.style.cssText = `
     position: absolute;
     top: 0;
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pointer-events: none;
   `;
 
-  const progressBarTrack = document.createElement('div');
+  const progressBarTrack = document.createElement("div");
   progressBarTrack.style.cssText = `
     width: 220px;
     height: 5px;
@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     position: relative;
   `;
 
-  progressBarFill = document.createElement('div');
+  progressBarFill = document.createElement("div");
   progressBarFill.style.cssText = `
     width: 0%;
     height: 100%;
@@ -385,124 +385,124 @@ document.addEventListener("DOMContentLoaded", () => {
       if (droneName === "FIXAR 025" && progressBarFill) {
         if (xhr.lengthComputable) {
           const percentComplete = (xhr.loaded / xhr.total) * 100;
-          progressBarFill.style.width = percentComplete + '%';
+          progressBarFill.style.width = percentComplete + "%";
         }
       }
     };
 
     // Load callback - обробляє завантажену модель
     const onLoadCallback = (gltf) => {
-        const model = gltf.scene;
-        // Моделі 007 LE і 007 NG в 2 рази більші
-        const scale =
-          droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-        model.scale.setScalar(scale);
-        model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
+      const model = gltf.scene;
+      // Моделі 007 LE і 007 NG в 2 рази більші
+      const scale =
+        droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+      model.scale.setScalar(scale);
+      model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
 
-        // Зберігаємо модель
-        loadedModels[droneName] = model;
+      // Зберігаємо модель
+      loadedModels[droneName] = model;
 
-        // Виключаємо frustum culling для всіх мешів
+      // Виключаємо frustum culling для всіх мешів
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.frustumCulled = false;
+        }
+      });
+
+      // Зберігаємо початкові кольори board частин для FIXAR 025
+      if (droneName === "FIXAR 025") {
+        const boardNames = ["board_001", "board_002", "board_003"];
+
         model.traverse((child) => {
-          if (child.isMesh) {
-            child.frustumCulled = false;
+          if (child.isMesh && child.name && boardNames.includes(child.name)) {
+            if (child.material && child.material.color) {
+              // Зберігаємо копію початкового кольору
+              window.originalBoardColors[child.name] = {
+                r: child.material.color.r,
+                g: child.material.color.g,
+                b: child.material.color.b,
+              };
+            }
           }
         });
+      }
 
-        // Зберігаємо початкові кольори board частин для FIXAR 025
-        if (droneName === "FIXAR 025") {
-          const boardNames = ["board_001", "board_002", "board_003"];
+      scene.add(model);
 
-          model.traverse((child) => {
-            if (child.isMesh && child.name && boardNames.includes(child.name)) {
-              if (child.material && child.material.color) {
-                // Зберігаємо копію початкового кольору
-                window.originalBoardColors[child.name] = {
-                  r: child.material.color.r,
-                  g: child.material.color.g,
-                  b: child.material.color.b,
-                };
-              }
-            }
-          });
+      // Налаштування камери тільки для першої завантаженої моделі
+      if (droneName === "FIXAR 025") {
+        camera.position.set(0, 2, 8);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+      }
+
+      // Animation
+      if (gltf.animations && gltf.animations.length > 0) {
+        const modelMixer = new THREE.AnimationMixer(model);
+
+        // Зберігаємо mixer для цієї конкретної моделі
+        if (window.animations.models[droneName]) {
+          window.animations.models[droneName].mixer = modelMixer;
         }
 
-        scene.add(model);
-
-        // Налаштування камери тільки для першої завантаженої моделі
+        // Для першої моделі також зберігаємо в глобальний mixer
         if (droneName === "FIXAR 025") {
-          camera.position.set(0, 2, 8);
-          camera.lookAt(0, 0, 0);
-          controls.target.set(0, 0, 0);
+          mixer = modelMixer;
         }
 
-        // Animation
-        if (gltf.animations && gltf.animations.length > 0) {
-          const modelMixer = new THREE.AnimationMixer(model);
+        // Animations found: gltf.animations.length
 
-          // Зберігаємо mixer для цієї конкретної моделі
+        // Обробляємо всі анімації
+        gltf.animations.forEach((animation, index) => {
+          const action = modelMixer.clipAction(animation);
+          action.timeScale = 1;
+
+          // Перевіряємо чи це анімація пропелерів (містить "flight" у назві)
+          const isFlightAnimation = animation.name
+            .toLowerCase()
+            .includes("flight");
+
+          if (isFlightAnimation) {
+            // Анімація пропелерів - запускаємо одразу з безкінечним циклом
+            action.setLoop(THREE.LoopRepeat, Infinity);
+            action.enabled = true;
+            action.weight = 1;
+            action.play();
+          } else {
+            // Решту анімацій налаштовуємо для одноразового програвання
+            action.setLoop(THREE.LoopOnce);
+            action.clampWhenFinished = true; // Зупиняємось на останньому кадрі
+            action.enabled = false;
+            action.weight = 0;
+            action.time = 0;
+            action.stop();
+            action.reset();
+          }
+
+          // Зберігаємо в масив анімацій для цієї моделі
           if (window.animations.models[droneName]) {
-            window.animations.models[droneName].mixer = modelMixer;
+            window.animations.models[droneName].actions.push(action);
           }
+        });
+      }
 
-          // Для першої моделі також зберігаємо в глобальний mixer
-          if (droneName === "FIXAR 025") {
-            mixer = modelMixer;
+      // Запускаємо анімацію тільки для першої моделі
+      if (droneName === "FIXAR 025") {
+        animate();
+      }
+
+      // Ховаємо прогрес-бар після завантаження FIXAR 025
+      if (droneName === "FIXAR 025" && progressBarContainer) {
+        progressBarContainer.style.transition = "opacity 0.5s ease-out";
+        progressBarContainer.style.opacity = "0";
+
+        setTimeout(() => {
+          if (progressBarContainer && progressBarContainer.parentNode) {
+            progressBarContainer.parentNode.removeChild(progressBarContainer);
           }
-
-          // Animations found: gltf.animations.length
-
-          // Обробляємо всі анімації
-          gltf.animations.forEach((animation, index) => {
-            const action = modelMixer.clipAction(animation);
-            action.timeScale = 1;
-
-            // Перевіряємо чи це анімація пропелерів (містить "flight" у назві)
-            const isFlightAnimation = animation.name
-              .toLowerCase()
-              .includes("flight");
-
-            if (isFlightAnimation) {
-              // Анімація пропелерів - запускаємо одразу з безкінечним циклом
-              action.setLoop(THREE.LoopRepeat, Infinity);
-              action.enabled = true;
-              action.weight = 1;
-              action.play();
-            } else {
-              // Решту анімацій налаштовуємо для одноразового програвання
-              action.setLoop(THREE.LoopOnce);
-              action.clampWhenFinished = true; // Зупиняємось на останньому кадрі
-              action.enabled = false;
-              action.weight = 0;
-              action.time = 0;
-              action.stop();
-              action.reset();
-            }
-
-            // Зберігаємо в масив анімацій для цієї моделі
-            if (window.animations.models[droneName]) {
-              window.animations.models[droneName].actions.push(action);
-            }
-          });
-        }
-
-        // Запускаємо анімацію тільки для першої моделі
-        if (droneName === "FIXAR 025") {
-          animate();
-        }
-
-        // Ховаємо прогрес-бар після завантаження FIXAR 025
-        if (droneName === "FIXAR 025" && progressBarContainer) {
-          progressBarContainer.style.transition = 'opacity 0.5s ease-out';
-          progressBarContainer.style.opacity = '0';
-
-          setTimeout(() => {
-            if (progressBarContainer && progressBarContainer.parentNode) {
-              progressBarContainer.parentNode.removeChild(progressBarContainer);
-            }
-          }, 500);
-        }
-      };
+        }, 500);
+      }
+    };
 
     // Error callback - обробляє помилки завантаження
     const onErrorCallback = (error) => {
@@ -510,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Ховаємо прогрес-бар при помилці для FIXAR 025
       if (droneName === "FIXAR 025" && progressBarContainer) {
-        progressBarContainer.style.opacity = '0';
+        progressBarContainer.style.opacity = "0";
         setTimeout(() => {
           if (progressBarContainer && progressBarContainer.parentNode) {
             progressBarContainer.parentNode.removeChild(progressBarContainer);
@@ -520,12 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Завантаження моделі з усіма callbacks
-    loader.load(
-      modelUrl,
-      onLoadCallback,
-      onProgressCallback,
-      onErrorCallback
-    );
+    loader.load(modelUrl, onLoadCallback, onProgressCallback, onErrorCallback);
   };
 
   const clock = new THREE.Clock();
@@ -2370,7 +2365,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const modelContain = document.querySelector(".model_contain");
 
     if (!header || !modelContain) {
-      console.warn("Header or modelContain not found for mobile scroll behavior");
+      console.warn(
+        "Header or modelContain not found for mobile scroll behavior"
+      );
       return;
     }
 
@@ -2378,7 +2375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let isThrottled = false;
 
     // Ініціалізація стану при завантаженні
-    if (lastScrollY > 100) {
+    if (lastScrollY > 50) {
       gsap.set(header, { y: -header.offsetHeight });
       gsap.set(modelContain, { y: -header.offsetHeight });
     }
@@ -2394,26 +2391,26 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentScrollY > lastScrollY) {
           gsap.to(header, {
             y: -header.offsetHeight,
-            duration: 0.3,
-            ease: "power2.out"
+            duration: 0.2,
+            ease: "power2.out",
           });
           gsap.to(modelContain, {
             y: -header.offsetHeight,
-            duration: 0.3,
-            ease: "power2.out"
+            duration: 0.2,
+            ease: "power2.out",
           });
         }
         // Скрол вверх - показуємо header, повертаємо modelContain
         else if (currentScrollY < lastScrollY) {
           gsap.to(header, {
             y: 0,
-            duration: 0.3,
-            ease: "power2.out"
+            duration: 0.2,
+            ease: "power2.out",
           });
           gsap.to(modelContain, {
             y: 0,
-            duration: 0.3,
-            ease: "power2.out"
+            duration: 0.2,
+            ease: "power2.out",
           });
         }
       }
