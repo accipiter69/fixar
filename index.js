@@ -70,13 +70,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 500);
 
   // Mobile dropdown toggle (only for mobile <= 767px)
-  if (window.innerWidth <= 767 && mobileDropdown) {
-    mobileDropdown.addEventListener("click", () => {
+  let mmDropdown = gsap.matchMedia();
+
+  mmDropdown.add("(max-width: 767px)", () => {
+    if (!mobileDropdown) {
+      console.warn("mobileDropdown not found for mobile dropdown toggle");
+      return;
+    }
+
+    const handleDropdownClick = () => {
       mobileDropdown.classList.toggle("is--active");
       if (navConfigBg) navConfigBg.classList.toggle("is--active");
       if (navContainer) navContainer.classList.toggle("is--active");
-    });
-  }
+    };
+
+    mobileDropdown.addEventListener("click", handleDropdownClick);
+
+    return () => {
+      // Cleanup function - автоматично викличеться при виході з breakpoint
+      mobileDropdown.removeEventListener("click", handleDropdownClick);
+    };
+  });
 
   const orderTooltip = document.querySelector(".order-now-tooltip");
   const orderBtn = orderTooltip.querySelector(".u-btn-order");
