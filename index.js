@@ -313,19 +313,19 @@ document.addEventListener("DOMContentLoaded", () => {
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
-  // SpotLight - прожекторне світло
-  const spotLight = new THREE.SpotLight(0xffffff, 1.0);
-  spotLight.position.set(0, 10, 0); // Позиція прожектора
-  spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
-  spotLight.penumbra = 0.3; // М'якість країв
-  spotLight.distance = 50; // Максимальна відстань світла
-  spotLight.decay = 2; // Затухання
+  // // SpotLight - прожекторне світло
+  // const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+  // spotLight.position.set(0, 10, 0); // Позиція прожектора
+  // spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
+  // spotLight.penumbra = 0.3; // М'якість країв
+  // spotLight.distance = 50; // Максимальна відстань світла
+  // spotLight.decay = 2; // Затухання
 
-  // Target - куди світить прожектор (центр моделі)
-  spotLight.target.position.set(0, 0, 0);
+  // // Target - куди світить прожектор (центр моделі)
+  // spotLight.target.position.set(0, 0, 0);
 
-  scene.add(spotLight);
-  scene.add(spotLight.target);
+  // scene.add(spotLight);
+  // scene.add(spotLight.target);
 
   // Функція для показу потрібної моделі
   window.showDroneModel = (droneName) => {
