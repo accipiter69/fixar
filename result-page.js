@@ -67,16 +67,16 @@ function initThreeScene(container) {
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
-  // SpotLight - прожекторне світло
-  const spotLight = new THREE.SpotLight(0xffffff, 1.0);
-  spotLight.position.set(0, 10, 0);
-  spotLight.angle = Math.PI / 6;
-  spotLight.penumbra = 0.3;
-  spotLight.distance = 50;
-  spotLight.decay = 2;
-  spotLight.target.position.set(0, 0, 0);
-  scene.add(spotLight);
-  scene.add(spotLight.target);
+  // // SpotLight - прожекторне світло
+  // const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+  // spotLight.position.set(0, 10, 0);
+  // spotLight.angle = Math.PI / 6;
+  // spotLight.penumbra = 0.3;
+  // spotLight.distance = 50;
+  // spotLight.decay = 2;
+  // spotLight.target.position.set(0, 0, 0);
+  // scene.add(spotLight);
+  // scene.add(spotLight.target);
 
   // Позиція камери
   camera.position.set(0, 2, 8);
@@ -104,7 +104,12 @@ function initLoaders() {
 // ============================================
 // DRONE MODEL LOADING
 // ============================================
-async function loadDroneModel(droneName, loader, progressBarFill = null, progressBarContainer = null) {
+async function loadDroneModel(
+  droneName,
+  loader,
+  progressBarFill = null,
+  progressBarContainer = null
+) {
   return new Promise((resolve, reject) => {
     const modelUrl = droneModels[droneName];
 
@@ -117,7 +122,7 @@ async function loadDroneModel(droneName, loader, progressBarFill = null, progres
     const onProgressCallback = (xhr) => {
       if (progressBarFill && xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
-        progressBarFill.style.width = percentComplete + '%';
+        progressBarFill.style.width = percentComplete + "%";
       }
     };
 
@@ -126,7 +131,8 @@ async function loadDroneModel(droneName, loader, progressBarFill = null, progres
       const model = gltf.scene;
 
       // Базовий скейл для desktop
-      let baseScale = droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+      let baseScale =
+        droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
 
       // Адаптивний скейл для мобільних пристроїв (< 768px)
       if (window.innerWidth < 768) {
@@ -148,8 +154,8 @@ async function loadDroneModel(droneName, loader, progressBarFill = null, progres
 
       // Ховаємо прогрес-бар після завантаження
       if (progressBarContainer) {
-        progressBarContainer.style.transition = 'opacity 0.5s ease-out';
-        progressBarContainer.style.opacity = '0';
+        progressBarContainer.style.transition = "opacity 0.5s ease-out";
+        progressBarContainer.style.opacity = "0";
 
         setTimeout(() => {
           if (progressBarContainer && progressBarContainer.parentNode) {
@@ -167,7 +173,7 @@ async function loadDroneModel(droneName, loader, progressBarFill = null, progres
 
       // Ховаємо прогрес-бар при помилці
       if (progressBarContainer) {
-        progressBarContainer.style.opacity = '0';
+        progressBarContainer.style.opacity = "0";
         setTimeout(() => {
           if (progressBarContainer && progressBarContainer.parentNode) {
             progressBarContainer.parentNode.removeChild(progressBarContainer);
@@ -335,7 +341,8 @@ function setupResizeHandler(camera, renderer, container, model, droneName) {
     const isMobile = window.innerWidth < 768;
 
     // Базовий скейл
-    let baseScale = droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+    let baseScale =
+      droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
 
     // Адаптивний скейл для мобільних
     if (isMobile) {
@@ -385,8 +392,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   let progressBarFill = null;
 
   // Створення прогрес-бару
-  progressBarContainer = document.createElement('div');
-  progressBarContainer.id = 'model-loading-progress-container';
+  progressBarContainer = document.createElement("div");
+  progressBarContainer.id = "model-loading-progress-container";
   progressBarContainer.style.cssText = `
     position: absolute;
     top: 0;
@@ -400,7 +407,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     pointer-events: none;
   `;
 
-  const progressBarTrack = document.createElement('div');
+  const progressBarTrack = document.createElement("div");
   progressBarTrack.style.cssText = `
     width: 220px;
     height: 5px;
@@ -410,7 +417,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     position: relative;
   `;
 
-  progressBarFill = document.createElement('div');
+  progressBarFill = document.createElement("div");
   progressBarFill.style.cssText = `
     width: 0%;
     height: 100%;
