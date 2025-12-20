@@ -1,7 +1,10 @@
-tippy(".swiper-slide.is--applications", {
-  placement: "bottom",
-  arrow: true,
-});
+// Вимикаємо tippy для пристроїв без ховеру
+if (window.matchMedia("(hover: hover)").matches) {
+  tippy(".swiper-slide.is--applications", {
+    placement: "bottom",
+    arrow: true,
+  });
+}
 
 // Мапінг моделей дронів
 const droneModels = {
@@ -393,10 +396,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load callback - обробляє завантажену модель
     const onLoadCallback = (gltf) => {
       const model = gltf.scene;
-      // Моделі 007 LE і 007 NG в 2 рази більші
-      const scale =
+
+      // Базовий скейл для desktop
+      let baseScale =
         droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-      model.scale.setScalar(scale);
+
+      // Адаптивний скейл для мобільних пристроїв (< 768px)
+      if (window.innerWidth < 768) {
+        if (droneName === "FIXAR 025") {
+          baseScale = baseScale * 1.2; // 3 * 1.2 = 3.6
+        } else {
+          baseScale = baseScale * 1.5; // 5 * 1.5 = 7.5
+        }
+      }
+
+      model.scale.setScalar(baseScale);
       model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
 
       // Зберігаємо модель
@@ -542,11 +556,39 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.render(scene, camera);
   }
 
+  // Функція для оновлення скейлу моделі при зміні розміру вікна
+  function updateModelScale() {
+    const isMobile = window.innerWidth < 768;
+
+    Object.keys(loadedModels).forEach((modelName) => {
+      const model = loadedModels[modelName];
+      if (model) {
+        // Базовий скейл
+        let baseScale =
+          modelName === "FIXAR 007 LE" || modelName === "FIXAR 007 NG" ? 5 : 3;
+
+        // Адаптивний скейл для мобільних
+        if (isMobile) {
+          if (modelName === "FIXAR 025") {
+            baseScale = baseScale * 1.2; // 3.6
+          } else {
+            baseScale = baseScale * 1.5; // 7.5
+          }
+        }
+
+        model.scale.setScalar(baseScale);
+      }
+    });
+  }
+
   window.addEventListener("resize", () => {
     if (container) {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+
+      // Оновлюємо скейл моделей при зміні розміру
+      updateModelScale();
     }
   });
 
@@ -564,7 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   var swiper = new Swiper(".swiper.is--applications", {
     slidesPerView: "auto",
-    spaceBetween: 19,
+    spaceBetween: 16,
 
     navigation: {
       nextEl: ".sw-button-next",

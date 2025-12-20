@@ -125,10 +125,19 @@ async function loadDroneModel(droneName, loader, progressBarFill = null, progres
     const onLoadCallback = (gltf) => {
       const model = gltf.scene;
 
-      // Моделі 007 LE і 007 NG в 2 рази більші
-      const scale =
-        droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-      model.scale.setScalar(scale);
+      // Базовий скейл для desktop
+      let baseScale = droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+
+      // Адаптивний скейл для мобільних пристроїв (< 768px)
+      if (window.innerWidth < 768) {
+        if (droneName === "FIXAR 025") {
+          baseScale = baseScale * 1.2; // 3 * 1.2 = 3.6
+        } else {
+          baseScale = baseScale * 1.5; // 5 * 1.5 = 7.5
+        }
+      }
+
+      model.scale.setScalar(baseScale);
 
       // Виключаємо frustum culling для всіх мешів
       model.traverse((child) => {
@@ -318,12 +327,36 @@ function populateFormFields(params) {
 // ============================================
 // WINDOW RESIZE HANDLER
 // ============================================
-function setupResizeHandler(camera, renderer, container) {
+function setupResizeHandler(camera, renderer, container, model, droneName) {
+  // Функція для оновлення скейлу моделі
+  function updateModelScale() {
+    if (!model) return;
+
+    const isMobile = window.innerWidth < 768;
+
+    // Базовий скейл
+    let baseScale = droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+
+    // Адаптивний скейл для мобільних
+    if (isMobile) {
+      if (droneName === "FIXAR 025") {
+        baseScale = baseScale * 1.2; // 3.6
+      } else {
+        baseScale = baseScale * 1.5; // 7.5
+      }
+    }
+
+    model.scale.setScalar(baseScale);
+  }
+
   window.addEventListener("resize", () => {
     if (container) {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+
+      // Оновлюємо скейл моделі при зміні розміру
+      updateModelScale();
     }
   });
 }
@@ -423,7 +456,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     startAnimationLoop(mixer, controls, renderer, scene, camera);
 
     // 9. Setup resize handler
-    setupResizeHandler(camera, renderer, container);
+    setupResizeHandler(camera, renderer, container, model, params.droneModel);
 
     console.log("=== 3D Visualization Initialized Successfully ===");
   } catch (error) {
