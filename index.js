@@ -2359,4 +2359,76 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     applyUrlParameters();
   }, 1500);
+
+  // ============================================
+  // MOBILE HEADER/MODELCONTAIN SCROLL BEHAVIOR
+  // ============================================
+  let mm = gsap.matchMedia();
+
+  mm.add("(max-width: 767px)", () => {
+    const header = document.querySelector(".nav_config");
+    const modelContain = document.querySelector(".model_contain");
+
+    if (!header || !modelContain) {
+      console.warn("Header or modelContain not found for mobile scroll behavior");
+      return;
+    }
+
+    let lastScrollY = window.scrollY;
+    let isThrottled = false;
+
+    // Ініціалізація стану при завантаженні
+    if (lastScrollY > 100) {
+      gsap.set(header, { y: -header.offsetHeight });
+      gsap.set(modelContain, { y: -header.offsetHeight });
+    }
+
+    const handleScroll = () => {
+      if (isThrottled) return;
+      isThrottled = true;
+
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > 100) {
+        // Скрол вниз - ховаємо header, зсуваємо modelContain вгору
+        if (currentScrollY > lastScrollY) {
+          gsap.to(header, {
+            y: -header.offsetHeight,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+          gsap.to(modelContain, {
+            y: -header.offsetHeight,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        }
+        // Скрол вверх - показуємо header, повертаємо modelContain
+        else if (currentScrollY < lastScrollY) {
+          gsap.to(header, {
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+          gsap.to(modelContain, {
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        }
+      }
+
+      lastScrollY = currentScrollY;
+
+      setTimeout(() => {
+        isThrottled = false;
+      }, 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      // matchMedia автоматично очищає анімації та listeners
+    };
+  });
 });

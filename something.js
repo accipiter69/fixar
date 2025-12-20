@@ -5,11 +5,12 @@ tippy(".swiper-slide.is--applications", {
 
 // Мапінг моделей дронів
 const droneModels = {
-  "FIXAR 025": "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025.glb",
+  "FIXAR 025":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(6).glb",
   "FIXAR 007 LE":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007++LE.glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE.glb",
   "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG.glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(1).glb",
 };
 
 // Об'єднаний DOMContentLoaded
@@ -31,6 +32,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultModuleBadge = document.querySelector(".model_scene-gimbal");
   const resultLinkBadge = document.querySelector(".range-selected");
   const sliderBg = document.querySelector(".slider-bg");
+
+  // Mobile dropdown elements (only for mobile <= 767px)
+  const navContainer = document.querySelector(".nav_container");
+  const navConfigBg = document.querySelector(".nav_config_bg");
+  const mobileDropdown = document.querySelector(".nav_drop-toggle");
+  const mobileDropdownCurrent =
+    mobileDropdown?.querySelector(".nav_drop-current");
+  const mobileDropdownImage = mobileDropdownCurrent?.querySelector("img");
+  const mobileDropdownText = mobileDropdownCurrent?.querySelector(".text-16");
   const sliderParent = document.querySelector(".applications-big-slider");
   const closeSliderBtn = sliderParent.querySelector(".close-slider");
 
@@ -55,6 +65,15 @@ document.addEventListener("DOMContentLoaded", () => {
     telemetryOnly.style.display = "none";
     telemetryVideo.style.display = "none";
   }, 500);
+
+  // Mobile dropdown toggle (only for mobile <= 767px)
+  if (window.innerWidth <= 767 && mobileDropdown) {
+    mobileDropdown.addEventListener("click", () => {
+      mobileDropdown.classList.toggle("is--active");
+      if (navConfigBg) navConfigBg.classList.toggle("is--active");
+      if (navContainer) navContainer.classList.toggle("is--active");
+    });
+  }
 
   const orderTooltip = document.querySelector(".order-now-tooltip");
   const orderBtn = orderTooltip.querySelector(".u-btn-order");
@@ -98,6 +117,52 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Container not found!");
     return;
   }
+
+  // ============================================
+  // ПРОГРЕС-БАР ЗАВАНТАЖЕННЯ 3D МОДЕЛІ
+  // ============================================
+  let progressBarContainer = null;
+  let progressBarFill = null;
+
+  // Створення прогрес-бару
+  progressBarContainer = document.createElement("div");
+  progressBarContainer.id = "model-loading-progress-container";
+  progressBarContainer.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: none;
+  `;
+
+  const progressBarTrack = document.createElement("div");
+  progressBarTrack.style.cssText = `
+    width: 220px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.13);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  `;
+
+  progressBarFill = document.createElement("div");
+  progressBarFill.style.cssText = `
+    width: 0%;
+    height: 100%;
+    background-color: #FFFFFF;
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+  `;
+
+  // Зібрати та додати до DOM
+  progressBarTrack.appendChild(progressBarFill);
+  progressBarContainer.appendChild(progressBarTrack);
+  container.appendChild(progressBarContainer);
 
   const scene = new THREE.Scene();
   let mixer;
@@ -222,33 +287,28 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.minPolarAngle = 0; // Можна дивитися зверху
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180; // 90° + 5° = не більше 5° знизу
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  // Рівномірне ambient освітлення
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(ambientLight);
 
-  // Світло з правого верху
-  const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight1.position.set(5, 5, 5);
-  scene.add(directionalLight1);
+  // Directional світло зверху
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(0, 2, 0);
+  scene.add(directionalLight);
 
-  // Світло з лівого боку
-  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
-  directionalLight2.position.set(-5, 3, 3);
-  scene.add(directionalLight2);
+  // SpotLight - прожекторне світло
+  const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+  spotLight.position.set(0, 10, 0); // Позиція прожектора
+  spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
+  spotLight.penumbra = 0.3; // М'якість країв
+  spotLight.distance = 50; // Максимальна відстань світла
+  spotLight.decay = 2; // Затухання
 
-  // Світло спереду
-  const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
-  directionalLight3.position.set(0, 2, 5);
-  scene.add(directionalLight3);
+  // Target - куди світить прожектор (центр моделі)
+  spotLight.target.position.set(0, 0, 0);
 
-  // Світло зверху над моделлю
-  const directionalLight4 = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight4.position.set(0, 10, 0);
-  scene.add(directionalLight4);
-
-  // Світло знизу моделі для освітлення нижньої частини
-  const directionalLight5 = new THREE.DirectionalLight(0xffffff, 0.6);
-  directionalLight5.position.set(0, -10, 0);
-  scene.add(directionalLight5);
+  scene.add(spotLight);
+  scene.add(spotLight.target);
 
   // Функція для показу потрібної моделі
   window.showDroneModel = (droneName) => {
@@ -320,113 +380,147 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log(`Завантаження моделі: ${droneName}`);
 
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        const model = gltf.scene;
-        // Моделі 007 LE і 007 NG в 2 рази більші
-        const scale =
-          droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-        model.scale.setScalar(scale);
-        model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
+    // Progress callback - показує прогрес завантаження тільки для FIXAR 025
+    const onProgressCallback = (xhr) => {
+      if (droneName === "FIXAR 025" && progressBarFill) {
+        if (xhr.lengthComputable) {
+          const percentComplete = (xhr.loaded / xhr.total) * 100;
+          progressBarFill.style.width = percentComplete + "%";
+        }
+      }
+    };
 
-        // Зберігаємо модель
-        loadedModels[droneName] = model;
+    // Load callback - обробляє завантажену модель
+    const onLoadCallback = (gltf) => {
+      const model = gltf.scene;
+      // Моделі 007 LE і 007 NG в 2 рази більші
+      const scale =
+        droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+      model.scale.setScalar(scale);
+      model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
 
-        // Виключаємо frustum culling для всіх мешів
+      // Зберігаємо модель
+      loadedModels[droneName] = model;
+
+      // Виключаємо frustum culling для всіх мешів
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.frustumCulled = false;
+        }
+      });
+
+      // Зберігаємо початкові кольори board частин для FIXAR 025
+      if (droneName === "FIXAR 025") {
+        const boardNames = ["board_001", "board_002", "board_003"];
+
         model.traverse((child) => {
-          if (child.isMesh) {
-            child.frustumCulled = false;
+          if (child.isMesh && child.name && boardNames.includes(child.name)) {
+            if (child.material && child.material.color) {
+              // Зберігаємо копію початкового кольору
+              window.originalBoardColors[child.name] = {
+                r: child.material.color.r,
+                g: child.material.color.g,
+                b: child.material.color.b,
+              };
+            }
           }
         });
-
-        // Зберігаємо початкові кольори board частин для FIXAR 025
-        if (droneName === "FIXAR 025") {
-          const boardNames = ["board_001", "board_002", "board_003"];
-
-          model.traverse((child) => {
-            if (child.isMesh && child.name && boardNames.includes(child.name)) {
-              if (child.material && child.material.color) {
-                // Зберігаємо копію початкового кольору
-                window.originalBoardColors[child.name] = {
-                  r: child.material.color.r,
-                  g: child.material.color.g,
-                  b: child.material.color.b,
-                };
-              }
-            }
-          });
-        }
-
-        scene.add(model);
-
-        // Налаштування камери тільки для першої завантаженої моделі
-        if (droneName === "FIXAR 025") {
-          camera.position.set(0, 2, 8);
-          camera.lookAt(0, 0, 0);
-          controls.target.set(0, 0, 0);
-        }
-
-        // Animation
-        if (gltf.animations && gltf.animations.length > 0) {
-          const modelMixer = new THREE.AnimationMixer(model);
-
-          // Зберігаємо mixer для цієї конкретної моделі
-          if (window.animations.models[droneName]) {
-            window.animations.models[droneName].mixer = modelMixer;
-          }
-
-          // Для першої моделі також зберігаємо в глобальний mixer
-          if (droneName === "FIXAR 025") {
-            mixer = modelMixer;
-          }
-
-          // Animations found: gltf.animations.length
-
-          // Обробляємо всі анімації
-          gltf.animations.forEach((animation, index) => {
-            const action = modelMixer.clipAction(animation);
-            action.timeScale = 1;
-
-            // Перевіряємо чи це анімація пропелерів (містить "flight" у назві)
-            const isFlightAnimation = animation.name
-              .toLowerCase()
-              .includes("flight");
-
-            if (isFlightAnimation) {
-              // Анімація пропелерів - запускаємо одразу з безкінечним циклом
-              action.setLoop(THREE.LoopRepeat, Infinity);
-              action.enabled = true;
-              action.weight = 1;
-              action.play();
-            } else {
-              // Решту анімацій налаштовуємо для одноразового програвання
-              action.setLoop(THREE.LoopOnce);
-              action.clampWhenFinished = true; // Зупиняємось на останньому кадрі
-              action.enabled = false;
-              action.weight = 0;
-              action.time = 0;
-              action.stop();
-              action.reset();
-            }
-
-            // Зберігаємо в масив анімацій для цієї моделі
-            if (window.animations.models[droneName]) {
-              window.animations.models[droneName].actions.push(action);
-            }
-          });
-        }
-
-        // Запускаємо анімацію тільки для першої моделі
-        if (droneName === "FIXAR 025") {
-          animate();
-        }
-      },
-      undefined,
-      (error) => {
-        console.error(`Помилка завантаження моделі ${droneName}:`, error);
       }
-    );
+
+      scene.add(model);
+
+      // Налаштування камери тільки для першої завантаженої моделі
+      if (droneName === "FIXAR 025") {
+        camera.position.set(0, 2, 8);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
+      }
+
+      // Animation
+      if (gltf.animations && gltf.animations.length > 0) {
+        const modelMixer = new THREE.AnimationMixer(model);
+
+        // Зберігаємо mixer для цієї конкретної моделі
+        if (window.animations.models[droneName]) {
+          window.animations.models[droneName].mixer = modelMixer;
+        }
+
+        // Для першої моделі також зберігаємо в глобальний mixer
+        if (droneName === "FIXAR 025") {
+          mixer = modelMixer;
+        }
+
+        // Animations found: gltf.animations.length
+
+        // Обробляємо всі анімації
+        gltf.animations.forEach((animation, index) => {
+          const action = modelMixer.clipAction(animation);
+          action.timeScale = 1;
+
+          // Перевіряємо чи це анімація пропелерів (містить "flight" у назві)
+          const isFlightAnimation = animation.name
+            .toLowerCase()
+            .includes("flight");
+
+          if (isFlightAnimation) {
+            // Анімація пропелерів - запускаємо одразу з безкінечним циклом
+            action.setLoop(THREE.LoopRepeat, Infinity);
+            action.enabled = true;
+            action.weight = 1;
+            action.play();
+          } else {
+            // Решту анімацій налаштовуємо для одноразового програвання
+            action.setLoop(THREE.LoopOnce);
+            action.clampWhenFinished = true; // Зупиняємось на останньому кадрі
+            action.enabled = false;
+            action.weight = 0;
+            action.time = 0;
+            action.stop();
+            action.reset();
+          }
+
+          // Зберігаємо в масив анімацій для цієї моделі
+          if (window.animations.models[droneName]) {
+            window.animations.models[droneName].actions.push(action);
+          }
+        });
+      }
+
+      // Запускаємо анімацію тільки для першої моделі
+      if (droneName === "FIXAR 025") {
+        animate();
+      }
+
+      // Ховаємо прогрес-бар після завантаження FIXAR 025
+      if (droneName === "FIXAR 025" && progressBarContainer) {
+        progressBarContainer.style.transition = "opacity 0.5s ease-out";
+        progressBarContainer.style.opacity = "0";
+
+        setTimeout(() => {
+          if (progressBarContainer && progressBarContainer.parentNode) {
+            progressBarContainer.parentNode.removeChild(progressBarContainer);
+          }
+        }, 500);
+      }
+    };
+
+    // Error callback - обробляє помилки завантаження
+    const onErrorCallback = (error) => {
+      console.error(`Помилка завантаження моделі ${droneName}:`, error);
+
+      // Ховаємо прогрес-бар при помилці для FIXAR 025
+      if (droneName === "FIXAR 025" && progressBarContainer) {
+        progressBarContainer.style.opacity = "0";
+        setTimeout(() => {
+          if (progressBarContainer && progressBarContainer.parentNode) {
+            progressBarContainer.parentNode.removeChild(progressBarContainer);
+          }
+        }, 500);
+      }
+    };
+
+    // Завантаження моделі з усіма callbacks
+    loader.load(modelUrl, onLoadCallback, onProgressCallback, onErrorCallback);
   };
 
   const clock = new THREE.Clock();
@@ -961,6 +1055,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================
+  // HELPER FUNCTIONS
+  // ============================================
+
+  /**
+   * Оновлює відображення обраного дрону в result блоці та мобільному дропдауні
+   * @param {string} droneName - Назва дрону (з data-drone-name)
+   * @param {string} droneDescription - Опис дрону (з data-choice-description)
+   * @param {string} imageSrc - URL зображення дрону
+   */
+  function updateDroneDisplay(droneName, droneDescription, imageSrc) {
+    // Оновлення desktop result блоку
+    if (resultDrone) {
+      resultDrone.querySelector("h3").textContent = droneName;
+      resultDrone.querySelector("p").textContent = droneDescription;
+      resultDrone.querySelector("img").setAttribute("src", imageSrc);
+    }
+
+    // Оновлення мобільного дропдауна (тільки на мобільних пристроях)
+    if (window.innerWidth <= 767) {
+      if (mobileDropdownImage && imageSrc) {
+        // Звичайний <img> використовує стандартний атрибут src
+        mobileDropdownImage.setAttribute("src", imageSrc);
+      }
+
+      if (mobileDropdownText && droneName) {
+        mobileDropdownText.textContent = droneName;
+      }
+    }
+  }
+
+  // ============================================
   // FORM - CONFIGURATOR
   // ============================================
 
@@ -983,16 +1108,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const defalutDroneValue = droneBtns[0].getAttribute("data-drone-name");
 
       if (resultDrone) {
-        resultDrone.querySelector("h3").textContent = defalutDroneValue;
-        resultDrone.querySelector("p").textContent = droneBtns[0].getAttribute(
+        const droneName = defalutDroneValue;
+        const description = droneBtns[0].getAttribute(
           "data-choice-description"
         );
-        resultDrone
-          .querySelector("img")
-          .setAttribute(
-            "src",
-            droneBtns[0].querySelector("img").getAttribute("src")
-          );
+        const imageSrc = droneBtns[0].querySelector("img").getAttribute("src");
+
+        updateDroneDisplay(droneName, description, imageSrc);
       }
 
       // Input для drone model
@@ -1076,18 +1198,10 @@ document.addEventListener("DOMContentLoaded", () => {
           // Перефільтровуємо modules-link блоки
           filterModulesLinksByCategory();
 
-          if (resultDrone) {
-            resultDrone.querySelector("h3").textContent = droneValue;
-            resultDrone.querySelector("p").textContent = btn.getAttribute(
-              "data-choice-description"
-            );
-            resultDrone
-              .querySelector("img")
-              .setAttribute(
-                "src",
-                btn.querySelector("img").getAttribute("src")
-              );
-          }
+          const droneDescription = btn.getAttribute("data-choice-description");
+          const droneImage = btn.querySelector("img").getAttribute("src");
+
+          updateDroneDisplay(droneValue, droneDescription, droneImage);
           // Показуємо відповідну модель дрону
           if (window.showDroneModel) {
             window.showDroneModel(droneValue);
