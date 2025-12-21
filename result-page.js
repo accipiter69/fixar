@@ -29,6 +29,170 @@ function parseUrlParameters() {
 }
 
 // ============================================
+// SESSION STORAGE FUNCTIONS
+// ============================================
+
+/**
+ * Читає дані конфігурації з SessionStorage
+ * @returns {Object|null} Дані конфігурації або null якщо не знайдено/невалідні
+ */
+function readConfigurationFromSession() {
+  try {
+    // Перевірка доступності SessionStorage
+    if (typeof sessionStorage === "undefined") {
+      console.warn("SessionStorage is not available in this browser");
+      return null;
+    }
+
+    const jsonData = sessionStorage.getItem("fixar_configuration");
+
+    if (!jsonData) {
+      console.log("No configuration data found in SessionStorage");
+      return null;
+    }
+
+    const configData = JSON.parse(jsonData);
+
+    // Валідація структури даних
+    if (!configData || typeof configData !== "object") {
+      console.warn("Invalid configuration data in SessionStorage");
+      return null;
+    }
+
+    // Опціонально: перевірка застарілих даних (старіше 1 години)
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (configData.timestamp && Date.now() - configData.timestamp > ONE_HOUR) {
+      console.warn("Configuration data is stale (older than 1 hour), clearing...");
+      sessionStorage.removeItem("fixar_configuration");
+      return null;
+    }
+
+    console.log("Configuration loaded from SessionStorage:", configData);
+    return configData;
+  } catch (error) {
+    console.error("Failed to read configuration from SessionStorage:", error);
+    // Можливі причини: JSON parse error, corrupted data
+    return null;
+  }
+}
+
+/**
+ * Заповнює data-choice елементи даними з конфігурації
+ * @param {Object} configData - Дані конфігурації з SessionStorage
+ */
+function populateDataChoiceElements(configData) {
+  if (!configData) {
+    console.log("No configuration data to populate");
+    return;
+  }
+
+  // Заповнення Drone
+  if (configData.drone) {
+    const droneElement = document.querySelector("[data-choice=drone]");
+    if (droneElement) {
+      const nameElement = droneElement.querySelector("h3");
+      const descElement = droneElement.querySelector("p");
+      const imgElement = droneElement.querySelector("img");
+
+      if (nameElement) nameElement.textContent = configData.drone.name;
+      if (descElement) descElement.textContent = configData.drone.description;
+      if (imgElement && configData.drone.image) {
+        imgElement.setAttribute("src", configData.drone.image);
+      }
+
+      droneElement.style.display = "flex"; // Зробити видимим
+      console.log("✓ Populated drone:", configData.drone.name);
+    }
+  }
+
+  // Заповнення Color
+  if (configData.color) {
+    const colorElement = document.querySelector("[data-choice=color]");
+    if (colorElement) {
+      const nameElement = colorElement.querySelector("[data-res-color-name]");
+      const descElement = colorElement.querySelector("p");
+      const swatchElement = colorElement.querySelector(".model_form-color-btn-res");
+
+      if (nameElement) nameElement.textContent = configData.color.name;
+      if (descElement) descElement.textContent = configData.color.description;
+      if (swatchElement && configData.color.value) {
+        swatchElement.style.backgroundColor = configData.color.value;
+      }
+
+      colorElement.style.display = "flex"; // Зробити видимим
+      console.log("✓ Populated color:", configData.color.name);
+    }
+  }
+
+  // Заповнення Module
+  if (configData.module) {
+    const moduleElement = document.querySelector("[data-choice=module]");
+    if (moduleElement) {
+      const titleElement = moduleElement.querySelector("h3");
+      const descElement =
+        moduleElement.querySelector("[data-module-description]") ||
+        moduleElement.querySelector("p");
+      const imgElement = moduleElement.querySelector("img");
+
+      if (titleElement) titleElement.textContent = configData.module.title;
+      if (descElement) descElement.textContent = configData.module.description;
+      if (imgElement && configData.module.image) {
+        imgElement.setAttribute("src", configData.module.image);
+      }
+
+      moduleElement.style.display = "flex"; // Зробити видимим
+      console.log("✓ Populated module:", configData.module.title);
+    }
+  }
+
+  // Заповнення Data Link
+  if (configData.dataLink) {
+    const linkElement = document.querySelector("[data-choice=link]");
+    if (linkElement) {
+      const titleElement = linkElement.querySelector("h3");
+      const descElement =
+        linkElement.querySelector("p") || linkElement.querySelector(".text-16");
+      const imgElement = linkElement.querySelector("img");
+
+      if (titleElement) titleElement.textContent = configData.dataLink.title;
+      if (descElement)
+        descElement.textContent = configData.dataLink.description;
+      if (imgElement && configData.dataLink.image) {
+        imgElement.setAttribute("src", configData.dataLink.image);
+      }
+
+      linkElement.style.display = "flex"; // Зробити видимим
+      console.log("✓ Populated data link:", configData.dataLink.title);
+    }
+  }
+
+  // Заповнення Optional Data Link
+  if (configData.dataLinkOptional) {
+    const optionalElement = document.querySelector("[data-choice=link-optional]");
+    if (optionalElement) {
+      const titleElement = optionalElement.querySelector("h3");
+      const descElement =
+        optionalElement.querySelector("p") ||
+        optionalElement.querySelector(".text-16");
+      const imgElement = optionalElement.querySelector("img");
+
+      if (titleElement)
+        titleElement.textContent = configData.dataLinkOptional.title;
+      if (descElement)
+        descElement.textContent = configData.dataLinkOptional.description;
+      if (imgElement && configData.dataLinkOptional.image) {
+        imgElement.setAttribute("src", configData.dataLinkOptional.image);
+      }
+
+      optionalElement.style.display = "flex"; // Зробити видимим
+      console.log("✓ Populated optional data link:", configData.dataLinkOptional.title);
+    }
+  }
+
+  console.log("Data-choice elements population complete");
+}
+
+// ============================================
 // THREE.JS SCENE INITIALIZATION
 // ============================================
 function initThreeScene(container) {
@@ -374,11 +538,21 @@ function setupResizeHandler(camera, renderer, container, model, droneName) {
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("=== Result Page Initialization Started ===");
 
-  // 1. Parse URL parameters
+  // 1. Parse URL parameters (ІСНУЮЧЕ - БЕЗ ЗМІН)
   const params = parseUrlParameters();
   console.log("URL параметри:", params);
 
-  // 2. Check container exists
+  // 2. НОВЕ: Читання SessionStorage конфігурації
+  const sessionConfig = readConfigurationFromSession();
+
+  // 3. НОВЕ: Заповнення data-choice елементів якщо дані є
+  if (sessionConfig) {
+    populateDataChoiceElements(sessionConfig);
+  } else {
+    console.warn("⚠️ No SessionStorage data - data-choice elements will remain empty");
+  }
+
+  // 4. Check container exists (ІСНУЮЧЕ - БЕЗ ЗМІН)
   const container = document.getElementById("three-container");
   if (!container) {
     console.error("#three-container not found!");

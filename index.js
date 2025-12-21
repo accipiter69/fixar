@@ -1148,6 +1148,140 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================
+  // SESSION STORAGE FUNCTIONS
+  // ============================================
+
+  /**
+   * Збирає всі дані конфігурації з data-choice елементів
+   * @returns {Object} Повна конфігурація для збереження в SessionStorage
+   */
+  function collectConfigurationData() {
+    const configData = {
+      timestamp: Date.now(),
+      drone: null,
+      color: null,
+      module: null,
+      dataLink: null,
+      dataLinkOptional: null
+    };
+
+    // Збір даних Drone
+    const droneElement = document.querySelector("[data-choice=drone]");
+    if (droneElement && droneElement.style.display !== "none") {
+      const droneName = droneElement.querySelector("h3")?.textContent;
+      const droneDescription = droneElement.querySelector("p")?.textContent;
+      const droneImage = droneElement.querySelector("img")?.getAttribute("src");
+
+      if (droneName) {
+        configData.drone = {
+          name: droneName,
+          description: droneDescription || "",
+          image: droneImage || ""
+        };
+      }
+    }
+
+    // Збір даних Color
+    const colorElement = document.querySelector("[data-choice=color]");
+    if (colorElement && colorElement.style.display !== "none") {
+      const colorName = colorElement.querySelector("[data-res-color-name]")?.textContent;
+      const colorDescription = colorElement.querySelector("p")?.textContent;
+      const colorSwatchElement = colorElement.querySelector(".model_form-color-btn-res");
+      const colorValue = colorSwatchElement
+        ? window.getComputedStyle(colorSwatchElement).backgroundColor
+        : "";
+
+      if (colorName) {
+        configData.color = {
+          name: colorName,
+          description: colorDescription || "",
+          value: colorValue || ""
+        };
+      }
+    }
+
+    // Збір даних Module
+    const moduleElement = document.querySelector("[data-choice=module]");
+    if (moduleElement && moduleElement.style.display !== "none") {
+      const moduleTitle = moduleElement.querySelector("h3")?.textContent;
+      const moduleDescription = moduleElement.querySelector("[data-module-description]")?.textContent;
+      const moduleImage = moduleElement.querySelector("img")?.getAttribute("src");
+
+      if (moduleTitle) {
+        configData.module = {
+          title: moduleTitle,
+          description: moduleDescription || "",
+          image: moduleImage || ""
+        };
+      }
+    }
+
+    // Збір даних Data Link
+    const dataLinkElement = document.querySelector("[data-choice=link]");
+    if (dataLinkElement && dataLinkElement.style.display !== "none") {
+      const linkTitle = dataLinkElement.querySelector("h3")?.textContent;
+      const linkDescElement =
+        dataLinkElement.querySelector("p") ||
+        dataLinkElement.querySelector(".text-16");
+      const linkImage = dataLinkElement.querySelector("img")?.getAttribute("src");
+
+      if (linkTitle) {
+        configData.dataLink = {
+          title: linkTitle,
+          description: linkDescElement?.textContent || "",
+          image: linkImage || ""
+        };
+      }
+    }
+
+    // Збір даних Optional Data Link
+    const optionalElement = document.querySelector("[data-choice=link-optional]");
+    if (optionalElement && optionalElement.style.display !== "none") {
+      const optionalTitle = optionalElement.querySelector("h3")?.textContent;
+      const optionalDescElement =
+        optionalElement.querySelector("p") ||
+        optionalElement.querySelector(".text-16");
+      const optionalImage = optionalElement.querySelector("img")?.getAttribute("src");
+
+      if (optionalTitle) {
+        configData.dataLinkOptional = {
+          title: optionalTitle,
+          description: optionalDescElement?.textContent || "",
+          image: optionalImage || ""
+        };
+      }
+    }
+
+    return configData;
+  }
+
+  /**
+   * Зберігає дані конфігурації в SessionStorage з обробкою помилок
+   * @param {Object} configData - Дані конфігурації для збереження
+   * @returns {boolean} Статус успішності операції
+   */
+  function saveConfigurationToSession(configData) {
+    try {
+      // Перевірка доступності SessionStorage
+      if (typeof sessionStorage === "undefined") {
+        console.warn("SessionStorage is not available in this browser");
+        return false;
+      }
+
+      // Серіалізація та збереження
+      const jsonData = JSON.stringify(configData);
+      sessionStorage.setItem("fixar_configuration", jsonData);
+
+      console.log("Configuration saved to SessionStorage:", configData);
+      return true;
+    } catch (error) {
+      console.error("Failed to save configuration to SessionStorage:", error);
+      // Можливі причини: quota exceeded, private browsing mode, storage disabled
+      return false;
+    }
+  }
+
+  // ============================================
   // FORM - CONFIGURATOR
   // ============================================
 
@@ -1157,6 +1291,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     submitBtn.addEventListener("click", (e) => {
       e.preventDefault();
+
+      // НОВЕ: Збір і збереження даних конфігурації в SessionStorage
+      const configData = collectConfigurationData();
+      saveConfigurationToSession(configData);
+
+      // ІСНУЮЧЕ: Створення FormData та редірект з query параметрами (БЕЗ ЗМІН)
       const formData = new FormData(form);
       const params = new URLSearchParams(formData);
       console.log("Form data to be sent:", Object.fromEntries(formData));
