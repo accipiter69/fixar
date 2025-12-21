@@ -1262,21 +1262,14 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function saveConfigurationToSession(configData) {
     try {
-      // Перевірка доступності SessionStorage
       if (typeof sessionStorage === "undefined") {
-        console.warn("SessionStorage is not available in this browser");
         return false;
       }
 
-      // Серіалізація та збереження
       const jsonData = JSON.stringify(configData);
       sessionStorage.setItem("fixar_configuration", jsonData);
-
-      console.log("Configuration saved to SessionStorage:", configData);
       return true;
     } catch (error) {
-      console.error("Failed to save configuration to SessionStorage:", error);
-      // Можливі причини: quota exceeded, private browsing mode, storage disabled
       return false;
     }
   }
