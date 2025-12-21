@@ -96,8 +96,24 @@ function populateDataChoiceElements(configData) {
 
       if (nameElement) nameElement.textContent = configData.drone.name;
       if (descElement) descElement.textContent = configData.drone.description;
-      if (imgElement && configData.drone.image) {
-        imgElement.setAttribute("src", configData.drone.image);
+
+      // Детальне логування для діагностики картинок
+      console.log("🔍 Drone image debug:", {
+        hasImgElement: !!imgElement,
+        imageUrl: configData.drone.image,
+        urlLength: configData.drone.image?.length
+      });
+
+      if (imgElement) {
+        if (configData.drone.image && configData.drone.image.trim() !== "") {
+          console.log("📷 Setting drone image src to:", configData.drone.image);
+          imgElement.setAttribute("src", configData.drone.image);
+          console.log("📷 Image src after set:", imgElement.getAttribute("src"));
+        } else {
+          console.warn("⚠️ Drone image URL is empty or invalid");
+        }
+      } else {
+        console.warn("⚠️ Drone img element not found!");
       }
 
       droneElement.style.display = "flex"; // Зробити видимим
@@ -136,8 +152,22 @@ function populateDataChoiceElements(configData) {
 
       if (titleElement) titleElement.textContent = configData.module.title;
       if (descElement) descElement.textContent = configData.module.description;
-      if (imgElement && configData.module.image) {
-        imgElement.setAttribute("src", configData.module.image);
+
+      console.log("🔍 Module image debug:", {
+        hasImgElement: !!imgElement,
+        imageUrl: configData.module.image,
+        urlLength: configData.module.image?.length
+      });
+
+      if (imgElement) {
+        if (configData.module.image && configData.module.image.trim() !== "") {
+          console.log("📷 Setting module image src to:", configData.module.image);
+          imgElement.setAttribute("src", configData.module.image);
+        } else {
+          console.warn("⚠️ Module image URL is empty");
+        }
+      } else {
+        console.warn("⚠️ Module img element not found!");
       }
 
       moduleElement.style.display = "flex"; // Зробити видимим
@@ -157,8 +187,22 @@ function populateDataChoiceElements(configData) {
       if (titleElement) titleElement.textContent = configData.dataLink.title;
       if (descElement)
         descElement.textContent = configData.dataLink.description;
-      if (imgElement && configData.dataLink.image) {
-        imgElement.setAttribute("src", configData.dataLink.image);
+
+      console.log("🔍 DataLink image debug:", {
+        hasImgElement: !!imgElement,
+        imageUrl: configData.dataLink.image,
+        urlLength: configData.dataLink.image?.length
+      });
+
+      if (imgElement) {
+        if (configData.dataLink.image && configData.dataLink.image.trim() !== "") {
+          console.log("📷 Setting dataLink image src to:", configData.dataLink.image);
+          imgElement.setAttribute("src", configData.dataLink.image);
+        } else {
+          console.warn("⚠️ DataLink image URL is empty");
+        }
+      } else {
+        console.warn("⚠️ DataLink img element not found!");
       }
 
       linkElement.style.display = "flex"; // Зробити видимим
@@ -180,8 +224,22 @@ function populateDataChoiceElements(configData) {
         titleElement.textContent = configData.dataLinkOptional.title;
       if (descElement)
         descElement.textContent = configData.dataLinkOptional.description;
-      if (imgElement && configData.dataLinkOptional.image) {
-        imgElement.setAttribute("src", configData.dataLinkOptional.image);
+
+      console.log("🔍 Optional DataLink image debug:", {
+        hasImgElement: !!imgElement,
+        imageUrl: configData.dataLinkOptional.image,
+        urlLength: configData.dataLinkOptional.image?.length
+      });
+
+      if (imgElement) {
+        if (configData.dataLinkOptional.image && configData.dataLinkOptional.image.trim() !== "") {
+          console.log("📷 Setting optional dataLink image src to:", configData.dataLinkOptional.image);
+          imgElement.setAttribute("src", configData.dataLinkOptional.image);
+        } else {
+          console.warn("⚠️ Optional DataLink image URL is empty");
+        }
+      } else {
+        console.warn("⚠️ Optional DataLink img element not found!");
       }
 
       optionalElement.style.display = "flex"; // Зробити видимим
