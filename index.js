@@ -2700,6 +2700,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // MOBILE HEADER/MODELCONTAIN SCROLL BEHAVIOR
   // ============================================
+  // ЗАКОМЕНТОВАНО: scroll behavior для мобільного хедера
+  /*
   let mm = gsap.matchMedia();
 
   mm.add("(max-width: 767px)", () => {
@@ -2772,4 +2774,5 @@ document.addEventListener("DOMContentLoaded", () => {
       gsap.killTweensOf([header, modelContain]);
     };
   });
+  */
 });
