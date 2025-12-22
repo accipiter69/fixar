@@ -66,6 +66,23 @@ function readConfigurationFromSession() {
 }
 
 /**
+ * Приховує всі result блоки перед їх заповненням
+ */
+function hideAllResultBlocks() {
+  const resultBlocks = [
+    document.querySelector("[data-choice=drone]"),
+    document.querySelector("[data-choice=color]"),
+    document.querySelector("[data-choice=module]"),
+    document.querySelector("[data-choice=link]"),
+    document.querySelector("[data-choice=link-optional]")
+  ];
+
+  resultBlocks.forEach(block => {
+    if (block) block.style.display = "none";
+  });
+}
+
+/**
  * Заповнює data-choice елементи даними з конфігурації
  * @param {Object} configData - Дані конфігурації з SessionStorage
  */
@@ -88,7 +105,10 @@ function populateDataChoiceElements(configData) {
         imgElement.setAttribute("src", configData.drone.image);
       }
 
-      droneElement.style.display = "flex";
+      // Показувати тільки якщо є name або description
+      if (configData.drone.name || configData.drone.description) {
+        droneElement.style.display = "flex";
+      }
     }
   }
 
@@ -106,7 +126,10 @@ function populateDataChoiceElements(configData) {
         swatchElement.style.backgroundColor = configData.color.value;
       }
 
-      colorElement.style.display = "flex";
+      // Показувати тільки якщо є name
+      if (configData.color.name) {
+        colorElement.style.display = "flex";
+      }
     }
   }
 
@@ -126,7 +149,10 @@ function populateDataChoiceElements(configData) {
         imgElement.setAttribute("src", configData.module.image);
       }
 
-      moduleElement.style.display = "flex";
+      // Показувати тільки якщо є title або description
+      if (configData.module.title || configData.module.description) {
+        moduleElement.style.display = "flex";
+      }
     }
   }
 
@@ -145,7 +171,10 @@ function populateDataChoiceElements(configData) {
         imgElement.setAttribute("src", configData.dataLink.image);
       }
 
-      linkElement.style.display = "flex";
+      // Показувати тільки якщо є title або description
+      if (configData.dataLink.title || configData.dataLink.description) {
+        linkElement.style.display = "flex";
+      }
     }
   }
 
@@ -165,7 +194,10 @@ function populateDataChoiceElements(configData) {
         imgElement.setAttribute("src", configData.dataLinkOptional.image);
       }
 
-      optionalElement.style.display = "flex";
+      // Показувати тільки якщо є title або description
+      if (configData.dataLinkOptional.title || configData.dataLinkOptional.description) {
+        optionalElement.style.display = "flex";
+      }
     }
   }
 }
@@ -522,7 +554,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 2. Читання SessionStorage конфігурації
   const sessionConfig = readConfigurationFromSession();
 
-  // 3. Заповнення data-choice елементів
+  // 3. Початково ховаємо всі result блоки
+  hideAllResultBlocks();
+
+  // 4. Заповнення data-choice елементів
   if (sessionConfig) {
     populateDataChoiceElements(sessionConfig);
   }
