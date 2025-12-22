@@ -547,11 +547,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       scene.add(model);
 
-      // Налаштування камери тільки для першої завантаженої моделі
-      if (droneName === "FIXAR 025") {
-        camera.position.set(0, 2, 8);
-        camera.lookAt(0, 0, 0);
-        controls.target.set(0, 0, 0);
+      // Налаштування камери для всіх моделей
+      camera.position.set(0, 2, 8);
+      camera.lookAt(0, 0, 0);
+      controls.target.set(0, 0, 0);
+
+      // Встановлюємо поточну модель якщо вона видима
+      if (showAfterLoad) {
+        currentDroneModel = droneName;
+        window.animations.currentModel = droneName;
       }
 
       // Animation
@@ -563,10 +567,8 @@ document.addEventListener("DOMContentLoaded", () => {
           window.animations.models[droneName].mixer = modelMixer;
         }
 
-        // Для першої моделі також зберігаємо в глобальний mixer
-        if (droneName === "FIXAR 025") {
-          mixer = modelMixer;
-        }
+        // Зберігаємо в глобальний mixer для поточної моделі
+        mixer = modelMixer;
 
         // Animations found: gltf.animations.length
 
