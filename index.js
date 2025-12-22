@@ -10,10 +10,10 @@ if (window.matchMedia("(hover: hover)").matches) {
 const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(6).glb",
-  "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(1).glb",
   "FIXAR 007 LE":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE.glb",
+  "FIXAR 007 NG":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(1).glb",
 };
 
 // Об'єднаний DOMContentLoaded
@@ -21,12 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // ЗАГАЛЬНІ СЕЛЕКТОРИ
   // ============================================
-
-  // Timeout для colorChange щоб уникнути накопичення callbacks
-  let colorChangeTimeout = null;
-
-  // Throttle для filterAddons/filterDataLinks щоб уникнути DOM thrashing
-  let filterThrottle = false;
 
   const form = document.querySelector(".model_form");
   const submitBtn = form.querySelector(".submit");
@@ -206,8 +200,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.animations = {
     models: {
       "FIXAR 025": { actions: [], mixer: null },
-      "FIXAR 007 NG": { actions: [], mixer: null },
       "FIXAR 007 LE": { actions: [], mixer: null },
+      "FIXAR 007 NG": { actions: [], mixer: null },
     },
     currentModel: "FIXAR 025",
 
@@ -294,8 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
-  // Обмежуємо pixelRatio до 2 для економії пам'яті на мобільних (Retina = 3x)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
@@ -353,61 +346,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Функція для очищення моделі дрону з пам'яті (geometry, materials, textures)
-  window.disposeDroneModel = (droneName) => {
-    const model = window.loadedModels[droneName];
-    if (!model) return;
-
-    // Traverse через всі mesh елементи моделі
-    model.traverse((child) => {
-      if (child.isMesh) {
-        // Очищаємо geometry
-        if (child.geometry) {
-          child.geometry.dispose();
-        }
-
-        // Очищаємо materials та textures
-        if (child.material) {
-          if (Array.isArray(child.material)) {
-            // Якщо material це масив
-            child.material.forEach((material) => {
-              if (material.map) material.map.dispose();
-              if (material.normalMap) material.normalMap.dispose();
-              if (material.roughnessMap) material.roughnessMap.dispose();
-              if (material.metalnessMap) material.metalnessMap.dispose();
-              if (material.aoMap) material.aoMap.dispose();
-              material.dispose();
-            });
-          } else {
-            // Один material
-            if (child.material.map) child.material.map.dispose();
-            if (child.material.normalMap) child.material.normalMap.dispose();
-            if (child.material.roughnessMap)
-              child.material.roughnessMap.dispose();
-            if (child.material.metalnessMap)
-              child.material.metalnessMap.dispose();
-            if (child.material.aoMap) child.material.aoMap.dispose();
-            child.material.dispose();
-          }
-        }
-      }
-    });
-
-    // Очищаємо animation mixer для цієї моделі
-    const modelData = window.animations.models[droneName];
-    if (modelData && modelData.mixer) {
-      modelData.mixer.stopAllAction();
-      modelData.mixer.uncacheRoot(model);
-      modelData.mixer = null;
-    }
-
-    // Видаляємо модель зі сцени
-    scene.remove(model);
-
-    // Очищаємо reference
-    window.loadedModels[droneName] = null;
-  };
-
   // Функція для зміни кольору елементів за назвою матеріалу
   window.changeColorByMaterialName = (
     materialName,
@@ -449,27 +387,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const loader = new THREE.GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
 
-  // Трекер завантаження всіх моделей
-  const loadingTracker = {
-    models: {
-      "FIXAR 025": { loaded: 0, total: 0, complete: false },
-      "FIXAR 007 NG": { loaded: 0, total: 0, complete: false },
-      "FIXAR 007 LE": { loaded: 0, total: 0, complete: false },
-    },
-    getTotalProgress() {
-      let totalLoaded = 0;
-      let totalSize = 0;
-      Object.values(this.models).forEach((model) => {
-        totalLoaded += model.loaded;
-        totalSize += model.total;
-      });
-      return totalSize > 0 ? (totalLoaded / totalSize) * 100 : 0;
-    },
-    allModelsLoaded() {
-      return Object.values(this.models).every((model) => model.complete);
-    },
-  };
-
   // Функція для завантаження моделі
   const loadDroneModel = (droneName, showAfterLoad = false) => {
     const modelUrl = droneModels[droneName];
@@ -480,19 +397,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log(`Завантаження моделі: ${droneName}`);
 
-    // Progress callback - відслідковує прогрес завантаження всіх моделей
+    // Progress callback - показує прогрес завантаження тільки для FIXAR 025
     const onProgressCallback = (xhr) => {
-      if (xhr.lengthComputable) {
-        // Оновлюємо дані для цієї моделі
-        loadingTracker.models[droneName].loaded = xhr.loaded;
-        loadingTracker.models[droneName].total = xhr.total;
-
-        // Обчислюємо загальний прогрес всіх моделей
-        const totalProgress = loadingTracker.getTotalProgress();
-
-        // Оновлюємо прогрес-бар
-        if (progressBarFill) {
-          progressBarFill.style.width = totalProgress + "%";
+      if (droneName === "FIXAR 025" && progressBarFill) {
+        if (xhr.lengthComputable) {
+          const percentComplete = (xhr.loaded / xhr.total) * 100;
+          progressBarFill.style.width = percentComplete + "%";
         }
       }
     };
@@ -547,15 +457,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       scene.add(model);
 
-      // Налаштування камери для всіх моделей
-      camera.position.set(0, 2, 8);
-      camera.lookAt(0, 0, 0);
-      controls.target.set(0, 0, 0);
-
-      // Встановлюємо поточну модель якщо вона видима
-      if (showAfterLoad) {
-        currentDroneModel = droneName;
-        window.animations.currentModel = droneName;
+      // Налаштування камери тільки для першої завантаженої моделі
+      if (droneName === "FIXAR 025") {
+        camera.position.set(0, 2, 8);
+        camera.lookAt(0, 0, 0);
+        controls.target.set(0, 0, 0);
       }
 
       // Animation
@@ -567,8 +473,10 @@ document.addEventListener("DOMContentLoaded", () => {
           window.animations.models[droneName].mixer = modelMixer;
         }
 
-        // Зберігаємо в глобальний mixer для поточної моделі
-        mixer = modelMixer;
+        // Для першої моделі також зберігаємо в глобальний mixer
+        if (droneName === "FIXAR 025") {
+          mixer = modelMixer;
+        }
 
         // Animations found: gltf.animations.length
 
@@ -606,27 +514,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // Позначаємо модель як завантажену
-      loadingTracker.models[droneName].complete = true;
-      loadingTracker.models[droneName].loaded =
-        loadingTracker.models[droneName].total;
-
-      console.log(`Модель ${droneName} завантажена`);
-
       // Запускаємо анімацію тільки для першої моделі
       if (droneName === "FIXAR 025") {
         animate();
       }
 
-      // Ховаємо прогрес-бар тільки коли ВСІ моделі завантажені
-      if (loadingTracker.allModelsLoaded() && progressBarContainer) {
-        console.log("Всі моделі завантажені!");
-
-        // Встановлюємо прогрес на 100%
-        if (progressBarFill) {
-          progressBarFill.style.width = "100%";
-        }
-
+      // Ховаємо прогрес-бар після завантаження FIXAR 025
+      if (droneName === "FIXAR 025" && progressBarContainer) {
         progressBarContainer.style.transition = "opacity 0.5s ease-out";
         progressBarContainer.style.opacity = "0";
 
@@ -642,11 +536,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const onErrorCallback = (error) => {
       console.error(`Помилка завантаження моделі ${droneName}:`, error);
 
-      // Позначаємо модель як завантажену (навіть з помилкою) щоб не блокувати прогрес
-      loadingTracker.models[droneName].complete = true;
-
-      // Ховаємо прогрес-бар якщо всі спроби завершені
-      if (loadingTracker.allModelsLoaded() && progressBarContainer) {
+      // Ховаємо прогрес-бар при помилці для FIXAR 025
+      if (droneName === "FIXAR 025" && progressBarContainer) {
         progressBarContainer.style.opacity = "0";
         setTimeout(() => {
           if (progressBarContainer && progressBarContainer.parentNode) {
@@ -704,28 +595,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Debounce для resize handler щоб уникнути сотень викликів при повороті екрана
-  let resizeTimeout;
   window.addEventListener("resize", () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      if (container) {
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
+    if (container) {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
 
-        // Оновлюємо скейл моделей при зміні розміру
-        updateModelScale();
-      }
-    }, 150); // Debounce 150ms
+      // Оновлюємо скейл моделей при зміні розміру
+      updateModelScale();
+    }
   });
 
-  // Зчитуємо назву дрону з hidden input і завантажуємо тільки цю модель
-  const droneNameInput = document.querySelector('input[name="Drone Name"]');
-  const selectedDroneName = droneNameInput ? droneNameInput.value : "FIXAR 025";
+  // Завантажуємо моделі: спочатку FIXAR 025 (за замовчуванням), потім інші
+  loadDroneModel("FIXAR 025", true); // Показуємо одразу
 
-  console.log(`Завантаження моделі: ${selectedDroneName}...`);
-  loadDroneModel(selectedDroneName, true); // Показуємо обрану модель
+  // Завантажуємо інші моделі в фоні після невеликої затримки
+  setTimeout(() => {
+    loadDroneModel("FIXAR 007 LE", false);
+    loadDroneModel("FIXAR 007 NG", false);
+  }, 1000);
 
   // ============================================
   // SWIPER - APPLICATIONS SLIDER
@@ -1028,17 +916,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Функція для фільтрації слайдів у другому слайдері (swiper2)
   function filterApplicationSlidesBig(moduleItem) {
-    // Cleanup: видаляємо event listeners зі старих слайдів перед видаленням
-    if (swiper2.slides && swiper2.slides.length > 0) {
-      swiper2.slides.forEach((slide) => {
-        // Клонуємо слайд без вмісту для очищення listeners
-        const newSlide = slide.cloneNode(false);
-        if (slide.parentNode) {
-          slide.parentNode.replaceChild(newSlide, slide);
-        }
-      });
-    }
-
     if (!moduleItem) {
       // Якщо модуль не обрано - відновлюємо всі слайди з шаблонів
       swiper2.removeAllSlides();
@@ -1434,42 +1311,112 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = `/configurator-form?${params.toString()}`;
     });
 
-    // Зчитуємо назву дрону з hidden input
-    const droneNameInput = document.querySelector('input[name="Drone Name"]');
-    const currentDroneName = droneNameInput ? droneNameInput.value : "FIXAR 025";
-
-    // Встановлюємо активний клас на відповідну кнопку дрону (якщо вона є)
+    // Встановлюємо перший дрон як активний за замовчуванням
     if (droneBtns.length > 0) {
+      droneBtns[0].classList.add("is--active");
+      const defalutDroneValue = droneBtns[0].getAttribute("data-drone-name");
+
+      if (resultDrone) {
+        const droneName = defalutDroneValue;
+        const description = droneBtns[0].getAttribute(
+          "data-choice-description"
+        );
+        const imageSrc = droneBtns[0].querySelector("img").getAttribute("src");
+
+        updateDroneDisplay(droneName, description, imageSrc);
+      }
+
+      // Input для drone model
+      const hidenDroneInput = document.createElement("input");
+      hidenDroneInput.setAttribute("type", "hidden");
+      hidenDroneInput.setAttribute("name", "Drone Model");
+      hidenDroneInput.setAttribute("value", defalutDroneValue);
+      form.prepend(hidenDroneInput);
+
+      // Drone selects clicks
       droneBtns.forEach((btn) => {
-        const btnDroneName = btn.getAttribute("data-drone-name");
-        if (btnDroneName === currentDroneName) {
-          btn.classList.add("is--active");
+        btn.addEventListener("click", () => {
+          const droneValue = btn.getAttribute("data-drone-name");
+          const modulesList = document.querySelectorAll(".modules-item");
 
-          // Оновлюємо відображення дрону
-          if (resultDrone) {
-            const description = btn.getAttribute("data-choice-description");
-            const imageSrc = btn.querySelector("img").getAttribute("src");
-            updateDroneDisplay(currentDroneName, description, imageSrc);
+          // Diselect module
+          modulesList.forEach((m) => {
+            const input = m.querySelector("input");
+            if (input) {
+              input.checked = false;
+            }
+          });
+
+          // Ховаємо resultModule при зміні дрона
+          if (resultModule) {
+            resultModule.style.display = "none";
           }
-        }
+
+          // Ховаємо resultDataLink при зміні дрона
+          if (resultDataLink) {
+            resultDataLink.style.display = "none";
+          }
+
+          // Ховаємо resultDataLinkOptional при зміні дрона
+          if (resultDataLinkOptional) {
+            resultDataLinkOptional.style.display = "none";
+          }
+
+          // Ховаємо badges при зміні дрона
+          updateModuleBadge(null);
+          // updateLinkBadge(null);
+
+          // Hide orderTooltip (modules deselected)
+          updateOrderTooltipVisibility();
+
+          // Скидаємо фільтрацію application слайдів
+          filterApplicationSlides(null);
+          filterApplicationSlidesBig(null);
+
+          // Зупиняємо всі анімації крім flight при зміні дрона
+          if (window.animations && window.animations.stopAll) {
+            window.animations.stopAll();
+          }
+
+          droneBtns.forEach((btn) => {
+            btn.classList.remove("is--active");
+          });
+          hidenDroneInput.setAttribute("value", droneValue);
+
+          btn.classList.add("is--active");
+          filterAddons();
+          filterDataLinks();
+
+          // Перезапускаємо dropdown для модулів після фільтрації
+          initDropdown(
+            ".modules-list-drop",
+            ".modules-list-wrp",
+            ".modules-item",
+            true
+          );
+          initDropdown(
+            ".modules-list-drop",
+            ".modules-list-wrp",
+            ".modules-link",
+            true
+          );
+
+          // Скидаємо вибір modules-link
+          resetModulesLinkSelection();
+
+          // Перефільтровуємо modules-link блоки
+          filterModulesLinksByCategory();
+
+          const droneDescription = btn.getAttribute("data-choice-description");
+          const droneImage = btn.querySelector("img").getAttribute("src");
+
+          updateDroneDisplay(droneValue, droneDescription, droneImage);
+          // Показуємо відповідну модель дрону
+          if (window.showDroneModel) {
+            window.showDroneModel(droneValue);
+          }
+        });
       });
-    }
-
-    // Input для drone model (для відправки форми)
-    const hidenDroneInput = document.createElement("input");
-    hidenDroneInput.setAttribute("type", "hidden");
-    hidenDroneInput.setAttribute("name", "Drone Model");
-    hidenDroneInput.setAttribute("value", currentDroneName);
-    form.prepend(hidenDroneInput);
-
-    // droneBtns тепер є просто посиланнями, кліки не обробляються
-
-    // Запускаємо фільтрацію модулів і data links для поточного дрону при завантаженні
-    if (typeof throttledFilterAddons === 'function') {
-      throttledFilterAddons();
-    }
-    if (typeof throttledFilterDataLinks === 'function') {
-      throttledFilterDataLinks();
     }
 
     // ============================================
@@ -1579,7 +1526,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Змінюємо колір елементів з матеріалом "red" у всіх моделях одразу
           if (window.changeColorByMaterialName) {
-            const droneModels = ["FIXAR 025", "FIXAR 007 NG", "FIXAR 007 LE"];
+            const droneModels = ["FIXAR 025", "FIXAR 007 LE", "FIXAR 007 NG"];
             let notLoadedModels = [];
 
             // Функція для зміни кольору в моделі (шукаємо за матеріалом "red")
@@ -1600,16 +1547,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Якщо є незавантажені моделі, чекаємо і пробуємо знову
             if (notLoadedModels.length > 0) {
-              // Скасовуємо попередній timeout якщо він існує
-              if (colorChangeTimeout) {
-                clearTimeout(colorChangeTimeout);
-              }
-
-              colorChangeTimeout = setTimeout(() => {
+              setTimeout(() => {
                 notLoadedModels.forEach((modelName) => {
                   window.changeColorByMaterialName("red", hexColor, modelName);
                 });
-                colorChangeTimeout = null; // Очищаємо reference
               }, 1500);
             }
 
@@ -1710,29 +1651,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
     filterDataLinks();
-
-    // Throttled wrapper функції для уникнення DOM thrashing
-    function throttledFilterAddons() {
-      if (filterThrottle) return;
-      filterThrottle = true;
-
-      filterAddons();
-
-      setTimeout(() => {
-        filterThrottle = false;
-      }, 100);
-    }
-
-    function throttledFilterDataLinks() {
-      if (filterThrottle) return;
-      filterThrottle = true;
-
-      filterDataLinks();
-
-      setTimeout(() => {
-        filterThrottle = false;
-      }, 100);
-    }
 
     // ============================================
     // MODULES-LINK FILTERING FUNCTIONS
@@ -2649,8 +2567,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // MOBILE HEADER/MODELCONTAIN SCROLL BEHAVIOR
   // ============================================
-  // ЗАКОМЕНТОВАНО: scroll behavior для мобільного хедера
-
   let mm = gsap.matchMedia();
 
   mm.add("(max-width: 767px)", () => {
@@ -2718,9 +2634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", handleScroll);
 
     return () => {
-      // Cleanup function - видаляємо scroll listener та GSAP анімації
-      window.removeEventListener("scroll", handleScroll);
-      gsap.killTweensOf([header, modelContain]);
+      // matchMedia автоматично очищає анімації та listeners
     };
   });
 });
