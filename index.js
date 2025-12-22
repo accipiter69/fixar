@@ -719,7 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Зчитуємо назву дрону з hidden input і завантажуємо тільки цю модель
-  const droneNameInput = document.querySelector('input[drone-name]');
+  const droneNameInput = document.querySelector('input[name="Drone Name"]');
   const selectedDroneName = droneNameInput ? droneNameInput.value : "FIXAR 025";
 
   console.log(`Завантаження моделі: ${selectedDroneName}...`);
@@ -1433,7 +1433,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Зчитуємо назву дрону з hidden input
-    const droneNameInput = document.querySelector('input[drone-name]');
+    const droneNameInput = document.querySelector('input[name="Drone Name"]');
     const currentDroneName = droneNameInput ? droneNameInput.value : "FIXAR 025";
 
     // Встановлюємо активний клас на відповідну кнопку дрону (якщо вона є)
