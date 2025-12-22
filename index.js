@@ -10,10 +10,10 @@ if (window.matchMedia("(hover: hover)").matches) {
 const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(6).glb",
-  "FIXAR 007 LE":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE.glb",
   "FIXAR 007 NG":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(1).glb",
+  "FIXAR 007 LE":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE.glb",
 };
 
 // Об'єднаний DOMContentLoaded
@@ -206,8 +206,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.animations = {
     models: {
       "FIXAR 025": { actions: [], mixer: null },
-      "FIXAR 007 LE": { actions: [], mixer: null },
       "FIXAR 007 NG": { actions: [], mixer: null },
+      "FIXAR 007 LE": { actions: [], mixer: null },
     },
     currentModel: "FIXAR 025",
 
@@ -447,6 +447,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const loader = new THREE.GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
 
+  // Трекер завантаження всіх моделей
+  const loadingTracker = {
+    models: {
+      "FIXAR 025": { loaded: 0, total: 0, complete: false },
+      "FIXAR 007 NG": { loaded: 0, total: 0, complete: false },
+      "FIXAR 007 LE": { loaded: 0, total: 0, complete: false },
+    },
+    getTotalProgress() {
+      let totalLoaded = 0;
+      let totalSize = 0;
+      Object.values(this.models).forEach(model => {
+        totalLoaded += model.loaded;
+        totalSize += model.total;
+      });
+      return totalSize > 0 ? (totalLoaded / totalSize) * 100 : 0;
+    },
+    allModelsLoaded() {
+      return Object.values(this.models).every(model => model.complete);
+    }
+  };
+
   // Функція для завантаження моделі
   const loadDroneModel = (droneName, showAfterLoad = false) => {
     const modelUrl = droneModels[droneName];
@@ -457,12 +478,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log(`Завантаження моделі: ${droneName}`);
 
-    // Progress callback - показує прогрес завантаження тільки для FIXAR 025
+    // Progress callback - відслідковує прогрес завантаження всіх моделей
     const onProgressCallback = (xhr) => {
-      if (droneName === "FIXAR 025" && progressBarFill) {
-        if (xhr.lengthComputable) {
-          const percentComplete = (xhr.loaded / xhr.total) * 100;
-          progressBarFill.style.width = percentComplete + "%";
+      if (xhr.lengthComputable) {
+        // Оновлюємо дані для цієї моделі
+        loadingTracker.models[droneName].loaded = xhr.loaded;
+        loadingTracker.models[droneName].total = xhr.total;
+
+        // Обчислюємо загальний прогрес всіх моделей
+        const totalProgress = loadingTracker.getTotalProgress();
+
+        // Оновлюємо прогрес-бар
+        if (progressBarFill) {
+          progressBarFill.style.width = totalProgress + "%";
         }
       }
     };
@@ -574,13 +602,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
+      // Позначаємо модель як завантажену
+      loadingTracker.models[droneName].complete = true;
+      loadingTracker.models[droneName].loaded = loadingTracker.models[droneName].total;
+
+      console.log(`Модель ${droneName} завантажена`);
+
       // Запускаємо анімацію тільки для першої моделі
       if (droneName === "FIXAR 025") {
         animate();
       }
 
-      // Ховаємо прогрес-бар після завантаження FIXAR 025
-      if (droneName === "FIXAR 025" && progressBarContainer) {
+      // Ховаємо прогрес-бар тільки коли ВСІ моделі завантажені
+      if (loadingTracker.allModelsLoaded() && progressBarContainer) {
+        console.log("Всі моделі завантажені!");
+
+        // Встановлюємо прогрес на 100%
+        if (progressBarFill) {
+          progressBarFill.style.width = "100%";
+        }
+
         progressBarContainer.style.transition = "opacity 0.5s ease-out";
         progressBarContainer.style.opacity = "0";
 
@@ -596,8 +637,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const onErrorCallback = (error) => {
       console.error(`Помилка завантаження моделі ${droneName}:`, error);
 
-      // Ховаємо прогрес-бар при помилці для FIXAR 025
-      if (droneName === "FIXAR 025" && progressBarContainer) {
+      // Позначаємо модель як завантажену (навіть з помилкою) щоб не блокувати прогрес
+      loadingTracker.models[droneName].complete = true;
+
+      // Ховаємо прогрес-бар якщо всі спроби завершені
+      if (loadingTracker.allModelsLoaded() && progressBarContainer) {
         progressBarContainer.style.opacity = "0";
         setTimeout(() => {
           if (progressBarContainer && progressBarContainer.parentNode) {
@@ -671,27 +715,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 150); // Debounce 150ms
   });
 
-  // Завантажуємо моделі: спочатку FIXAR 025 (за замовчуванням), потім інші
-  loadDroneModel("FIXAR 025", true); // Показуємо одразу
-
-  // Lazy loading: завантажуємо інші моделі після ініціалізації першої
-  // Збільшена затримка та перевірка пам'яті для мобільних пристроїв
-  setTimeout(() => {
-    // Перевіряємо чи достатньо пам'яті (якщо API доступне)
-    const hasEnoughMemory = !performance.memory ||
-                            performance.memory.usedJSHeapSize < 50000000; // < 50MB
-
-    if (hasEnoughMemory) {
-      loadDroneModel("FIXAR 007 LE", false);
-
-      // Завантажуємо третю модель з додатковою затримкою
-      setTimeout(() => {
-        loadDroneModel("FIXAR 007 NG", false);
-      }, 2000);
-    } else {
-      console.warn("Insufficient memory - skipping preload of 007 models");
-    }
-  }, 3000); // Збільшено з 1000ms до 3000ms
+  // Завантажуємо всі 3 моделі одночасно (паралельно)
+  // Прогрес-бар буде показувати загальний прогрес всіх моделей
+  console.log("Початок завантаження всіх моделей...");
+  loadDroneModel("FIXAR 025", true);  // Показуємо першу модель
+  loadDroneModel("FIXAR 007 NG", false); // Ховаємо за замовчуванням
+  loadDroneModel("FIXAR 007 LE", false); // Ховаємо за замовчуванням
 
   // ============================================
   // SWIPER - APPLICATIONS SLIDER
@@ -1601,7 +1630,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Змінюємо колір елементів з матеріалом "red" у всіх моделях одразу
           if (window.changeColorByMaterialName) {
-            const droneModels = ["FIXAR 025", "FIXAR 007 LE", "FIXAR 007 NG"];
+            const droneModels = ["FIXAR 025", "FIXAR 007 NG", "FIXAR 007 LE"];
             let notLoadedModels = [];
 
             // Функція для зміни кольору в моделі (шукаємо за матеріалом "red")
