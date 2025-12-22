@@ -36,6 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultLinkBadge = document.querySelector(".range-selected");
   const sliderBg = document.querySelector(".slider-bg");
 
+  // Читаємо модель дрона зі статичного hidden input
+  const droneModelInput = document.getElementById("droneModelInput");
+  const currentDroneModel = droneModelInput ? droneModelInput.value : "FIXAR 025";
+
   // Mobile dropdown elements (only for mobile <= 767px)
   const navContainer = document.querySelector(".nav_container");
   const navConfigBg = document.querySelector(".nav_config_bg");
@@ -187,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Об'єкт для зберігання завантажених моделей (глобально доступний)
   window.loadedModels = {};
   const loadedModels = window.loadedModels; // Локальний аліас для зручності
-  let currentDroneModel = "FIXAR 025"; // Модель за замовчуванням
 
   // Зберігаємо початкові кольори board частин для FIXAR 025
   window.originalBoardColors = {
@@ -203,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "FIXAR 007 LE": { actions: [], mixer: null },
       "FIXAR 007 NG": { actions: [], mixer: null },
     },
-    currentModel: "FIXAR 025",
+    currentModel: currentDroneModel,
 
     play: (index) => {
       const model = window.animations.models[window.animations.currentModel];
@@ -382,9 +385,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log(`Завантаження моделі: ${droneName}`);
 
-    // Progress callback - показує прогрес завантаження тільки для FIXAR 025
+    // Progress callback - показує прогрес завантаження
     const onProgressCallback = (xhr) => {
-      if (droneName === "FIXAR 025" && progressBarFill) {
+      if (progressBarFill) {
         if (xhr.lengthComputable) {
           const percentComplete = (xhr.loaded / xhr.total) * 100;
           progressBarFill.style.width = percentComplete + "%";
@@ -442,12 +445,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       scene.add(model);
 
-      // Налаштування камери тільки для першої завантаженої моделі
-      if (droneName === "FIXAR 025") {
-        camera.position.set(0, 2, 8);
-        camera.lookAt(0, 0, 0);
-        controls.target.set(0, 0, 0);
-      }
+      // Налаштування камери
+      camera.position.set(0, 2, 8);
+      camera.lookAt(0, 0, 0);
+      controls.target.set(0, 0, 0);
 
       // Animation
       if (gltf.animations && gltf.animations.length > 0) {
@@ -458,10 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
           window.animations.models[droneName].mixer = modelMixer;
         }
 
-        // Для першої моделі також зберігаємо в глобальний mixer
-        if (droneName === "FIXAR 025") {
-          mixer = modelMixer;
-        }
+        // Зберігаємо в глобальний mixer
+        mixer = modelMixer;
 
         // Обробляємо всі анімації
         gltf.animations.forEach((animation, index) => {
@@ -497,13 +496,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      // Запускаємо анімацію тільки для першої моделі
-      if (droneName === "FIXAR 025") {
-        animate();
-      }
+      // Запускаємо анімацію
+      animate();
 
-      // Ховаємо прогрес-бар після завантаження FIXAR 025
-      if (droneName === "FIXAR 025" && progressBarContainer) {
+      // Ховаємо прогрес-бар після завантаження
+      if (progressBarContainer) {
         progressBarContainer.style.transition = "opacity 0.5s ease-out";
         progressBarContainer.style.opacity = "0";
 
@@ -519,8 +516,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const onErrorCallback = (error) => {
       console.error(`Помилка завантаження моделі ${droneName}:`, error);
 
-      // Ховаємо прогрес-бар при помилці для FIXAR 025
-      if (droneName === "FIXAR 025" && progressBarContainer) {
+      // Ховаємо прогрес-бар при помилці
+      if (progressBarContainer) {
         progressBarContainer.style.opacity = "0";
         setTimeout(() => {
           if (progressBarContainer && progressBarContainer.parentNode) {
@@ -589,14 +586,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Завантажуємо моделі: спочатку FIXAR 025 (за замовчуванням), потім інші
-  loadDroneModel("FIXAR 025", true); // Показуємо одразу
-
-  // Завантажуємо інші моделі в фоні після невеликої затримки
-  setTimeout(() => {
-    loadDroneModel("FIXAR 007 LE", false);
-    loadDroneModel("FIXAR 007 NG", false);
-  }, 1000);
+  // Завантажуємо тільки модель для поточної сторінки
+  loadDroneModel(currentDroneModel, true);
 
   // ============================================
   // SWIPER - APPLICATIONS SLIDER
@@ -1103,33 +1094,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // HELPER FUNCTIONS
   // ============================================
 
-  /**
-   * Оновлює відображення обраного дрону в result блоці та мобільному дропдауні
-   * @param {string} droneName - Назва дрону (з data-drone-name)
-   * @param {string} droneDescription - Опис дрону (з data-choice-description)
-   * @param {string} imageSrc - URL зображення дрону
-   */
-  function updateDroneDisplay(droneName, droneDescription, imageSrc) {
-    // Оновлення desktop result блоку
-    if (resultDrone) {
-      resultDrone.querySelector("h3").textContent = droneName;
-      resultDrone.querySelector("p").textContent = droneDescription;
-      resultDrone.querySelector("img").setAttribute("src", imageSrc);
-    }
-
-    // Оновлення мобільного дропдауна (тільки на мобільних пристроях)
-    if (window.innerWidth <= 767) {
-      if (mobileDropdownImage && imageSrc) {
-        // Звичайний <img> використовує стандартний атрибут src
-        mobileDropdownImage.setAttribute("src", imageSrc);
-      }
-
-      if (mobileDropdownText && droneName) {
-        mobileDropdownText.textContent = droneName;
-      }
-    }
-  }
-
   // ============================================
   // SESSION STORAGE FUNCTIONS
   // ============================================
@@ -1293,114 +1257,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Редірект на сторінку з параметрами
       window.location.href = `/configurator-form?${params.toString()}`;
     });
-
-    // Встановлюємо перший дрон як активний за замовчуванням
-    if (droneBtns.length > 0) {
-      droneBtns[0].classList.add("is--active");
-      const defalutDroneValue = droneBtns[0].getAttribute("data-drone-name");
-
-      if (resultDrone) {
-        const droneName = defalutDroneValue;
-        const description = droneBtns[0].getAttribute(
-          "data-choice-description"
-        );
-        const imageSrc = droneBtns[0].querySelector("img").getAttribute("src");
-
-        updateDroneDisplay(droneName, description, imageSrc);
-      }
-
-      // Input для drone model
-      const hidenDroneInput = document.createElement("input");
-      hidenDroneInput.setAttribute("type", "hidden");
-      hidenDroneInput.setAttribute("name", "Drone Model");
-      hidenDroneInput.setAttribute("value", defalutDroneValue);
-      form.prepend(hidenDroneInput);
-
-      // Drone selects clicks
-      droneBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const droneValue = btn.getAttribute("data-drone-name");
-          const modulesList = document.querySelectorAll(".modules-item");
-
-          // Diselect module
-          modulesList.forEach((m) => {
-            const input = m.querySelector("input");
-            if (input) {
-              input.checked = false;
-            }
-          });
-
-          // Ховаємо resultModule при зміні дрона
-          if (resultModule) {
-            resultModule.style.display = "none";
-          }
-
-          // Ховаємо resultDataLink при зміні дрона
-          if (resultDataLink) {
-            resultDataLink.style.display = "none";
-          }
-
-          // Ховаємо resultDataLinkOptional при зміні дрона
-          if (resultDataLinkOptional) {
-            resultDataLinkOptional.style.display = "none";
-          }
-
-          // Ховаємо badges при зміні дрона
-          updateModuleBadge(null);
-          // updateLinkBadge(null);
-
-          // Hide orderTooltip (modules deselected)
-          updateOrderTooltipVisibility();
-
-          // Скидаємо фільтрацію application слайдів
-          filterApplicationSlides(null);
-          filterApplicationSlidesBig(null);
-
-          // Зупиняємо всі анімації крім flight при зміні дрона
-          if (window.animations && window.animations.stopAll) {
-            window.animations.stopAll();
-          }
-
-          droneBtns.forEach((btn) => {
-            btn.classList.remove("is--active");
-          });
-          hidenDroneInput.setAttribute("value", droneValue);
-
-          btn.classList.add("is--active");
-          filterAddons();
-          filterDataLinks();
-
-          // Перезапускаємо dropdown для модулів після фільтрації
-          initDropdown(
-            ".modules-list-drop",
-            ".modules-list-wrp",
-            ".modules-item",
-            true
-          );
-          initDropdown(
-            ".modules-list-drop",
-            ".modules-list-wrp",
-            ".modules-link",
-            true
-          );
-
-          // Скидаємо вибір modules-link
-          resetModulesLinkSelection();
-
-          // Перефільтровуємо modules-link блоки
-          filterModulesLinksByCategory();
-
-          const droneDescription = btn.getAttribute("data-choice-description");
-          const droneImage = btn.querySelector("img").getAttribute("src");
-
-          updateDroneDisplay(droneValue, droneDescription, droneImage);
-          // Показуємо відповідну модель дрону
-          if (window.showDroneModel) {
-            window.showDroneModel(droneValue);
-          }
-        });
-      });
-    }
 
     // ============================================
     // COLOR FIELDS
@@ -1578,13 +1434,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // FILTER ADDONS
     // ============================================
     function filterAddons() {
-      const activeDrone = document.querySelector(
-        ".nav_config-drones-item.is--active"
-      );
+      // Читаємо модель зі статичного hidden input
+      const droneModelInput = document.getElementById("droneModelInput");
+      const activeDroneName = droneModelInput ? droneModelInput.value : "FIXAR 025";
 
-      if (!activeDrone) return;
-
-      const activeDroneName = activeDrone.getAttribute("data-drone-name");
       const modulesList = document.querySelectorAll(".modules-item");
 
       modulesList.forEach((item) => {
@@ -1609,13 +1462,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // FILTER DATA LINKS
     // ============================================
     function filterDataLinks() {
-      const activeDrone = document.querySelector(
-        ".nav_config-drones-item.is--active"
-      );
+      // Читаємо модель зі статичного hidden input
+      const droneModelInput = document.getElementById("droneModelInput");
+      const activeDroneName = droneModelInput ? droneModelInput.value : "FIXAR 025";
 
-      if (!activeDrone) return;
-
-      const activeDroneName = activeDrone.getAttribute("data-drone-name");
       const modulesList = document.querySelectorAll(".modules-link");
 
       modulesList.forEach((item) => {
@@ -1761,13 +1611,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // Отримуємо value для перевірки умови optional
             const value = input.value || "";
 
-            // Отримуємо активний дрон
-            const activeDrone = document.querySelector(
-              ".nav_config-drones-item.is--active"
-            );
-            const activeDroneName = activeDrone
-              ? activeDrone.getAttribute("data-drone-name")
-              : "";
+            // Читаємо модель зі статичного hidden input
+            const droneModelInput = document.getElementById("droneModelInput");
+            const activeDroneName = droneModelInput ? droneModelInput.value : "";
 
             // Показуємо optional блок якщо FIXAR 025 + DTC
             if (activeDroneName === "FIXAR 025" && value.includes("DTC")) {
@@ -2179,6 +2025,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Set initial Configure Data Link section state (hidden since no data links selected initially)
     updateConfigureDataLinkVisibility();
+
+    // Початково показуємо всі application слайди (немає обраного модуля)
+    filterApplicationSlides(null);
+    filterApplicationSlidesBig(null);
   }
 
   // ============================================
