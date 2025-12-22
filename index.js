@@ -370,7 +370,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (child.material) {
           if (Array.isArray(child.material)) {
             // Якщо material це масив
-            child.material.forEach(material => {
+            child.material.forEach((material) => {
               if (material.map) material.map.dispose();
               if (material.normalMap) material.normalMap.dispose();
               if (material.roughnessMap) material.roughnessMap.dispose();
@@ -382,8 +382,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // Один material
             if (child.material.map) child.material.map.dispose();
             if (child.material.normalMap) child.material.normalMap.dispose();
-            if (child.material.roughnessMap) child.material.roughnessMap.dispose();
-            if (child.material.metalnessMap) child.material.metalnessMap.dispose();
+            if (child.material.roughnessMap)
+              child.material.roughnessMap.dispose();
+            if (child.material.metalnessMap)
+              child.material.metalnessMap.dispose();
             if (child.material.aoMap) child.material.aoMap.dispose();
             child.material.dispose();
           }
@@ -457,15 +459,15 @@ document.addEventListener("DOMContentLoaded", () => {
     getTotalProgress() {
       let totalLoaded = 0;
       let totalSize = 0;
-      Object.values(this.models).forEach(model => {
+      Object.values(this.models).forEach((model) => {
         totalLoaded += model.loaded;
         totalSize += model.total;
       });
       return totalSize > 0 ? (totalLoaded / totalSize) * 100 : 0;
     },
     allModelsLoaded() {
-      return Object.values(this.models).every(model => model.complete);
-    }
+      return Object.values(this.models).every((model) => model.complete);
+    },
   };
 
   // Функція для завантаження моделі
@@ -604,7 +606,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Позначаємо модель як завантажену
       loadingTracker.models[droneName].complete = true;
-      loadingTracker.models[droneName].loaded = loadingTracker.models[droneName].total;
+      loadingTracker.models[droneName].loaded =
+        loadingTracker.models[droneName].total;
 
       console.log(`Модель ${droneName} завантажена`);
 
@@ -715,12 +718,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 150); // Debounce 150ms
   });
 
-  // Завантажуємо всі 3 моделі одночасно (паралельно)
-  // Прогрес-бар буде показувати загальний прогрес всіх моделей
-  console.log("Початок завантаження всіх моделей...");
-  loadDroneModel("FIXAR 025", true);  // Показуємо першу модель
-  loadDroneModel("FIXAR 007 NG", false); // Ховаємо за замовчуванням
-  loadDroneModel("FIXAR 007 LE", false); // Ховаємо за замовчуванням
+  // Зчитуємо назву дрону з hidden input і завантажуємо тільки цю модель
+  const droneNameInput = document.querySelector('input[drone-name]');
+  const selectedDroneName = droneNameInput ? droneNameInput.value : "FIXAR 025";
+
+  console.log(`Завантаження моделі: ${selectedDroneName}...`);
+  loadDroneModel(selectedDroneName, true); // Показуємо обрану модель
 
   // ============================================
   // SWIPER - APPLICATIONS SLIDER
@@ -1025,7 +1028,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function filterApplicationSlidesBig(moduleItem) {
     // Cleanup: видаляємо event listeners зі старих слайдів перед видаленням
     if (swiper2.slides && swiper2.slides.length > 0) {
-      swiper2.slides.forEach(slide => {
+      swiper2.slides.forEach((slide) => {
         // Клонуємо слайд без вмісту для очищення listeners
         const newSlide = slide.cloneNode(false);
         if (slide.parentNode) {
@@ -1280,7 +1283,7 @@ document.addEventListener("DOMContentLoaded", () => {
       color: null,
       module: null,
       dataLink: null,
-      dataLinkOptional: null
+      dataLinkOptional: null,
     };
 
     // Збір даних Drone
@@ -1294,7 +1297,7 @@ document.addEventListener("DOMContentLoaded", () => {
         configData.drone = {
           name: droneName,
           description: droneDescription || "",
-          image: droneImage || ""
+          image: droneImage || "",
         };
       }
     }
@@ -1302,9 +1305,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Збір даних Color
     const colorElement = document.querySelector("[data-choice=color]");
     if (colorElement && colorElement.style.display !== "none") {
-      const colorName = colorElement.querySelector("[data-res-color-name]")?.textContent;
+      const colorName = colorElement.querySelector(
+        "[data-res-color-name]"
+      )?.textContent;
       const colorDescription = colorElement.querySelector("p")?.textContent;
-      const colorSwatchElement = colorElement.querySelector(".model_form-color-btn-res");
+      const colorSwatchElement = colorElement.querySelector(
+        ".model_form-color-btn-res"
+      );
       const colorValue = colorSwatchElement
         ? window.getComputedStyle(colorSwatchElement).backgroundColor
         : "";
@@ -1313,7 +1320,7 @@ document.addEventListener("DOMContentLoaded", () => {
         configData.color = {
           name: colorName,
           description: colorDescription || "",
-          value: colorValue || ""
+          value: colorValue || "",
         };
       }
     }
@@ -1322,14 +1329,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const moduleElement = document.querySelector("[data-choice=module]");
     if (moduleElement && moduleElement.style.display !== "none") {
       const moduleTitle = moduleElement.querySelector("h3")?.textContent;
-      const moduleDescription = moduleElement.querySelector("[data-module-description]")?.textContent;
-      const moduleImage = moduleElement.querySelector("img")?.getAttribute("src");
+      const moduleDescription = moduleElement.querySelector(
+        "[data-module-description]"
+      )?.textContent;
+      const moduleImage = moduleElement
+        .querySelector("img")
+        ?.getAttribute("src");
 
       if (moduleTitle) {
         configData.module = {
           title: moduleTitle,
           description: moduleDescription || "",
-          image: moduleImage || ""
+          image: moduleImage || "",
         };
       }
     }
@@ -1341,31 +1352,37 @@ document.addEventListener("DOMContentLoaded", () => {
       const linkDescElement =
         dataLinkElement.querySelector("p") ||
         dataLinkElement.querySelector(".text-16");
-      const linkImage = dataLinkElement.querySelector("img")?.getAttribute("src");
+      const linkImage = dataLinkElement
+        .querySelector("img")
+        ?.getAttribute("src");
 
       if (linkTitle) {
         configData.dataLink = {
           title: linkTitle,
           description: linkDescElement?.textContent || "",
-          image: linkImage || ""
+          image: linkImage || "",
         };
       }
     }
 
     // Збір даних Optional Data Link
-    const optionalElement = document.querySelector("[data-choice=link-optional]");
+    const optionalElement = document.querySelector(
+      "[data-choice=link-optional]"
+    );
     if (optionalElement && optionalElement.style.display !== "none") {
       const optionalTitle = optionalElement.querySelector("h3")?.textContent;
       const optionalDescElement =
         optionalElement.querySelector("p") ||
         optionalElement.querySelector(".text-16");
-      const optionalImage = optionalElement.querySelector("img")?.getAttribute("src");
+      const optionalImage = optionalElement
+        .querySelector("img")
+        ?.getAttribute("src");
 
       if (optionalTitle) {
         configData.dataLinkOptional = {
           title: optionalTitle,
           description: optionalDescElement?.textContent || "",
-          image: optionalImage || ""
+          image: optionalImage || "",
         };
       }
     }
@@ -1415,112 +1432,42 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = `/configurator-form?${params.toString()}`;
     });
 
-    // Встановлюємо перший дрон як активний за замовчуванням
+    // Зчитуємо назву дрону з hidden input
+    const droneNameInput = document.querySelector('input[drone-name]');
+    const currentDroneName = droneNameInput ? droneNameInput.value : "FIXAR 025";
+
+    // Встановлюємо активний клас на відповідну кнопку дрону (якщо вона є)
     if (droneBtns.length > 0) {
-      droneBtns[0].classList.add("is--active");
-      const defalutDroneValue = droneBtns[0].getAttribute("data-drone-name");
-
-      if (resultDrone) {
-        const droneName = defalutDroneValue;
-        const description = droneBtns[0].getAttribute(
-          "data-choice-description"
-        );
-        const imageSrc = droneBtns[0].querySelector("img").getAttribute("src");
-
-        updateDroneDisplay(droneName, description, imageSrc);
-      }
-
-      // Input для drone model
-      const hidenDroneInput = document.createElement("input");
-      hidenDroneInput.setAttribute("type", "hidden");
-      hidenDroneInput.setAttribute("name", "Drone Model");
-      hidenDroneInput.setAttribute("value", defalutDroneValue);
-      form.prepend(hidenDroneInput);
-
-      // Drone selects clicks
       droneBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const droneValue = btn.getAttribute("data-drone-name");
-          const modulesList = document.querySelectorAll(".modules-item");
-
-          // Diselect module
-          modulesList.forEach((m) => {
-            const input = m.querySelector("input");
-            if (input) {
-              input.checked = false;
-            }
-          });
-
-          // Ховаємо resultModule при зміні дрона
-          if (resultModule) {
-            resultModule.style.display = "none";
-          }
-
-          // Ховаємо resultDataLink при зміні дрона
-          if (resultDataLink) {
-            resultDataLink.style.display = "none";
-          }
-
-          // Ховаємо resultDataLinkOptional при зміні дрона
-          if (resultDataLinkOptional) {
-            resultDataLinkOptional.style.display = "none";
-          }
-
-          // Ховаємо badges при зміні дрона
-          updateModuleBadge(null);
-          // updateLinkBadge(null);
-
-          // Hide orderTooltip (modules deselected)
-          updateOrderTooltipVisibility();
-
-          // Скидаємо фільтрацію application слайдів
-          filterApplicationSlides(null);
-          filterApplicationSlidesBig(null);
-
-          // Зупиняємо всі анімації крім flight при зміні дрона
-          if (window.animations && window.animations.stopAll) {
-            window.animations.stopAll();
-          }
-
-          droneBtns.forEach((btn) => {
-            btn.classList.remove("is--active");
-          });
-          hidenDroneInput.setAttribute("value", droneValue);
-
+        const btnDroneName = btn.getAttribute("data-drone-name");
+        if (btnDroneName === currentDroneName) {
           btn.classList.add("is--active");
-          throttledFilterAddons();
-          throttledFilterDataLinks();
 
-          // Перезапускаємо dropdown для модулів після фільтрації
-          initDropdown(
-            ".modules-list-drop",
-            ".modules-list-wrp",
-            ".modules-item",
-            true
-          );
-          initDropdown(
-            ".modules-list-drop",
-            ".modules-list-wrp",
-            ".modules-link",
-            true
-          );
-
-          // Скидаємо вибір modules-link
-          resetModulesLinkSelection();
-
-          // Перефільтровуємо modules-link блоки
-          filterModulesLinksByCategory();
-
-          const droneDescription = btn.getAttribute("data-choice-description");
-          const droneImage = btn.querySelector("img").getAttribute("src");
-
-          updateDroneDisplay(droneValue, droneDescription, droneImage);
-          // Показуємо відповідну модель дрону
-          if (window.showDroneModel) {
-            window.showDroneModel(droneValue);
+          // Оновлюємо відображення дрону
+          if (resultDrone) {
+            const description = btn.getAttribute("data-choice-description");
+            const imageSrc = btn.querySelector("img").getAttribute("src");
+            updateDroneDisplay(currentDroneName, description, imageSrc);
           }
-        });
+        }
       });
+    }
+
+    // Input для drone model (для відправки форми)
+    const hidenDroneInput = document.createElement("input");
+    hidenDroneInput.setAttribute("type", "hidden");
+    hidenDroneInput.setAttribute("name", "Drone Model");
+    hidenDroneInput.setAttribute("value", currentDroneName);
+    form.prepend(hidenDroneInput);
+
+    // droneBtns тепер є просто посиланнями, кліки не обробляються
+
+    // Запускаємо фільтрацію модулів і data links для поточного дрону при завантаженні
+    if (typeof throttledFilterAddons === 'function') {
+      throttledFilterAddons();
+    }
+    if (typeof throttledFilterDataLinks === 'function') {
+      throttledFilterDataLinks();
     }
 
     // ============================================
@@ -2701,7 +2648,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // MOBILE HEADER/MODELCONTAIN SCROLL BEHAVIOR
   // ============================================
   // ЗАКОМЕНТОВАНО: scroll behavior для мобільного хедера
-  /*
+
   let mm = gsap.matchMedia();
 
   mm.add("(max-width: 767px)", () => {
@@ -2774,5 +2721,4 @@ document.addEventListener("DOMContentLoaded", () => {
       gsap.killTweensOf([header, modelContain]);
     };
   });
-  */
 });
