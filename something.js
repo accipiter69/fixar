@@ -1,7 +1,10 @@
-tippy(".swiper-slide.is--applications", {
-  placement: "bottom",
-  arrow: true,
-});
+// Вимикаємо tippy для пристроїв без ховеру
+if (window.matchMedia("(hover: hover)").matches) {
+  tippy(".swiper-slide.is--applications", {
+    placement: "bottom",
+    arrow: true,
+  });
+}
 
 // Мапінг моделей дронів
 const droneModels = {
@@ -67,13 +70,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 500);
 
   // Mobile dropdown toggle (only for mobile <= 767px)
-  if (window.innerWidth <= 767 && mobileDropdown) {
-    mobileDropdown.addEventListener("click", () => {
+  let mmDropdown = gsap.matchMedia();
+
+  mmDropdown.add("(max-width: 767px)", () => {
+    if (!mobileDropdown) {
+      console.warn("mobileDropdown not found for mobile dropdown toggle");
+      return;
+    }
+
+    const handleDropdownClick = () => {
       mobileDropdown.classList.toggle("is--active");
       if (navConfigBg) navConfigBg.classList.toggle("is--active");
       if (navContainer) navContainer.classList.toggle("is--active");
-    });
-  }
+    };
+
+    mobileDropdown.addEventListener("click", handleDropdownClick);
+
+    return () => {
+      // Cleanup function - автоматично викличеться при виході з breakpoint
+      mobileDropdown.removeEventListener("click", handleDropdownClick);
+    };
+  });
 
   const orderTooltip = document.querySelector(".order-now-tooltip");
   const orderBtn = orderTooltip.querySelector(".u-btn-order");
@@ -296,19 +313,19 @@ document.addEventListener("DOMContentLoaded", () => {
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
-  // SpotLight - прожекторне світло
-  const spotLight = new THREE.SpotLight(0xffffff, 1.0);
-  spotLight.position.set(0, 10, 0); // Позиція прожектора
-  spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
-  spotLight.penumbra = 0.3; // М'якість країв
-  spotLight.distance = 50; // Максимальна відстань світла
-  spotLight.decay = 2; // Затухання
+  // // SpotLight - прожекторне світло
+  // const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+  // spotLight.position.set(0, 10, 0); // Позиція прожектора
+  // spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
+  // spotLight.penumbra = 0.3; // М'якість країв
+  // spotLight.distance = 50; // Максимальна відстань світла
+  // spotLight.decay = 2; // Затухання
 
-  // Target - куди світить прожектор (центр моделі)
-  spotLight.target.position.set(0, 0, 0);
+  // // Target - куди світить прожектор (центр моделі)
+  // spotLight.target.position.set(0, 0, 0);
 
-  scene.add(spotLight);
-  scene.add(spotLight.target);
+  // scene.add(spotLight);
+  // scene.add(spotLight.target);
 
   // Функція для показу потрібної моделі
   window.showDroneModel = (droneName) => {
@@ -393,10 +410,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load callback - обробляє завантажену модель
     const onLoadCallback = (gltf) => {
       const model = gltf.scene;
-      // Моделі 007 LE і 007 NG в 2 рази більші
-      const scale =
+
+      // Базовий скейл для desktop
+      let baseScale =
         droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-      model.scale.setScalar(scale);
+
+      // Адаптивний скейл для мобільних пристроїв (< 768px)
+      if (window.innerWidth < 768) {
+        if (droneName === "FIXAR 025") {
+          baseScale = baseScale * 1.2; // 3 * 1.2 = 3.6
+        } else {
+          baseScale = baseScale * 1.5; // 5 * 1.5 = 7.5
+        }
+      }
+
+      model.scale.setScalar(baseScale);
       model.visible = showAfterLoad; // Показуємо тільки якщо потрібно
 
       // Зберігаємо модель
@@ -542,11 +570,39 @@ document.addEventListener("DOMContentLoaded", () => {
     renderer.render(scene, camera);
   }
 
+  // Функція для оновлення скейлу моделі при зміні розміру вікна
+  function updateModelScale() {
+    const isMobile = window.innerWidth < 768;
+
+    Object.keys(loadedModels).forEach((modelName) => {
+      const model = loadedModels[modelName];
+      if (model) {
+        // Базовий скейл
+        let baseScale =
+          modelName === "FIXAR 007 LE" || modelName === "FIXAR 007 NG" ? 5 : 3;
+
+        // Адаптивний скейл для мобільних
+        if (isMobile) {
+          if (modelName === "FIXAR 025") {
+            baseScale = baseScale * 1.2; // 3.6
+          } else {
+            baseScale = baseScale * 1.5; // 7.5
+          }
+        }
+
+        model.scale.setScalar(baseScale);
+      }
+    });
+  }
+
   window.addEventListener("resize", () => {
     if (container) {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+
+      // Оновлюємо скейл моделей при зміні розміру
+      updateModelScale();
     }
   });
 
@@ -564,7 +620,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   var swiper = new Swiper(".swiper.is--applications", {
     slidesPerView: "auto",
-    spaceBetween: 19,
+    spaceBetween: 8,
+
+    breakpoints: {
+      992: {
+        spaceBetween: 16,
+      },
+    },
 
     navigation: {
       nextEl: ".sw-button-next",
@@ -1086,6 +1148,147 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ============================================
+  // SESSION STORAGE FUNCTIONS
+  // ============================================
+
+  /**
+   * Збирає всі дані конфігурації з data-choice елементів
+   * @returns {Object} Повна конфігурація для збереження в SessionStorage
+   */
+  function collectConfigurationData() {
+    const configData = {
+      timestamp: Date.now(),
+      drone: null,
+      color: null,
+      module: null,
+      dataLink: null,
+      dataLinkOptional: null,
+    };
+
+    // Збір даних Drone
+    const droneElement = document.querySelector("[data-choice=drone]");
+    if (droneElement && droneElement.style.display !== "none") {
+      const droneName = droneElement.querySelector("h3")?.textContent;
+      const droneDescription = droneElement.querySelector("p")?.textContent;
+      const droneImage = droneElement.querySelector("img")?.getAttribute("src");
+
+      if (droneName) {
+        configData.drone = {
+          name: droneName,
+          description: droneDescription || "",
+          image: droneImage || "",
+        };
+      }
+    }
+
+    // Збір даних Color
+    const colorElement = document.querySelector("[data-choice=color]");
+    if (colorElement && colorElement.style.display !== "none") {
+      const colorName = colorElement.querySelector(
+        "[data-res-color-name]"
+      )?.textContent;
+      const colorDescription = colorElement.querySelector("p")?.textContent;
+      const colorSwatchElement = colorElement.querySelector(
+        ".model_form-color-btn-res"
+      );
+      const colorValue = colorSwatchElement
+        ? window.getComputedStyle(colorSwatchElement).backgroundColor
+        : "";
+
+      if (colorName) {
+        configData.color = {
+          name: colorName,
+          description: colorDescription || "",
+          value: colorValue || "",
+        };
+      }
+    }
+
+    // Збір даних Module
+    const moduleElement = document.querySelector("[data-choice=module]");
+    if (moduleElement && moduleElement.style.display !== "none") {
+      const moduleTitle = moduleElement.querySelector("h3")?.textContent;
+      const moduleDescription = moduleElement.querySelector(
+        "[data-module-description]"
+      )?.textContent;
+      const moduleImage = moduleElement
+        .querySelector("img")
+        ?.getAttribute("src");
+
+      if (moduleTitle) {
+        configData.module = {
+          title: moduleTitle,
+          description: moduleDescription || "",
+          image: moduleImage || "",
+        };
+      }
+    }
+
+    // Збір даних Data Link
+    const dataLinkElement = document.querySelector("[data-choice=link]");
+    if (dataLinkElement && dataLinkElement.style.display !== "none") {
+      const linkTitle = dataLinkElement.querySelector("h3")?.textContent;
+      const linkDescElement =
+        dataLinkElement.querySelector("p") ||
+        dataLinkElement.querySelector(".text-16");
+      const linkImage = dataLinkElement
+        .querySelector("img")
+        ?.getAttribute("src");
+
+      if (linkTitle) {
+        configData.dataLink = {
+          title: linkTitle,
+          description: linkDescElement?.textContent || "",
+          image: linkImage || "",
+        };
+      }
+    }
+
+    // Збір даних Optional Data Link
+    const optionalElement = document.querySelector(
+      "[data-choice=link-optional]"
+    );
+    if (optionalElement && optionalElement.style.display !== "none") {
+      const optionalTitle = optionalElement.querySelector("h3")?.textContent;
+      const optionalDescElement =
+        optionalElement.querySelector("p") ||
+        optionalElement.querySelector(".text-16");
+      const optionalImage = optionalElement
+        .querySelector("img")
+        ?.getAttribute("src");
+
+      if (optionalTitle) {
+        configData.dataLinkOptional = {
+          title: optionalTitle,
+          description: optionalDescElement?.textContent || "",
+          image: optionalImage || "",
+        };
+      }
+    }
+
+    return configData;
+  }
+
+  /**
+   * Зберігає дані конфігурації в SessionStorage з обробкою помилок
+   * @param {Object} configData - Дані конфігурації для збереження
+   * @returns {boolean} Статус успішності операції
+   */
+  function saveConfigurationToSession(configData) {
+    try {
+      if (typeof sessionStorage === "undefined") {
+        return false;
+      }
+
+      const jsonData = JSON.stringify(configData);
+      sessionStorage.setItem("fixar_configuration", jsonData);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // ============================================
   // FORM - CONFIGURATOR
   // ============================================
 
@@ -1095,6 +1298,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     submitBtn.addEventListener("click", (e) => {
       e.preventDefault();
+
+      // НОВЕ: Збір і збереження даних конфігурації в SessionStorage
+      const configData = collectConfigurationData();
+      saveConfigurationToSession(configData);
+
+      // ІСНУЮЧЕ: Створення FormData та редірект з query параметрами (БЕЗ ЗМІН)
       const formData = new FormData(form);
       const params = new URLSearchParams(formData);
       console.log("Form data to be sent:", Object.fromEntries(formData));
@@ -2354,4 +2563,78 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     applyUrlParameters();
   }, 1500);
+
+  // ============================================
+  // MOBILE HEADER/MODELCONTAIN SCROLL BEHAVIOR
+  // ============================================
+  let mm = gsap.matchMedia();
+
+  mm.add("(max-width: 767px)", () => {
+    const header = document.querySelector(".nav_config");
+    const modelContain = document.querySelector(".model_contain");
+
+    if (!header || !modelContain) {
+      console.warn(
+        "Header or modelContain not found for mobile scroll behavior"
+      );
+      return;
+    }
+
+    let lastScrollY = window.scrollY;
+    let isThrottled = false;
+
+    // Ініціалізація стану при завантаженні
+    if (lastScrollY > 50) {
+      gsap.set(header, { y: -header.offsetHeight });
+      gsap.set(modelContain, { y: -header.offsetHeight });
+    }
+
+    const handleScroll = () => {
+      if (isThrottled) return;
+      isThrottled = true;
+
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > 100) {
+        // Скрол вниз - ховаємо header, зсуваємо modelContain вгору
+        if (currentScrollY > lastScrollY) {
+          gsap.to(header, {
+            y: -header.offsetHeight,
+            duration: 0.2,
+            ease: "power2.out",
+          });
+          gsap.to(modelContain, {
+            y: -header.offsetHeight,
+            duration: 0.2,
+            ease: "power2.out",
+          });
+        }
+        // Скрол вверх - показуємо header, повертаємо modelContain
+        else if (currentScrollY < lastScrollY) {
+          gsap.to(header, {
+            y: 0,
+            duration: 0.2,
+            ease: "power2.out",
+          });
+          gsap.to(modelContain, {
+            y: 0,
+            duration: 0.2,
+            ease: "power2.out",
+          });
+        }
+      }
+
+      lastScrollY = currentScrollY;
+
+      setTimeout(() => {
+        isThrottled = false;
+      }, 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      // matchMedia автоматично очищає анімації та listeners
+    };
+  });
 });

@@ -22,6 +22,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // ЗАГАЛЬНІ СЕЛЕКТОРИ
   // ============================================
 
+  // Timeout для colorChange щоб уникнути накопичення callbacks
+  let colorChangeTimeout = null;
+
+  // Throttle для filterAddons/filterDataLinks щоб уникнути DOM thrashing
+  let filterThrottle = false;
+
   const form = document.querySelector(".model_form");
   const submitBtn = form.querySelector(".submit");
 
@@ -288,7 +294,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  // Обмежуємо pixelRatio до 2 для економії пам'яті на мобільних (Retina = 3x)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
@@ -344,6 +351,59 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.warn(`Модель ${droneName} ще не завантажена`);
     }
+  };
+
+  // Функція для очищення моделі дрону з пам'яті (geometry, materials, textures)
+  window.disposeDroneModel = (droneName) => {
+    const model = window.loadedModels[droneName];
+    if (!model) return;
+
+    // Traverse через всі mesh елементи моделі
+    model.traverse((child) => {
+      if (child.isMesh) {
+        // Очищаємо geometry
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+
+        // Очищаємо materials та textures
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            // Якщо material це масив
+            child.material.forEach(material => {
+              if (material.map) material.map.dispose();
+              if (material.normalMap) material.normalMap.dispose();
+              if (material.roughnessMap) material.roughnessMap.dispose();
+              if (material.metalnessMap) material.metalnessMap.dispose();
+              if (material.aoMap) material.aoMap.dispose();
+              material.dispose();
+            });
+          } else {
+            // Один material
+            if (child.material.map) child.material.map.dispose();
+            if (child.material.normalMap) child.material.normalMap.dispose();
+            if (child.material.roughnessMap) child.material.roughnessMap.dispose();
+            if (child.material.metalnessMap) child.material.metalnessMap.dispose();
+            if (child.material.aoMap) child.material.aoMap.dispose();
+            child.material.dispose();
+          }
+        }
+      }
+    });
+
+    // Очищаємо animation mixer для цієї моделі
+    const modelData = window.animations.models[droneName];
+    if (modelData && modelData.mixer) {
+      modelData.mixer.stopAllAction();
+      modelData.mixer.uncacheRoot(model);
+      modelData.mixer = null;
+    }
+
+    // Видаляємо модель зі сцени
+    scene.remove(model);
+
+    // Очищаємо reference
+    window.loadedModels[droneName] = null;
   };
 
   // Функція для зміни кольору елементів за назвою матеріалу
@@ -595,25 +655,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Debounce для resize handler щоб уникнути сотень викликів при повороті екрана
+  let resizeTimeout;
   window.addEventListener("resize", () => {
-    if (container) {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      if (container) {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
 
-      // Оновлюємо скейл моделей при зміні розміру
-      updateModelScale();
-    }
+        // Оновлюємо скейл моделей при зміні розміру
+        updateModelScale();
+      }
+    }, 150); // Debounce 150ms
   });
 
   // Завантажуємо моделі: спочатку FIXAR 025 (за замовчуванням), потім інші
   loadDroneModel("FIXAR 025", true); // Показуємо одразу
 
-  // Завантажуємо інші моделі в фоні після невеликої затримки
+  // Lazy loading: завантажуємо інші моделі після ініціалізації першої
+  // Збільшена затримка та перевірка пам'яті для мобільних пристроїв
   setTimeout(() => {
-    loadDroneModel("FIXAR 007 LE", false);
-    loadDroneModel("FIXAR 007 NG", false);
-  }, 1000);
+    // Перевіряємо чи достатньо пам'яті (якщо API доступне)
+    const hasEnoughMemory = !performance.memory ||
+                            performance.memory.usedJSHeapSize < 50000000; // < 50MB
+
+    if (hasEnoughMemory) {
+      loadDroneModel("FIXAR 007 LE", false);
+
+      // Завантажуємо третю модель з додатковою затримкою
+      setTimeout(() => {
+        loadDroneModel("FIXAR 007 NG", false);
+      }, 2000);
+    } else {
+      console.warn("Insufficient memory - skipping preload of 007 models");
+    }
+  }, 3000); // Збільшено з 1000ms до 3000ms
 
   // ============================================
   // SWIPER - APPLICATIONS SLIDER
@@ -916,6 +994,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Функція для фільтрації слайдів у другому слайдері (swiper2)
   function filterApplicationSlidesBig(moduleItem) {
+    // Cleanup: видаляємо event listeners зі старих слайдів перед видаленням
+    if (swiper2.slides && swiper2.slides.length > 0) {
+      swiper2.slides.forEach(slide => {
+        // Клонуємо слайд без вмісту для очищення listeners
+        const newSlide = slide.cloneNode(false);
+        if (slide.parentNode) {
+          slide.parentNode.replaceChild(newSlide, slide);
+        }
+      });
+    }
+
     if (!moduleItem) {
       // Якщо модуль не обрано - відновлюємо всі слайди з шаблонів
       swiper2.removeAllSlides();
@@ -1370,8 +1459,8 @@ document.addEventListener("DOMContentLoaded", () => {
           hidenDroneInput.setAttribute("value", droneValue);
 
           btn.classList.add("is--active");
-          filterAddons();
-          filterDataLinks();
+          throttledFilterAddons();
+          throttledFilterDataLinks();
 
           // Перезапускаємо dropdown для модулів після фільтрації
           initDropdown(
@@ -1533,10 +1622,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Якщо є незавантажені моделі, чекаємо і пробуємо знову
             if (notLoadedModels.length > 0) {
-              setTimeout(() => {
+              // Скасовуємо попередній timeout якщо він існує
+              if (colorChangeTimeout) {
+                clearTimeout(colorChangeTimeout);
+              }
+
+              colorChangeTimeout = setTimeout(() => {
                 notLoadedModels.forEach((modelName) => {
                   window.changeColorByMaterialName("red", hexColor, modelName);
                 });
+                colorChangeTimeout = null; // Очищаємо reference
               }, 1500);
             }
 
@@ -1637,6 +1732,29 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
     filterDataLinks();
+
+    // Throttled wrapper функції для уникнення DOM thrashing
+    function throttledFilterAddons() {
+      if (filterThrottle) return;
+      filterThrottle = true;
+
+      filterAddons();
+
+      setTimeout(() => {
+        filterThrottle = false;
+      }, 100);
+    }
+
+    function throttledFilterDataLinks() {
+      if (filterThrottle) return;
+      filterThrottle = true;
+
+      filterDataLinks();
+
+      setTimeout(() => {
+        filterThrottle = false;
+      }, 100);
+    }
 
     // ============================================
     // MODULES-LINK FILTERING FUNCTIONS
@@ -2620,7 +2738,9 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", handleScroll);
 
     return () => {
-      // matchMedia автоматично очищає анімації та listeners
+      // Cleanup function - видаляємо scroll listener та GSAP анімації
+      window.removeEventListener("scroll", handleScroll);
+      gsap.killTweensOf([header, modelContain]);
     };
   });
 });
