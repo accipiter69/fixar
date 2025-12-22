@@ -299,7 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.dampingFactor = 0.05;
   controls.enableZoom = false;
 
-  // Обмеження вертикального кута обертання
   // Дозволяємо дивитися зверху і збоку, але не знизу (максимум 5° нижче горизонталі)
   controls.minPolarAngle = 0; // Можна дивитися зверху
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180; // 90° + 5° = не більше 5° знизу
@@ -312,20 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
-
-  // // SpotLight - прожекторне світло
-  // const spotLight = new THREE.SpotLight(0xffffff, 1.0);
-  // spotLight.position.set(0, 10, 0); // Позиція прожектора
-  // spotLight.angle = Math.PI / 6; // Кут конуса світла (30 градусів)
-  // spotLight.penumbra = 0.3; // М'якість країв
-  // spotLight.distance = 50; // Максимальна відстань світла
-  // spotLight.decay = 2; // Затухання
-
-  // // Target - куди світить прожектор (центр моделі)
-  // spotLight.target.position.set(0, 0, 0);
-
-  // scene.add(spotLight);
-  // scene.add(spotLight.target);
 
   // Функція для показу потрібної моделі
   window.showDroneModel = (droneName) => {
@@ -477,8 +462,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (droneName === "FIXAR 025") {
           mixer = modelMixer;
         }
-
-        // Animations found: gltf.animations.length
 
         // Обробляємо всі анімації
         gltf.animations.forEach((animation, index) => {
@@ -2005,40 +1988,6 @@ document.addEventListener("DOMContentLoaded", () => {
         configureDataLinkSection.style.display = "none";
       }
     }
-
-    // /**
-    //  * Оновлює badge з назвою data link
-    //  * @param {HTMLElement|null} modulesLinkItem - Елемент обраного modules-link, або null для ховання
-    //  */
-    // function updateLinkBadge(modulesLinkItem) {
-    //   if (!resultLinkBadge) return;
-
-    //   if (!modulesLinkItem) {
-    //     resultLinkBadge.style.display = "none";
-    //     return;
-    //   }
-
-    //   // Отримуємо текст з .text-16 елемента modules-link
-    //   const linkTextElement = modulesLinkItem.querySelector(".text-16");
-
-    //   if (!linkTextElement) {
-    //     console.warn("Could not find .text-16 element in modules-link item");
-    //     resultLinkBadge.style.display = "none";
-    //     return;
-    //   }
-
-    //   const linkText = linkTextElement.textContent.trim();
-
-    //   // Оновлюємо текст badge (записуємо в .text-16 всередині badge)
-    //   const badgeTextElement = resultLinkBadge.querySelector(".text-16");
-    //   if (badgeTextElement) {
-    //     badgeTextElement.textContent = linkText;
-    //     resultLinkBadge.style.display = "flex";
-    //   } else {
-    //     console.warn("Could not find .text-16 element inside resultLinkBadge");
-    //     resultLinkBadge.style.display = "none";
-    //   }
-    // }
 
     // ============================================
     // OPTIONAL DATA LINK HANDLER
