@@ -38,7 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Читаємо модель дрона зі статичного hidden input
   const droneModelInput = document.getElementById("droneModelInput");
-  const currentDroneModel = droneModelInput ? droneModelInput.value : "FIXAR 025";
+  const currentDroneModel = droneModelInput
+    ? droneModelInput.value
+    : "FIXAR 025";
 
   // Mobile dropdown elements (only for mobile <= 767px)
   const navContainer = document.querySelector(".nav_container");
@@ -976,8 +978,7 @@ document.addEventListener("DOMContentLoaded", () => {
     blockSelector,
     listSelector,
     itemsSelector,
-    onlyVisible = false,
-    enableDynamicHeight = false
+    onlyVisible = false
   ) {
     const blocks = document.querySelectorAll(blockSelector);
 
@@ -1018,10 +1019,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const itemRect = items[2].getBoundingClientRect();
         const btnText = newBtn.querySelector(".load-more-text");
         const span = newBtn.querySelector(".number-of-technologies");
-        let collapsedHeight = itemRect.bottom - listRect.top;
+        const height = itemRect.bottom - listRect.top;
 
         // Встановлюємо початковий згорнутий стан
-        list.style.maxHeight = `${collapsedHeight}px`;
+        list.style.maxHeight = `${height}px`;
         span.textContent = `${items.length - 3}`;
 
         newBtn.addEventListener("click", () => {
@@ -1031,49 +1032,12 @@ document.addEventListener("DOMContentLoaded", () => {
             span.textContent = `${items.length - 3}`;
             newBtn.classList.remove("collapsed");
           } else {
-            list.style.maxHeight = `${collapsedHeight}px`;
+            list.style.maxHeight = `${height}px`;
             btnText.textContent = "Show more";
             span.textContent = `${items.length - 3}`;
             newBtn.classList.add("collapsed");
           }
         });
-
-        // Динамічний перерахунок висоти при зміні вибору
-        if (enableDynamicHeight) {
-          const recalculateHeight = () => {
-            // Перераховуємо тільки якщо dropdown згорнутий
-            if (!newBtn.classList.contains("collapsed")) {
-              return; // Якщо розкритий - не перераховуємо
-            }
-
-            // Використовуємо requestAnimationFrame для точності після CSS transition
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                const listRect = block.getBoundingClientRect();
-                const thirdItem = items[2];
-
-                if (!thirdItem) return; // Захист від edge case
-
-                const itemRect = thirdItem.getBoundingClientRect();
-                const newHeight = itemRect.bottom - listRect.top;
-
-                // Оновлюємо closure змінну
-                collapsedHeight = newHeight;
-
-                // Застосовуємо нову висоту
-                list.style.maxHeight = `${newHeight}px`;
-              });
-            });
-          };
-
-          // Додаємо listeners на всі radio inputs в items
-          items.forEach((item) => {
-            const input = item.querySelector('input[type="radio"]');
-            if (input) {
-              input.addEventListener("change", recalculateHeight);
-            }
-          });
-        }
       } else {
         // Якщо елементів 3 або менше - показуємо всі і ховаємо кнопку
         list.style.maxHeight = "none";
@@ -1094,14 +1058,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ".modules-list-drop",
     ".modules-list-wrp",
     ".modules-item",
-    true,
     true
   );
   initDropdown(
     ".modules-list-drop",
     ".modules-list-wrp",
     ".modules-link",
-    true,
     true
   );
 
@@ -1476,7 +1438,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterAddons() {
       // Читаємо модель зі статичного hidden input
       const droneModelInput = document.getElementById("droneModelInput");
-      const activeDroneName = droneModelInput ? droneModelInput.value : "FIXAR 025";
+      const activeDroneName = droneModelInput
+        ? droneModelInput.value
+        : "FIXAR 025";
 
       const modulesList = document.querySelectorAll(".modules-item");
 
@@ -1504,7 +1468,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterDataLinks() {
       // Читаємо модель зі статичного hidden input
       const droneModelInput = document.getElementById("droneModelInput");
-      const activeDroneName = droneModelInput ? droneModelInput.value : "FIXAR 025";
+      const activeDroneName = droneModelInput
+        ? droneModelInput.value
+        : "FIXAR 025";
 
       const modulesList = document.querySelectorAll(".modules-link");
 
@@ -1653,7 +1619,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Читаємо модель зі статичного hidden input
             const droneModelInput = document.getElementById("droneModelInput");
-            const activeDroneName = droneModelInput ? droneModelInput.value : "";
+            const activeDroneName = droneModelInput
+              ? droneModelInput.value
+              : "";
 
             // Показуємо optional блок якщо FIXAR 025 + DTC
             if (activeDroneName === "FIXAR 025" && value.includes("DTC")) {
