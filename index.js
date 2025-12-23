@@ -38,7 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Читаємо модель дрона зі статичного hidden input
   const droneModelInput = document.getElementById("droneModelInput");
-  const currentDroneModel = droneModelInput ? droneModelInput.value : "FIXAR 025";
+  const currentDroneModel = droneModelInput
+    ? droneModelInput.value
+    : "FIXAR 025";
 
   // Mobile dropdown elements (only for mobile <= 767px)
   const navContainer = document.querySelector(".nav_container");
@@ -972,6 +974,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   // DROPDOWN (TECHNOLOGIES, MODULES)
   // ============================================
+
+  // Глобальний реєстр функцій перерахунку висоти для синхронізації між блоками
+  window.dropdownHeightRecalculators = window.dropdownHeightRecalculators || {};
+
   function initDropdown(
     blockSelector,
     listSelector,
@@ -1018,7 +1024,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const itemRect = items[2].getBoundingClientRect();
         const btnText = newBtn.querySelector(".load-more-text");
         const span = newBtn.querySelector(".number-of-technologies");
-        let collapsedHeight = itemRect.bottom - listRect.top;
+        let collapsedHeight = itemRect.bottom - listRect.top + 5;
 
         // Встановлюємо початковий згорнутий стан
         list.style.maxHeight = `${collapsedHeight}px`;
@@ -1043,34 +1049,45 @@ document.addEventListener("DOMContentLoaded", () => {
           const recalculateHeight = () => {
             // Перераховуємо тільки якщо dropdown згорнутий
             if (!newBtn.classList.contains("collapsed")) {
-              return; // Якщо розкритий - не перераховуємо
+              return;
             }
 
-            // Використовуємо requestAnimationFrame для точності після CSS transition
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                const listRect = block.getBoundingClientRect();
-                const thirdItem = items[2];
+            // Чекаємо завершення CSS transition (400ms) перед вимірюванням
+            setTimeout(() => {
+              const listRect = block.getBoundingClientRect();
+              const thirdItem = items[2];
 
-                if (!thirdItem) return; // Захист від edge case
+              if (!thirdItem) return;
 
-                const itemRect = thirdItem.getBoundingClientRect();
-                const newHeight = itemRect.bottom - listRect.top;
+              const itemRect = thirdItem.getBoundingClientRect();
+              const newHeight = itemRect.bottom - listRect.top + 5;
 
-                // Оновлюємо closure змінну
-                collapsedHeight = newHeight;
+              // Оновлюємо closure змінну
+              collapsedHeight = newHeight;
 
-                // Застосовуємо нову висоту
-                list.style.maxHeight = `${newHeight}px`;
-              });
-            });
+              // Застосовуємо нову висоту
+              list.style.maxHeight = `${newHeight}px`;
+            }, 400);
           };
 
           // Додаємо listeners на всі radio inputs в items
           items.forEach((item) => {
             const input = item.querySelector('input[type="radio"]');
-            if (input) {
-              input.addEventListener("change", recalculateHeight);
+            if (input && input.name) {
+              // Зберігаємо функцію перерахунку в глобальному реєстрі по name радіо
+              if (!window.dropdownHeightRecalculators[input.name]) {
+                window.dropdownHeightRecalculators[input.name] = [];
+              }
+              window.dropdownHeightRecalculators[input.name].push(
+                recalculateHeight
+              );
+
+              // При зміні радіо - викликаємо ВСІ функції для цього name
+              input.addEventListener("change", () => {
+                const recalculators =
+                  window.dropdownHeightRecalculators[input.name] || [];
+                recalculators.forEach((fn) => fn());
+              });
             }
           });
         }
@@ -1476,7 +1493,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterAddons() {
       // Читаємо модель зі статичного hidden input
       const droneModelInput = document.getElementById("droneModelInput");
-      const activeDroneName = droneModelInput ? droneModelInput.value : "FIXAR 025";
+      const activeDroneName = droneModelInput
+        ? droneModelInput.value
+        : "FIXAR 025";
 
       const modulesList = document.querySelectorAll(".modules-item");
 
@@ -1504,7 +1523,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterDataLinks() {
       // Читаємо модель зі статичного hidden input
       const droneModelInput = document.getElementById("droneModelInput");
-      const activeDroneName = droneModelInput ? droneModelInput.value : "FIXAR 025";
+      const activeDroneName = droneModelInput
+        ? droneModelInput.value
+        : "FIXAR 025";
 
       const modulesList = document.querySelectorAll(".modules-link");
 
@@ -1653,7 +1674,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Читаємо модель зі статичного hidden input
             const droneModelInput = document.getElementById("droneModelInput");
-            const activeDroneName = droneModelInput ? droneModelInput.value : "";
+            const activeDroneName = droneModelInput
+              ? droneModelInput.value
+              : "";
 
             // Показуємо optional блок якщо FIXAR 025 + DTC
             if (activeDroneName === "FIXAR 025" && value.includes("DTC")) {
