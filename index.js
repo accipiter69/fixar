@@ -2431,7 +2431,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   let mm = gsap.matchMedia();
 
-  mm.add("(max-width: 767px)", () => {
+  mm.add("(max-width: 991px)", () => {
     const header = document.querySelector(".nav_config");
     const modelContain = document.querySelector(".model_contain");
 
