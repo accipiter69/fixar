@@ -1020,11 +1020,26 @@ document.addEventListener("DOMContentLoaded", () => {
         // Скидаємо клас collapsed
         newBtn.classList.add("collapsed");
 
-        const listRect = block.getBoundingClientRect();
-        const itemRect = items[2].getBoundingClientRect();
         const btnText = newBtn.querySelector(".load-more-text");
         const span = newBtn.querySelector(".number-of-technologies");
-        let collapsedHeight = itemRect.bottom - listRect.top + 5;
+
+        // Функція для розрахунку згорнутої висоти
+        const calculateCollapsedHeight = () => {
+          // Тимчасово знімаємо maxHeight для точного вимірювання
+          const currentMaxHeight = list.style.maxHeight;
+          list.style.maxHeight = "none";
+
+          const listRect = block.getBoundingClientRect();
+          const itemRect = items[2].getBoundingClientRect();
+          const height = itemRect.bottom - listRect.top + 5;
+
+          // Повертаємо maxHeight назад
+          list.style.maxHeight = currentMaxHeight;
+
+          return height;
+        };
+
+        let collapsedHeight = calculateCollapsedHeight();
 
         // Встановлюємо початковий згорнутий стан
         list.style.maxHeight = `${collapsedHeight}px`;
@@ -1032,11 +1047,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         newBtn.addEventListener("click", () => {
           if (newBtn.classList.contains("collapsed")) {
+            // Розгортаємо
             list.style.maxHeight = list.scrollHeight + "px";
             btnText.textContent = "Show less";
             span.textContent = `${items.length - 3}`;
             newBtn.classList.remove("collapsed");
           } else {
+            // Згортаємо - перераховуємо висоту перед згортанням
+            collapsedHeight = calculateCollapsedHeight();
             list.style.maxHeight = `${collapsedHeight}px`;
             btnText.textContent = "Show more";
             span.textContent = `${items.length - 3}`;
@@ -1054,19 +1072,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Чекаємо завершення CSS transition (400ms) перед вимірюванням
             setTimeout(() => {
-              const listRect = block.getBoundingClientRect();
-              const thirdItem = items[2];
-
-              if (!thirdItem) return;
-
-              const itemRect = thirdItem.getBoundingClientRect();
-              const newHeight = itemRect.bottom - listRect.top + 5;
-
-              // Оновлюємо closure змінну
-              collapsedHeight = newHeight;
+              // Використовуємо ту ж функцію розрахунку
+              collapsedHeight = calculateCollapsedHeight();
 
               // Застосовуємо нову висоту
-              list.style.maxHeight = `${newHeight}px`;
+              list.style.maxHeight = `${collapsedHeight}px`;
             }, 400);
           };
 
