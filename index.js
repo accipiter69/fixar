@@ -1025,16 +1025,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Функція для розрахунку згорнутої висоти
         const calculateCollapsedHeight = () => {
-          // Тимчасово знімаємо maxHeight для точного вимірювання
+          // Зберігаємо поточний стан
           const currentMaxHeight = list.style.maxHeight;
+          const currentTransition = list.style.transition;
+
+          // Тимчасово вимикаємо transition для вимірювання
+          list.style.transition = "none";
           list.style.maxHeight = "none";
 
+          // Вимірюємо висоту
           const listRect = block.getBoundingClientRect();
           const itemRect = items[2].getBoundingClientRect();
           const height = itemRect.bottom - listRect.top + 5;
 
-          // Повертаємо maxHeight назад
+          // Повертаємо попередній maxHeight
           list.style.maxHeight = currentMaxHeight;
+
+          // Force reflow для застосування змін
+          void list.offsetHeight;
+
+          // Повертаємо transition
+          list.style.transition = currentTransition;
 
           return height;
         };
@@ -1054,8 +1065,15 @@ document.addEventListener("DOMContentLoaded", () => {
             newBtn.classList.remove("collapsed");
           } else {
             // Згортаємо - перераховуємо висоту перед згортанням
-            collapsedHeight = calculateCollapsedHeight();
-            list.style.maxHeight = `${collapsedHeight}px`;
+            // Спочатку встановлюємо поточну висоту для плавного переходу
+            list.style.maxHeight = list.scrollHeight + "px";
+
+            // Використовуємо requestAnimationFrame для плавного transition
+            requestAnimationFrame(() => {
+              collapsedHeight = calculateCollapsedHeight();
+              list.style.maxHeight = `${collapsedHeight}px`;
+            });
+
             btnText.textContent = "Show more";
             span.textContent = `${items.length - 3}`;
             newBtn.classList.add("collapsed");
