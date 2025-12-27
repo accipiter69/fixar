@@ -660,5 +660,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("Заповнення форми...");
   populateFormFields(params);
 
+  // 11. Обробник кнопки "Назад"
+  const backButton = document.querySelector(".model_form-back");
+  if (backButton) {
+    backButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.history.back();
+    });
+    console.log("Обробник кнопки 'Назад' додано");
+  }
+
   console.log("=== Result Page Initialization Complete ===");
 });
