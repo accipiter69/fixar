@@ -920,9 +920,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sliderBg) sliderBg.style.display = "none";
       if (sliderParent) sliderParent.classList.remove("is--active");
 
-      // Оновлюємо індикатори прогресу (починаємо з 0 індексу)
-      updateProgressIndicators(0);
-
       return;
     }
 
