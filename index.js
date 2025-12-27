@@ -665,11 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Функція для відкриття другого слайдера на потрібному слайді
   function openBigSlider(visibleSlideIndex) {
-    // Просто переходимо до потрібного слайда
-    // Тепер індекси співпадають: 3-й слайд першого = 3-й слайд другого
-    swiper2.slideTo(visibleSlideIndex, 0); // 0 = без анімації
-
-    // Відкриваємо слайдер
+    // Відкриваємо слайдер спочатку
     if (sliderBg) sliderBg.style.display = "block";
     if (sliderParent) {
       disableScroll();
@@ -677,7 +673,13 @@ document.addEventListener("DOMContentLoaded", () => {
       sliderParent.classList.add("is--active");
     }
 
-    // Оновлюємо індикатори прогресу для вибраного слайда ПІСЛЯ показу слайдера
+    // Примусово оновлюємо Swiper ПІСЛЯ показу слайдера
+    swiper2.update();
+
+    // Тепер переходимо до потрібного слайда
+    swiper2.slideTo(visibleSlideIndex, 0); // 0 = без анімації
+
+    // Оновлюємо індикатори прогресу для вибраного слайда
     // Використовуємо requestAnimationFrame щоб дати DOM можливість оновитись
     requestAnimationFrame(() => {
       updateProgressIndicators(visibleSlideIndex);
@@ -906,6 +908,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function filterApplicationSlidesBig(moduleItem) {
     if (!moduleItem) {
       // Якщо модуль не обрано - відновлюємо всі слайди з шаблонів
+      // Повне очищення DOM ПЕРЕД видаленням слайдів
+      const swiperWrapper = document.querySelector(
+        ".swiper.is--applications-big .swiper-wrapper"
+      );
+      if (swiperWrapper) {
+        swiperWrapper.innerHTML = "";
+      }
+
       swiper2.removeAllSlides();
 
       const allSlideTemplates = Object.values(window.bigSliderTemplates);
@@ -933,6 +943,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!forApplicationElements || forApplicationElements.length === 0) {
       // Якщо немає інформації про застосування - показуємо всі слайди
+      // Повне очищення DOM ПЕРЕД видаленням слайдів
+      const swiperWrapper = document.querySelector(
+        ".swiper.is--applications-big .swiper-wrapper"
+      );
+      if (swiperWrapper) {
+        swiperWrapper.innerHTML = "";
+      }
+
       swiper2.removeAllSlides();
 
       const allSlideTemplates = Object.values(window.bigSliderTemplates);
@@ -955,6 +973,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const applications = Array.from(forApplicationElements).map((el) =>
       el.textContent.trim()
     );
+
+    // Повне очищення DOM ПЕРЕД видаленням слайдів
+    const swiperWrapper = document.querySelector(
+      ".swiper.is--applications-big .swiper-wrapper"
+    );
+    if (swiperWrapper) {
+      swiperWrapper.innerHTML = "";
+    }
 
     // Очищаємо другий слайдер
     swiper2.removeAllSlides();
