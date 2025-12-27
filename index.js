@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     : "FIXAR 025";
 
   // Mobile dropdown elements (only for mobile <= 767px)
-  const navContainer = document.querySelector(".nav_container");
+  const navContainer = document.querySelector(".nav_container2");
   const navConfigBg = document.querySelector(".nav_config_bg");
   const mobileDropdown = document.querySelector(".nav_drop-toggle");
   const mobileDropdownCurrent =
