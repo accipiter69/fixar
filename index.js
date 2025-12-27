@@ -512,6 +512,18 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }, 500);
       }
+
+      // Застосовуємо початковий колір до щойно завантаженої моделі
+      setTimeout(() => {
+        const checkedColorField = document.querySelector(
+          ".radio_input-color:checked"
+        );
+        if (checkedColorField) {
+          checkedColorField.dispatchEvent(
+            new Event("change", { bubbles: true })
+          );
+        }
+      }, 100);
     };
 
     // Error callback - обробляє помилки завантаження
@@ -1396,8 +1408,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ).style.backgroundColor = bgColor;
       }
 
-      // Програмно викликаємо change event для ініціалізації кольору моделі
-      initialColorField.dispatchEvent(new Event("change", { bubbles: true }));
+      // Початковий колір буде застосовано після завантаження 3D моделі
+      // (див. onLoadCallback в loadDroneModel)
     }
 
     colorFields.forEach((field) => {
