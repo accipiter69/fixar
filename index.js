@@ -309,7 +309,8 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180; // 90° + 5° = не більше 5° знизу
 
   // Рівномірне ambient освітлення
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  //const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  const ambientLight = new THREE.AmbientLight(0xc2c2c2, 0.8);
   scene.add(ambientLight);
 
   // Directional світло зверху
