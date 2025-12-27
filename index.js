@@ -869,16 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ".applications-big-slider-progress"
     );
 
-    console.log("updateProgressIndicators called:", {
-      activeSlideIndex,
-      progressContainer: !!progressContainer,
-      slidesLength: swiper2.slides.length,
-    });
-
-    if (!progressContainer) {
-      console.log("Progress container not found!");
-      return;
-    }
+    if (!progressContainer) return;
 
     // Отримуємо кількість слайдів безпосередньо зі swiper2
     // Тепер всі слайди видимі, немає прихованих
@@ -1383,14 +1374,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorDescription = document.querySelector("[data-color-description]");
 
     if (resultColor && colorFields.length > 0) {
-      const firstColorField = colorFields[0];
+      // Шукаємо checked колір, якщо немає - беремо перший
+      const initialColorField =
+        Array.from(colorFields).find((field) => field.checked) ||
+        colorFields[0];
+
       resultColor.querySelector("[data-res-color-name]").textContent =
-        firstColorField.value;
+        initialColorField.value;
       resultColor.querySelector("p").textContent =
-        firstColorField.dataset.description;
+        initialColorField.dataset.description;
 
       // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
-      const colorBtn = firstColorField.parentElement?.querySelector(
+      const colorBtn = initialColorField.parentElement?.querySelector(
         ".model_form-color-btn"
       );
 
@@ -1400,6 +1395,9 @@ document.addEventListener("DOMContentLoaded", () => {
           ".model_form-color-btn-res"
         ).style.backgroundColor = bgColor;
       }
+
+      // Програмно викликаємо change event для ініціалізації кольору моделі
+      initialColorField.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
     colorFields.forEach((field) => {
