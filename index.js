@@ -313,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
   scene.add(ambientLight);
 
   // Directional світло зверху
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
@@ -345,6 +345,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetDrone = droneName || currentDroneModel;
     const model = window.loadedModels[targetDrone];
 
+    console.log(
+      `[changeColorByMaterialName] targetDrone: ${targetDrone}, materialName: ${materialName}, hexColor: ${hexColor}`
+    );
+
     if (!model) {
       console.warn(`Модель ${targetDrone} не завантажена`);
       return 0;
@@ -366,6 +370,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    console.log(
+      `[changeColorByMaterialName] ${targetDrone}: змінено ${changedCount} елементів`
+    );
     return changedCount;
   };
 
@@ -515,13 +522,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Застосовуємо початковий колір до щойно завантаженої моделі
       setTimeout(() => {
+        console.log(
+          `[Color Init] Модель ${droneName} завантажена, застосовуємо початковий колір`
+        );
         const checkedColorField = document.querySelector(
           ".radio_input-color:checked"
+        );
+        console.log(
+          `[Color Init] Checked color field:`,
+          checkedColorField?.value
         );
         if (checkedColorField) {
           checkedColorField.dispatchEvent(
             new Event("change", { bubbles: true })
           );
+        } else {
+          console.warn("[Color Init] Не знайдено checked color field!");
         }
       }, 100);
     };
