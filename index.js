@@ -912,11 +912,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sliderBg) sliderBg.style.display = "none";
       if (sliderParent) sliderParent.classList.remove("is--active");
 
-      // Очищаємо індикатори прогресу
-      const progressContainer = document.querySelector(
-        ".applications-big-slider-progress"
-      );
-      if (progressContainer) progressContainer.innerHTML = "";
+      // Оновлюємо індикатори прогресу (починаємо з 0 індексу)
+      updateProgressIndicators(0);
 
       return;
     }
