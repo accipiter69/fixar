@@ -678,7 +678,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Оновлюємо індикатори прогресу для вибраного слайда ПІСЛЯ показу слайдера
-    updateProgressIndicators(visibleSlideIndex);
+    // Використовуємо requestAnimationFrame щоб дати DOM можливість оновитись
+    requestAnimationFrame(() => {
+      updateProgressIndicators(visibleSlideIndex);
+    });
   }
 
   // Функція для закриття другого слайдера
@@ -864,7 +867,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ".applications-big-slider-progress"
     );
 
-    if (!progressContainer) return;
+    console.log("updateProgressIndicators called:", {
+      activeSlideIndex,
+      progressContainer: !!progressContainer,
+      slidesLength: swiper2.slides.length,
+    });
+
+    if (!progressContainer) {
+      console.log("Progress container not found!");
+      return;
+    }
 
     // Отримуємо кількість слайдів безпосередньо зі swiper2
     // Тепер всі слайди видимі, немає прихованих
