@@ -908,14 +908,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Якщо модуль не обрано - відновлюємо всі слайди з шаблонів
       swiper2.removeAllSlides();
 
-      // Повне очищення DOM для запобігання дублювання
-      const swiperWrapper = document.querySelector(
-        ".swiper.is--applications-big .swiper-wrapper"
-      );
-      if (swiperWrapper) {
-        swiperWrapper.innerHTML = "";
-      }
-
       const allSlideTemplates = Object.values(window.bigSliderTemplates);
       allSlideTemplates.forEach((slideTemplate) => {
         const clone = slideTemplate.cloneNode(true);
@@ -943,14 +935,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Якщо немає інформації про застосування - показуємо всі слайди
       swiper2.removeAllSlides();
 
-      // Повне очищення DOM для запобігання дублювання
-      const swiperWrapper = document.querySelector(
-        ".swiper.is--applications-big .swiper-wrapper"
-      );
-      if (swiperWrapper) {
-        swiperWrapper.innerHTML = "";
-      }
-
       const allSlideTemplates = Object.values(window.bigSliderTemplates);
       allSlideTemplates.forEach((slideTemplate) => {
         const clone = slideTemplate.cloneNode(true);
@@ -974,14 +958,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Очищаємо другий слайдер
     swiper2.removeAllSlides();
-
-    // Повне очищення DOM для запобігання дублювання
-    const swiperWrapper = document.querySelector(
-      ".swiper.is--applications-big .swiper-wrapper"
-    );
-    if (swiperWrapper) {
-      swiperWrapper.innerHTML = "";
-    }
 
     // Додаємо тільки потрібні слайди з шаблонів
     applications.forEach((appName) => {
