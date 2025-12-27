@@ -669,9 +669,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Тепер індекси співпадають: 3-й слайд першого = 3-й слайд другого
     swiper2.slideTo(visibleSlideIndex, 0); // 0 = без анімації
 
-    // Оновлюємо індикатори прогресу для вибраного слайда
-    updateProgressIndicators(visibleSlideIndex);
-
     // Відкриваємо слайдер
     if (sliderBg) sliderBg.style.display = "block";
     if (sliderParent) {
@@ -679,6 +676,9 @@ document.addEventListener("DOMContentLoaded", () => {
       sliderParent.style.display = "flex";
       sliderParent.classList.add("is--active");
     }
+
+    // Оновлюємо індикатори прогресу для вибраного слайда ПІСЛЯ показу слайдера
+    updateProgressIndicators(visibleSlideIndex);
   }
 
   // Функція для закриття другого слайдера
