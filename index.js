@@ -1918,6 +1918,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /**
      * Shows or hides orderTooltip based on whether any module is selected
      * Works cooperatively with ScrollTrigger
+     * Only works on screens > 991px
      */
     function updateOrderTooltipVisibility() {
       // Safety check: ensure tooltip and timeline exist
@@ -1926,39 +1927,49 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const modulesList = document.querySelectorAll(".modules-item");
-      let hasSelectedModule = false;
+      let mmTooltip = gsap.matchMedia();
 
-      modulesList.forEach((moduleItem) => {
-        const input = moduleItem.querySelector("input");
-        if (input && input.checked) {
-          hasSelectedModule = true;
-          console.log("✅ Found checked module:", input.value);
+      // Desktop only (> 991px)
+      mmTooltip.add("(min-width: 992px)", () => {
+        const modulesList = document.querySelectorAll(".modules-item");
+        let hasSelectedModule = false;
+
+        modulesList.forEach((moduleItem) => {
+          const input = moduleItem.querySelector("input");
+          if (input && input.checked) {
+            hasSelectedModule = true;
+            console.log("✅ Found checked module:", input.value);
+          }
+        });
+
+        console.log("📊 Module selected:", hasSelectedModule);
+
+        if (hasSelectedModule) {
+          // Show tooltip: set display and reverse timeline to visible state
+          console.log("👁️ Showing tooltip - setting display: flex");
+          orderTooltip.style.display = "flex";
+          console.log("🎬 Reversing timeline to show tooltip");
+
+          // Reverse the timeline to position 0 (visible state)
+          orderTooltipTl.reverse();
+        } else {
+          // Hide tooltip: animate, then set display none
+          console.log("🚫 Hiding tooltip - playing timeline");
+          orderTooltipTl.play();
+          // Set display none after animation completes
+          setTimeout(() => {
+            if (orderTooltipTl.progress() === 1) {
+              console.log("✅ Animation complete - setting display: none");
+              orderTooltip.style.display = "none";
+            }
+          }, 300); // Match animation duration
         }
       });
 
-      console.log("📊 Module selected:", hasSelectedModule);
-
-      if (hasSelectedModule) {
-        // Show tooltip: set display and reverse timeline to visible state
-        console.log("👁️ Showing tooltip - setting display: flex");
-        orderTooltip.style.display = "flex";
-        console.log("🎬 Reversing timeline to show tooltip");
-
-        // Reverse the timeline to position 0 (visible state)
-        orderTooltipTl.reverse();
-      } else {
-        // Hide tooltip: animate, then set display none
-        console.log("🚫 Hiding tooltip - playing timeline");
-        orderTooltipTl.play();
-        // Set display none after animation completes
-        setTimeout(() => {
-          if (orderTooltipTl.progress() === 1) {
-            console.log("✅ Animation complete - setting display: none");
-            orderTooltip.style.display = "none";
-          }
-        }, 300); // Match animation duration
-      }
+      // Mobile and tablet (<= 991px) - hide tooltip
+      mmTooltip.add("(max-width: 991px)", () => {
+        orderTooltip.style.display = "none";
+      });
     }
 
     /**
