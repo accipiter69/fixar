@@ -737,11 +737,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const img = technologyItem.querySelector("img");
     const h3 = technologyItem.querySelector("h3");
     const firstP = technologyItem.querySelector("p");
+    const technologyLink = technologyItem.querySelector(".text-16.is--technologies-link");
 
     // Отримуємо елементи попапу
     const popupImg = whatsElsePopap.querySelector("img");
     const popupH2 = whatsElsePopap.querySelector("h2");
     const popupP = whatsElsePopap.querySelector("p");
+    const popupLink = whatsElsePopap.querySelector("a");
 
     // Заповнюємо попап даними
     if (img && popupImg) {
@@ -752,6 +754,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (firstP && popupP) {
       popupP.textContent = firstP.textContent;
+    }
+
+    // Встановлюємо посилання з data-link
+    if (technologyLink && popupLink) {
+      const linkUrl = technologyLink.getAttribute("data-link");
+      if (linkUrl) {
+        popupLink.setAttribute("href", linkUrl);
+      } else {
+        // Якщо data-link відсутній, встановлюємо порожнє посилання або приховуємо кнопку
+        popupLink.setAttribute("href", "#");
+      }
     }
 
     // Показуємо попап і підложку
