@@ -228,6 +228,51 @@ function populateDataChoiceElements(configData) {
   }
 }
 
+/**
+ * Populates price displays from SessionStorage configuration
+ * @param {Object} configData - Configuration data with price fields
+ */
+function populatePriceDisplays(configData) {
+  if (!configData) return;
+
+  const formatPrice = (price) => {
+    if (typeof price !== 'number') return '0';
+    return price.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+  };
+
+  // Update individual prices in result blocks
+  if (configData.dronePrice !== undefined) {
+    const elem = document.querySelector('[data-choice=drone] .price_elem-num');
+    if (elem) elem.textContent = formatPrice(configData.dronePrice);
+  }
+
+  if (configData.modulePrice !== undefined) {
+    const elem = document.querySelector('[data-choice=module] .price_elem-num');
+    if (elem) elem.textContent = formatPrice(configData.modulePrice);
+  }
+
+  if (configData.dataLinkPrice !== undefined) {
+    const elem = document.querySelector('[data-choice=link] .price_elem-num');
+    if (elem) elem.textContent = formatPrice(configData.dataLinkPrice);
+  }
+
+  if (configData.dataLinkOptionalPrice !== undefined) {
+    const elem = document.querySelector('[data-choice=link-optional] .price_elem-num');
+    if (elem) elem.textContent = formatPrice(configData.dataLinkOptionalPrice);
+  }
+
+  // Update total price displays
+  if (configData.totalPrice !== undefined) {
+    const elems = document.querySelectorAll('[data-choice=total] .price_elem-num');
+    elems.forEach(elem => {
+      elem.textContent = formatPrice(configData.totalPrice);
+    });
+  }
+}
+
 // ============================================
 // THREE.JS SCENE INITIALIZATION
 // ============================================
@@ -507,7 +552,7 @@ function startAnimationLoop(mixer, controls, renderer, scene, camera) {
 // ============================================
 // FORM POPULATION
 // ============================================
-function populateFormFields(params) {
+function populateFormFields(params, sessionConfig) {
   const form = document.querySelector("form");
 
   if (!form) {
@@ -528,6 +573,27 @@ function populateFormFields(params) {
       console.log(`Додано hidden field: ${key} = ${value}`);
     }
   });
+
+  // Add price fields from SessionStorage
+  if (sessionConfig) {
+    const priceFields = [
+      { name: 'Drone price', value: sessionConfig.dronePrice },
+      { name: 'Module price', value: sessionConfig.modulePrice },
+      { name: 'Data link price', value: sessionConfig.dataLinkPrice },
+      { name: 'Total price', value: sessionConfig.totalPrice }
+    ];
+
+    priceFields.forEach(({ name, value }) => {
+      if (value !== undefined && value !== null) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+        console.log(`Додано price field: ${name} = ${value}`);
+      }
+    });
+  }
 }
 
 // ============================================
@@ -586,6 +652,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 4. Заповнення data-choice елементів
   if (sessionConfig) {
     populateDataChoiceElements(sessionConfig);
+    // Populate price displays
+    populatePriceDisplays(sessionConfig);
   }
 
   // 4. Check container exists (ІСНУЮЧЕ - БЕЗ ЗМІН)
@@ -684,7 +752,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 10. Populate form fields (незалежно від 3D)
   console.log("Заповнення форми...");
-  populateFormFields(params);
+  populateFormFields(params, sessionConfig);
 
   // 11. Обробник кнопки "Назад"
   const backButton = document.querySelector(".model_form-back");

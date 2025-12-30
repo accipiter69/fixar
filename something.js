@@ -15,6 +15,7 @@ const droneModels = {
   "FIXAR 007 NG":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(2).glb",
 };
+
 // Об'єднаний DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   // ============================================
@@ -42,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     : "FIXAR 025";
 
   // Mobile dropdown elements (only for mobile <= 767px)
-  const navContainer = document.querySelector(".nav_container");
+  const navContainer = document.querySelector(".nav_container2");
   const navConfigBg = document.querySelector(".nav_config_bg");
   const mobileDropdown = document.querySelector(".nav_drop-toggle");
   const mobileDropdownCurrent =
@@ -308,11 +309,12 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180; // 90° + 5° = не більше 5° знизу
 
   // Рівномірне ambient освітлення
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+  //const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  const ambientLight = new THREE.AmbientLight(0xc2c2c2, 0.8);
   scene.add(ambientLight);
 
   // Directional світло зверху
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
@@ -344,6 +346,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetDrone = droneName || currentDroneModel;
     const model = window.loadedModels[targetDrone];
 
+    console.log(
+      `[changeColorByMaterialName] targetDrone: ${targetDrone}, materialName: ${materialName}, hexColor: ${hexColor}`
+    );
+
     if (!model) {
       console.warn(`Модель ${targetDrone} не завантажена`);
       return 0;
@@ -365,6 +371,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    console.log(
+      `[changeColorByMaterialName] ${targetDrone}: змінено ${changedCount} елементів`
+    );
     return changedCount;
   };
 
@@ -511,6 +520,27 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }, 500);
       }
+
+      // Застосовуємо початковий колір до щойно завантаженої моделі
+      setTimeout(() => {
+        console.log(
+          `[Color Init] Модель ${droneName} завантажена, застосовуємо початковий колір`
+        );
+        const checkedColorField = document.querySelector(
+          ".radio_input-color:checked"
+        );
+        console.log(
+          `[Color Init] Checked color field:`,
+          checkedColorField?.value
+        );
+        if (checkedColorField) {
+          checkedColorField.dispatchEvent(
+            new Event("change", { bubbles: true })
+          );
+        } else {
+          console.warn("[Color Init] Не знайдено checked color field!");
+        }
+      }, 100);
     };
 
     // Error callback - обробляє помилки завантаження
@@ -664,20 +694,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Функція для відкриття другого слайдера на потрібному слайді
   function openBigSlider(visibleSlideIndex) {
-    // Просто переходимо до потрібного слайда
-    // Тепер індекси співпадають: 3-й слайд першого = 3-й слайд другого
-    swiper2.slideTo(visibleSlideIndex, 0); // 0 = без анімації
-
-    // Оновлюємо індикатори прогресу для вибраного слайда
-    updateProgressIndicators(visibleSlideIndex);
-
-    // Відкриваємо слайдер
+    // Відкриваємо слайдер спочатку
     if (sliderBg) sliderBg.style.display = "block";
     if (sliderParent) {
       disableScroll();
       sliderParent.style.display = "flex";
       sliderParent.classList.add("is--active");
     }
+
+    // Примусово оновлюємо Swiper ПІСЛЯ показу слайдера
+    swiper2.update();
+
+    // Тепер переходимо до потрібного слайда
+    swiper2.slideTo(visibleSlideIndex, 0); // 0 = без анімації
+
+    // Оновлюємо індикатори прогресу для вибраного слайда
+    // Використовуємо requestAnimationFrame щоб дати DOM можливість оновитись
+    requestAnimationFrame(() => {
+      updateProgressIndicators(visibleSlideIndex);
+    });
   }
 
   // Функція для закриття другого слайдера
@@ -702,11 +737,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const img = technologyItem.querySelector("img");
     const h3 = technologyItem.querySelector("h3");
     const firstP = technologyItem.querySelector("p");
+    const technologyLink = technologyItem.querySelector(
+      ".text-16.is--technologies-link"
+    );
 
     // Отримуємо елементи попапу
     const popupImg = whatsElsePopap.querySelector("img");
     const popupH2 = whatsElsePopap.querySelector("h2");
     const popupP = whatsElsePopap.querySelector("p");
+    const popupLink = whatsElsePopap.querySelector("a");
 
     // Заповнюємо попап даними
     if (img && popupImg) {
@@ -717,6 +756,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (firstP && popupP) {
       popupP.textContent = firstP.textContent;
+    }
+
+    // Встановлюємо посилання з data-link
+    if (technologyLink && popupLink) {
+      const linkUrl = technologyLink.getAttribute("data-link");
+      if (linkUrl) {
+        popupLink.setAttribute("href", linkUrl);
+      } else {
+        // Якщо data-link відсутній, встановлюємо порожнє посилання або приховуємо кнопку
+        popupLink.setAttribute("href", "#");
+      }
     }
 
     // Показуємо попап і підложку
@@ -893,6 +943,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function filterApplicationSlidesBig(moduleItem) {
     if (!moduleItem) {
       // Якщо модуль не обрано - відновлюємо всі слайди з шаблонів
+      // Повне очищення DOM ПЕРЕД видаленням слайдів
+      const swiperWrapper = document.querySelector(
+        ".swiper.is--applications-big .swiper-wrapper"
+      );
+      if (swiperWrapper) {
+        swiperWrapper.innerHTML = "";
+      }
+
       swiper2.removeAllSlides();
 
       const allSlideTemplates = Object.values(window.bigSliderTemplates);
@@ -911,12 +969,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sliderBg) sliderBg.style.display = "none";
       if (sliderParent) sliderParent.classList.remove("is--active");
 
-      // Очищаємо індикатори прогресу
-      const progressContainer = document.querySelector(
-        ".applications-big-slider-progress"
-      );
-      if (progressContainer) progressContainer.innerHTML = "";
-
       return;
     }
 
@@ -926,6 +978,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!forApplicationElements || forApplicationElements.length === 0) {
       // Якщо немає інформації про застосування - показуємо всі слайди
+      // Повне очищення DOM ПЕРЕД видаленням слайдів
+      const swiperWrapper = document.querySelector(
+        ".swiper.is--applications-big .swiper-wrapper"
+      );
+      if (swiperWrapper) {
+        swiperWrapper.innerHTML = "";
+      }
+
       swiper2.removeAllSlides();
 
       const allSlideTemplates = Object.values(window.bigSliderTemplates);
@@ -948,6 +1008,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const applications = Array.from(forApplicationElements).map((el) =>
       el.textContent.trim()
     );
+
+    // Повне очищення DOM ПЕРЕД видаленням слайдів
+    const swiperWrapper = document.querySelector(
+      ".swiper.is--applications-big .swiper-wrapper"
+    );
+    if (swiperWrapper) {
+      swiperWrapper.innerHTML = "";
+    }
 
     // Очищаємо другий слайдер
     swiper2.removeAllSlides();
@@ -1350,14 +1418,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorDescription = document.querySelector("[data-color-description]");
 
     if (resultColor && colorFields.length > 0) {
-      const firstColorField = colorFields[0];
+      // Шукаємо checked колір, якщо немає - беремо перший
+      const initialColorField =
+        Array.from(colorFields).find((field) => field.checked) ||
+        colorFields[0];
+
       resultColor.querySelector("[data-res-color-name]").textContent =
-        firstColorField.value;
+        initialColorField.value;
       resultColor.querySelector("p").textContent =
-        firstColorField.dataset.description;
+        initialColorField.dataset.description;
 
       // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
-      const colorBtn = firstColorField.parentElement?.querySelector(
+      const colorBtn = initialColorField.parentElement?.querySelector(
         ".model_form-color-btn"
       );
 
@@ -1367,6 +1439,9 @@ document.addEventListener("DOMContentLoaded", () => {
           ".model_form-color-btn-res"
         ).style.backgroundColor = bgColor;
       }
+
+      // Початковий колір буде застосовано після завантаження 3D моделі
+      // (див. onLoadCallback в loadDroneModel)
     }
 
     colorFields.forEach((field) => {
@@ -1858,6 +1933,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /**
      * Shows or hides orderTooltip based on whether any module is selected
      * Works cooperatively with ScrollTrigger
+     * Only works on screens > 991px
      */
     function updateOrderTooltipVisibility() {
       // Safety check: ensure tooltip and timeline exist
@@ -1866,39 +1942,49 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const modulesList = document.querySelectorAll(".modules-item");
-      let hasSelectedModule = false;
+      let mmTooltip = gsap.matchMedia();
 
-      modulesList.forEach((moduleItem) => {
-        const input = moduleItem.querySelector("input");
-        if (input && input.checked) {
-          hasSelectedModule = true;
-          console.log("✅ Found checked module:", input.value);
+      // Desktop only (> 991px)
+      mmTooltip.add("(min-width: 992px)", () => {
+        const modulesList = document.querySelectorAll(".modules-item");
+        let hasSelectedModule = false;
+
+        modulesList.forEach((moduleItem) => {
+          const input = moduleItem.querySelector("input");
+          if (input && input.checked) {
+            hasSelectedModule = true;
+            console.log("✅ Found checked module:", input.value);
+          }
+        });
+
+        console.log("📊 Module selected:", hasSelectedModule);
+
+        if (hasSelectedModule) {
+          // Show tooltip: set display and reverse timeline to visible state
+          console.log("👁️ Showing tooltip - setting display: flex");
+          orderTooltip.style.display = "flex";
+          console.log("🎬 Reversing timeline to show tooltip");
+
+          // Reverse the timeline to position 0 (visible state)
+          orderTooltipTl.reverse();
+        } else {
+          // Hide tooltip: animate, then set display none
+          console.log("🚫 Hiding tooltip - playing timeline");
+          orderTooltipTl.play();
+          // Set display none after animation completes
+          setTimeout(() => {
+            if (orderTooltipTl.progress() === 1) {
+              console.log("✅ Animation complete - setting display: none");
+              orderTooltip.style.display = "none";
+            }
+          }, 300); // Match animation duration
         }
       });
 
-      console.log("📊 Module selected:", hasSelectedModule);
-
-      if (hasSelectedModule) {
-        // Show tooltip: set display and reverse timeline to visible state
-        console.log("👁️ Showing tooltip - setting display: flex");
-        orderTooltip.style.display = "flex";
-        console.log("🎬 Reversing timeline to show tooltip");
-
-        // Reverse the timeline to position 0 (visible state)
-        orderTooltipTl.reverse();
-      } else {
-        // Hide tooltip: animate, then set display none
-        console.log("🚫 Hiding tooltip - playing timeline");
-        orderTooltipTl.play();
-        // Set display none after animation completes
-        setTimeout(() => {
-          if (orderTooltipTl.progress() === 1) {
-            console.log("✅ Animation complete - setting display: none");
-            orderTooltip.style.display = "none";
-          }
-        }, 300); // Match animation duration
-      }
+      // Mobile and tablet (<= 991px) - hide tooltip
+      mmTooltip.add("(max-width: 991px)", () => {
+        orderTooltip.style.display = "none";
+      });
     }
 
     /**
@@ -2458,7 +2544,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   let mm = gsap.matchMedia();
 
-  mm.add("(max-width: 991px)", () => {
+  mm.add("(max-width: 100000000px)", () => {
     const header = document.querySelector(".nav_config");
     const modelContain = document.querySelector(".model_contain");
 

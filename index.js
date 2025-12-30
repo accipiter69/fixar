@@ -737,7 +737,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const img = technologyItem.querySelector("img");
     const h3 = technologyItem.querySelector("h3");
     const firstP = technologyItem.querySelector("p");
-    const technologyLink = technologyItem.querySelector(".text-16.is--technologies-link");
+    const technologyLink = technologyItem.querySelector(
+      ".text-16.is--technologies-link"
+    );
 
     // Отримуємо елементи попапу
     const popupImg = whatsElsePopap.querySelector("img");
@@ -1397,6 +1399,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
 
       // НОВЕ: Збір і збереження даних конфігурації в SessionStorage
+
       const configData = collectConfigurationData();
       saveConfigurationToSession(configData);
 
