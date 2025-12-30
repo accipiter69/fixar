@@ -1365,6 +1365,85 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // ============================================
+    // PRICE CALCULATION
+    // ============================================
+    console.log('[collectConfigurationData] Starting price calculation');
+
+    // Helper function to parse price
+    const parsePriceFromText = (priceText) => {
+      console.log('[parsePriceFromText] Input:', priceText);
+      if (!priceText || typeof priceText !== 'string') {
+        console.log('[parsePriceFromText] Invalid input, returning 0');
+        return 0;
+      }
+      const cleaned = priceText.replace(/[$€£,\s]/g, '');
+      const parsed = parseFloat(cleaned);
+      const result = isNaN(parsed) ? 0 : parsed;
+      console.log('[parsePriceFromText] Cleaned:', cleaned, '-> Parsed:', result);
+      return result;
+    };
+
+    // Extract drone price
+    const droneBtn = document.querySelector('.nav_config-drones-item.w--current');
+    console.log('[Price] Drone button:', droneBtn);
+    const dronePrice = droneBtn ? parsePriceFromText(droneBtn.getAttribute('data-price')) : 0;
+    console.log('[Price] Drone price:', dronePrice);
+
+    // Extract module price
+    const moduleInput = document.querySelector('.modules-item input:checked');
+    console.log('[Price] Module input:', moduleInput);
+    let modulePrice = 0;
+    if (moduleInput) {
+      const moduleItem = moduleInput.closest('.modules-item');
+      console.log('[Price] Module item:', moduleItem);
+      if (moduleItem) {
+        const priceElem = moduleItem.querySelector('.price_elem-num');
+        console.log('[Price] Module price element:', priceElem, 'text:', priceElem?.textContent);
+        modulePrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+      }
+    }
+    console.log('[Price] Module price:', modulePrice);
+
+    // Extract data link price
+    const linkInput = document.querySelector('.modules-link input:not(#optional input):checked');
+    console.log('[Price] Data link input:', linkInput);
+    let dataLinkPrice = 0;
+    if (linkInput) {
+      const linkItem = linkInput.closest('.modules-link');
+      console.log('[Price] Data link item:', linkItem);
+      if (linkItem) {
+        const priceElem = linkItem.querySelector('.price_elem-num');
+        console.log('[Price] Data link price element:', priceElem, 'text:', priceElem?.textContent);
+        dataLinkPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+      }
+    }
+    console.log('[Price] Data link price:', dataLinkPrice);
+
+    // Extract optional price
+    const optionalInput = document.querySelector('#optional input:checked');
+    console.log('[Price] Optional input:', optionalInput);
+    let dataLinkOptionalPrice = 0;
+    if (optionalInput) {
+      const optionalItem = optionalInput.closest('.modules-link');
+      console.log('[Price] Optional item:', optionalItem);
+      if (optionalItem) {
+        const priceElem = optionalItem.querySelector('.price_elem-num');
+        console.log('[Price] Optional price element:', priceElem, 'text:', priceElem?.textContent);
+        dataLinkOptionalPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+      }
+    }
+    console.log('[Price] Optional price:', dataLinkOptionalPrice);
+
+    const totalPrice = dronePrice + modulePrice + dataLinkPrice + dataLinkOptionalPrice;
+    console.log('[Price] Total:', totalPrice, '(', dronePrice, '+', modulePrice, '+', dataLinkPrice, '+', dataLinkOptionalPrice, ')');
+
+    configData.dronePrice = dronePrice;
+    configData.modulePrice = modulePrice;
+    configData.dataLinkPrice = dataLinkPrice;
+    configData.dataLinkOptionalPrice = dataLinkOptionalPrice;
+    configData.totalPrice = totalPrice;
+
     return configData;
   }
 

@@ -233,44 +233,84 @@ function populateDataChoiceElements(configData) {
  * @param {Object} configData - Configuration data with price fields
  */
 function populatePriceDisplays(configData) {
-  if (!configData) return;
+  console.log('[populatePriceDisplays] Called with configData:', configData);
+  if (!configData) {
+    console.log('[populatePriceDisplays] No configData, returning');
+    return;
+  }
 
   const formatPrice = (price) => {
-    if (typeof price !== 'number') return '0';
-    return price.toLocaleString('en-US', {
+    console.log('[formatPrice] Input:', price, 'Type:', typeof price);
+    if (typeof price !== 'number') {
+      console.log('[formatPrice] Not a number, returning "0"');
+      return '0';
+    }
+    const formatted = price.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
+    console.log('[formatPrice] Formatted:', formatted);
+    return formatted;
   };
 
   // Update individual prices in result blocks
+  console.log('[populatePriceDisplays] Drone price:', configData.dronePrice);
   if (configData.dronePrice !== undefined) {
     const elem = document.querySelector('[data-choice=drone] .price_elem-num');
-    if (elem) elem.textContent = formatPrice(configData.dronePrice);
+    console.log('[populatePriceDisplays] Drone elem:', elem);
+    if (elem) {
+      const formatted = formatPrice(configData.dronePrice);
+      elem.textContent = formatted;
+      console.log('[populatePriceDisplays] Set drone price to:', formatted);
+    }
   }
 
+  console.log('[populatePriceDisplays] Module price:', configData.modulePrice);
   if (configData.modulePrice !== undefined) {
     const elem = document.querySelector('[data-choice=module] .price_elem-num');
-    if (elem) elem.textContent = formatPrice(configData.modulePrice);
+    console.log('[populatePriceDisplays] Module elem:', elem);
+    if (elem) {
+      const formatted = formatPrice(configData.modulePrice);
+      elem.textContent = formatted;
+      console.log('[populatePriceDisplays] Set module price to:', formatted);
+    }
   }
 
+  console.log('[populatePriceDisplays] Data link price:', configData.dataLinkPrice);
   if (configData.dataLinkPrice !== undefined) {
     const elem = document.querySelector('[data-choice=link] .price_elem-num');
-    if (elem) elem.textContent = formatPrice(configData.dataLinkPrice);
+    console.log('[populatePriceDisplays] Data link elem:', elem);
+    if (elem) {
+      const formatted = formatPrice(configData.dataLinkPrice);
+      elem.textContent = formatted;
+      console.log('[populatePriceDisplays] Set data link price to:', formatted);
+    }
   }
 
+  console.log('[populatePriceDisplays] Optional price:', configData.dataLinkOptionalPrice);
   if (configData.dataLinkOptionalPrice !== undefined) {
     const elem = document.querySelector('[data-choice=link-optional] .price_elem-num');
-    if (elem) elem.textContent = formatPrice(configData.dataLinkOptionalPrice);
+    console.log('[populatePriceDisplays] Optional elem:', elem);
+    if (elem) {
+      const formatted = formatPrice(configData.dataLinkOptionalPrice);
+      elem.textContent = formatted;
+      console.log('[populatePriceDisplays] Set optional price to:', formatted);
+    }
   }
 
   // Update total price displays
+  console.log('[populatePriceDisplays] Total price:', configData.totalPrice);
   if (configData.totalPrice !== undefined) {
     const elems = document.querySelectorAll('[data-choice=total] .price_elem-num');
-    elems.forEach(elem => {
-      elem.textContent = formatPrice(configData.totalPrice);
+    console.log('[populatePriceDisplays] Total elems:', elems.length);
+    elems.forEach((elem, index) => {
+      const formatted = formatPrice(configData.totalPrice);
+      elem.textContent = formatted;
+      console.log('[populatePriceDisplays] Set total price #' + index + ' to:', formatted);
     });
   }
+
+  console.log('[populatePriceDisplays] Complete');
 }
 
 // ============================================
