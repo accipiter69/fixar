@@ -233,84 +233,56 @@ function populateDataChoiceElements(configData) {
  * @param {Object} configData - Configuration data with price fields
  */
 function populatePriceDisplays(configData) {
-  console.log('[populatePriceDisplays] Called with configData:', configData);
   if (!configData) {
-    console.log('[populatePriceDisplays] No configData, returning');
     return;
   }
 
   const formatPrice = (price) => {
-    console.log('[formatPrice] Input:', price, 'Type:', typeof price);
     if (typeof price !== 'number') {
-      console.log('[formatPrice] Not a number, returning "0"');
       return '0';
     }
-    const formatted = price.toLocaleString('en-US', {
+    return price.toLocaleString('en-US', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
-    console.log('[formatPrice] Formatted:', formatted);
-    return formatted;
   };
 
   // Update individual prices in result blocks
-  console.log('[populatePriceDisplays] Drone price:', configData.dronePrice);
   if (configData.dronePrice !== undefined) {
     const elem = document.querySelector('[data-choice=drone] .price_elem-num');
-    console.log('[populatePriceDisplays] Drone elem:', elem);
     if (elem) {
-      const formatted = formatPrice(configData.dronePrice);
-      elem.textContent = formatted;
-      console.log('[populatePriceDisplays] Set drone price to:', formatted);
+      elem.textContent = formatPrice(configData.dronePrice);
     }
   }
 
-  console.log('[populatePriceDisplays] Module price:', configData.modulePrice);
   if (configData.modulePrice !== undefined) {
     const elem = document.querySelector('[data-choice=module] .price_elem-num');
-    console.log('[populatePriceDisplays] Module elem:', elem);
     if (elem) {
-      const formatted = formatPrice(configData.modulePrice);
-      elem.textContent = formatted;
-      console.log('[populatePriceDisplays] Set module price to:', formatted);
+      elem.textContent = formatPrice(configData.modulePrice);
     }
   }
 
-  console.log('[populatePriceDisplays] Data link price:', configData.dataLinkPrice);
   if (configData.dataLinkPrice !== undefined) {
     const elem = document.querySelector('[data-choice=link] .price_elem-num');
-    console.log('[populatePriceDisplays] Data link elem:', elem);
     if (elem) {
-      const formatted = formatPrice(configData.dataLinkPrice);
-      elem.textContent = formatted;
-      console.log('[populatePriceDisplays] Set data link price to:', formatted);
+      elem.textContent = formatPrice(configData.dataLinkPrice);
     }
   }
 
-  console.log('[populatePriceDisplays] Optional price:', configData.dataLinkOptionalPrice);
   if (configData.dataLinkOptionalPrice !== undefined) {
     const elem = document.querySelector('[data-choice=link-optional] .price_elem-num');
-    console.log('[populatePriceDisplays] Optional elem:', elem);
     if (elem) {
-      const formatted = formatPrice(configData.dataLinkOptionalPrice);
-      elem.textContent = formatted;
-      console.log('[populatePriceDisplays] Set optional price to:', formatted);
+      elem.textContent = formatPrice(configData.dataLinkOptionalPrice);
     }
   }
 
   // Update total price displays
-  console.log('[populatePriceDisplays] Total price:', configData.totalPrice);
   if (configData.totalPrice !== undefined) {
     const elems = document.querySelectorAll('[data-choice=total] .price_elem-num');
-    console.log('[populatePriceDisplays] Total elems:', elems.length);
-    elems.forEach((elem, index) => {
-      const formatted = formatPrice(configData.totalPrice);
-      elem.textContent = formatted;
-      console.log('[populatePriceDisplays] Set total price #' + index + ' to:', formatted);
+    elems.forEach((elem) => {
+      elem.textContent = formatPrice(configData.totalPrice);
     });
   }
-
-  console.log('[populatePriceDisplays] Complete');
 }
 
 // ============================================
@@ -517,15 +489,10 @@ function applyColorToModel(model, colorName, droneName) {
 // ============================================
 function setupAnimations(model, animations, moduleName) {
   if (!animations || animations.length === 0) {
-    console.warn("Модель не містить анімацій");
     return null;
   }
 
   const mixer = new THREE.AnimationMixer(model);
-
-  console.log(`Налаштування анімацій. Всього анімацій: ${animations.length}`);
-
-  let moduleAnimationFound = false;
 
   animations.forEach((animation) => {
     const action = mixer.clipAction(animation);
@@ -539,7 +506,6 @@ function setupAnimations(model, animations, moduleName) {
       action.enabled = true;
       action.weight = 1;
       action.play();
-      console.log(`Запущена flight анімація: ${animation.name}`);
     } else if (moduleName && animation.name === moduleName) {
       // Анімація модуля - програємо один раз
       action.setLoop(THREE.LoopOnce);
@@ -547,21 +513,12 @@ function setupAnimations(model, animations, moduleName) {
       action.enabled = true;
       action.weight = 1;
       action.play();
-      moduleAnimationFound = true;
-      console.log(`Запущена module анімація: ${animation.name}`);
     } else {
       // Інші анімації - не запускаємо
       action.enabled = false;
       action.weight = 0;
     }
   });
-
-  if (moduleName && !moduleAnimationFound) {
-    console.warn(
-      `Анімація модуля "${moduleName}" не знайдена. Доступні анімації:`,
-      animations.map((a) => a.name)
-    );
-  }
 
   return mixer;
 }
@@ -586,7 +543,6 @@ function startAnimationLoop(mixer, controls, renderer, scene, camera) {
   }
 
   animate();
-  console.log("Animation loop розпочато");
 }
 
 // ============================================
@@ -596,11 +552,8 @@ function populateFormFields(params, sessionConfig) {
   const form = document.querySelector("form");
 
   if (!form) {
-    console.warn("Форма не знайдена на сторінці");
     return;
   }
-
-  console.log("Заповнення форми прихованими полями:", params);
 
   // Додаємо hidden input для кожного параметра
   Object.entries(params).forEach(([key, value]) => {
@@ -610,7 +563,6 @@ function populateFormFields(params, sessionConfig) {
       input.name = key;
       input.value = value;
       form.appendChild(input);
-      console.log(`Додано hidden field: ${key} = ${value}`);
     }
   });
 
@@ -620,6 +572,7 @@ function populateFormFields(params, sessionConfig) {
       { name: 'Drone price', value: sessionConfig.dronePrice },
       { name: 'Module price', value: sessionConfig.modulePrice },
       { name: 'Data link price', value: sessionConfig.dataLinkPrice },
+      { name: 'Data link optional', value: sessionConfig.dataLinkOptionalPrice },
       { name: 'Total price', value: sessionConfig.totalPrice }
     ];
 
@@ -630,7 +583,6 @@ function populateFormFields(params, sessionConfig) {
         input.name = name;
         input.value = value;
         form.appendChild(input);
-        console.log(`Додано price field: ${name} = ${value}`);
       }
     });
   }
@@ -678,8 +630,6 @@ function setupResizeHandler(camera, renderer, container, model, droneName) {
 // MAIN INITIALIZATION
 // ============================================
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("=== Result Page Initialization Started ===");
-
   // 1. Parse URL parameters
   const params = parseUrlParameters();
 
@@ -699,7 +649,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 4. Check container exists (ІСНУЮЧЕ - БЕЗ ЗМІН)
   const container = document.getElementById("three-container");
   if (!container) {
-    console.error("#three-container not found!");
     return;
   }
 
@@ -751,15 +700,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // 3. Initialize Three.js scene
-    console.log("Ініціалізація Three.js сцени...");
     const { scene, camera, renderer, controls } = initThreeScene(container);
 
     // 4. Setup loaders
-    console.log("Налаштування DRACO loader...");
     const { loader } = initLoaders();
 
     // 5. Load drone model (await)
-    console.log(`Завантаження моделі ${params.droneModel}...`);
     const { model, animations } = await loadDroneModel(
       params.droneModel,
       loader,
@@ -769,21 +715,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     scene.add(model);
 
     // 6. Apply color
-    console.log(`Застосування кольору ${params.color}...`);
     applyColorToModel(model, params.color, params.droneModel);
 
     // 7. Setup animations
-    console.log("Налаштування анімацій...");
     const mixer = setupAnimations(model, animations, params.module);
 
     // 8. Start animation loop
-    console.log("Запуск animation loop...");
     startAnimationLoop(mixer, controls, renderer, scene, camera);
 
     // 9. Setup resize handler
     setupResizeHandler(camera, renderer, container, model, params.droneModel);
-
-    console.log("=== 3D Visualization Initialized Successfully ===");
   } catch (error) {
     console.error("Помилка ініціалізації 3D моделі:", error);
     container.innerHTML =
@@ -791,7 +732,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // 10. Populate form fields (незалежно від 3D)
-  console.log("Заповнення форми...");
   populateFormFields(params, sessionConfig);
 
   // 11. Обробник кнопки "Назад"
@@ -801,8 +741,5 @@ document.addEventListener("DOMContentLoaded", async () => {
       e.preventDefault();
       window.history.back();
     });
-    console.log("Обробник кнопки 'Назад' додано");
   }
-
-  console.log("=== Result Page Initialization Complete ===");
 });
