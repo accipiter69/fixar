@@ -1368,75 +1368,56 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
     // PRICE CALCULATION
     // ============================================
-    console.log('[collectConfigurationData] Starting price calculation');
 
     // Helper function to parse price
     const parsePriceFromText = (priceText) => {
-      console.log('[parsePriceFromText] Input:', priceText);
       if (!priceText || typeof priceText !== 'string') {
-        console.log('[parsePriceFromText] Invalid input, returning 0');
         return 0;
       }
       const cleaned = priceText.replace(/[$€£,\s]/g, '');
       const parsed = parseFloat(cleaned);
       const result = isNaN(parsed) ? 0 : parsed;
-      console.log('[parsePriceFromText] Cleaned:', cleaned, '-> Parsed:', result);
       return result;
     };
 
     // Extract drone price
     const droneBtn = document.querySelector('.nav_config-drones-item.w--current');
-    console.log('[Price] Drone button:', droneBtn);
     const dronePrice = droneBtn ? parsePriceFromText(droneBtn.getAttribute('data-price')) : 0;
-    console.log('[Price] Drone price:', dronePrice);
 
     // Extract module price
     const moduleInput = document.querySelector('.modules-item input:checked');
-    console.log('[Price] Module input:', moduleInput);
     let modulePrice = 0;
     if (moduleInput) {
       const moduleItem = moduleInput.closest('.modules-item');
-      console.log('[Price] Module item:', moduleItem);
       if (moduleItem) {
         const priceElem = moduleItem.querySelector('.price_elem-num');
-        console.log('[Price] Module price element:', priceElem, 'text:', priceElem?.textContent);
         modulePrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
       }
     }
-    console.log('[Price] Module price:', modulePrice);
 
     // Extract data link price
     const linkInput = document.querySelector('.modules-link input:not(#optional input):checked');
-    console.log('[Price] Data link input:', linkInput);
     let dataLinkPrice = 0;
     if (linkInput) {
       const linkItem = linkInput.closest('.modules-link');
-      console.log('[Price] Data link item:', linkItem);
       if (linkItem) {
         const priceElem = linkItem.querySelector('.price_elem-num');
-        console.log('[Price] Data link price element:', priceElem, 'text:', priceElem?.textContent);
         dataLinkPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
       }
     }
-    console.log('[Price] Data link price:', dataLinkPrice);
 
     // Extract optional price
     const optionalInput = document.querySelector('#optional input:checked');
-    console.log('[Price] Optional input:', optionalInput);
     let dataLinkOptionalPrice = 0;
     if (optionalInput) {
       const optionalItem = optionalInput.closest('.modules-link');
-      console.log('[Price] Optional item:', optionalItem);
       if (optionalItem) {
         const priceElem = optionalItem.querySelector('.price_elem-num');
-        console.log('[Price] Optional price element:', priceElem, 'text:', priceElem?.textContent);
         dataLinkOptionalPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
       }
     }
-    console.log('[Price] Optional price:', dataLinkOptionalPrice);
 
     const totalPrice = dronePrice + modulePrice + dataLinkPrice + dataLinkOptionalPrice;
-    console.log('[Price] Total:', totalPrice, '(', dronePrice, '+', modulePrice, '+', dataLinkPrice, '+', dataLinkOptionalPrice, ')');
 
     configData.dronePrice = dronePrice;
     configData.modulePrice = modulePrice;
@@ -1466,29 +1447,127 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Форматування ціни
+   */
+  const formatPrice = (price) => {
+    if (!price || price === 0) return '';
+    return price.toLocaleString('en-US');
+  };
+
+  /**
+   * Очищує ціну в елементі
+   * @param {HTMLElement} element - Батьківський елемент
+   */
+  function clearPriceInElement(element) {
+    if (!element) return;
+    const priceElem = element.querySelector('.price_elem-num');
+    if (priceElem) {
+      priceElem.textContent = '';
+    }
+  }
+
+  /**
+   * Оновлює відображення цін в UI блоках data-choice
+   * @param {Object} configData - Дані конфігурації з цінами
+   */
+  function updatePricesInUI(configData) {
+    // Оновлення ціни дрона
+    if (resultDrone) {
+      const dronePriceElem = resultDrone.querySelector('.price_elem-num');
+      if (dronePriceElem) {
+        dronePriceElem.textContent = formatPrice(configData.dronePrice || 0);
+      }
+    }
+
+    // Оновлення ціни кольору
+    if (resultColor) {
+      const colorPriceElem = resultColor.querySelector('.price_elem-num');
+      if (colorPriceElem) {
+        colorPriceElem.textContent = formatPrice(0);
+      }
+    }
+
+    // Оновлення ціни модуля
+    if (resultModule) {
+      const modulePriceElem = resultModule.querySelector('.price_elem-num');
+      if (modulePriceElem) {
+        modulePriceElem.textContent = formatPrice(configData.modulePrice || 0);
+      }
+    }
+
+    // Оновлення ціни data link
+    if (resultDataLink) {
+      const linkPriceElem = resultDataLink.querySelector('.price_elem-num');
+      if (linkPriceElem) {
+        linkPriceElem.textContent = formatPrice(configData.dataLinkPrice || 0);
+      }
+    }
+
+    // Оновлення ціни optional data link
+    if (resultDataLinkOptional) {
+      const optionalPriceElem = resultDataLinkOptional.querySelector('.price_elem-num');
+      if (optionalPriceElem) {
+        optionalPriceElem.textContent = formatPrice(configData.dataLinkOptionalPrice || 0);
+      }
+    }
+
+    // Оновлення total price в order-now-tooltip
+    if (orderTooltip) {
+      const totalPriceElem = orderTooltip.querySelector('.price_elem-num');
+      if (totalPriceElem) {
+        totalPriceElem.textContent = formatPrice(configData.totalPrice || 0);
+      }
+    }
+
+    // Оновлення total price в різних можливих місцях
+    const totalPriceSelectors = [
+      '[data-total-price] .price_elem-num',
+      '.total-price .price_elem-num',
+      '.model_total-price .price_elem-num',
+      '[data-choice="total"] .price_elem-num',
+      '.total_price .price_elem-num'
+    ];
+
+    totalPriceSelectors.forEach(selector => {
+      const elem = document.querySelector(selector);
+      if (elem) {
+        elem.textContent = formatPrice(configData.totalPrice || 0);
+      }
+    });
+  }
+
+  /**
+   * Централізована функція для збору та збереження конфігурації
+   * Викликається при будь-яких змінах в конфігураторі
+   */
+  function updateAndSaveConfiguration() {
+    const configData = collectConfigurationData();
+    saveConfigurationToSession(configData);
+    updatePricesInUI(configData);
+    return configData;
+  }
+
   // ============================================
   // FORM - CONFIGURATOR
   // ============================================
 
   if (form) {
     const submitBtn = form.querySelector(".submit");
-    const droneBtns = document.querySelectorAll(".nav_config-drones-item");
 
-    submitBtn.addEventListener("click", (e) => {
-      e.preventDefault();
+    if (submitBtn) {
+      submitBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        updateAndSaveConfiguration();
 
-      // НОВЕ: Збір і збереження даних конфігурації в SessionStorage
+        // Створення FormData та редірект з query параметрами
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
 
-      const configData = collectConfigurationData();
-      saveConfigurationToSession(configData);
-
-      // ІСНУЮЧЕ: Створення FormData та редірект з query параметрами (БЕЗ ЗМІН)
-      const formData = new FormData(form);
-      const params = new URLSearchParams(formData);
-      console.log("Form data to be sent:", Object.fromEntries(formData));
-      // Редірект на сторінку з параметрами
-      window.location.href = `/configurator-form?${params.toString()}`;
-    });
+        // Редірект на сторінку з параметрами
+        window.location.href = `/configurator-form?${params.toString()}`;
+      });
+    }
 
     // ============================================
     // COLOR FIELDS
@@ -1666,6 +1745,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
         }
+
+        // Зберігаємо оновлену конфігурацію
+        updateAndSaveConfiguration();
       });
     });
 
@@ -1879,6 +1961,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Оновлюємо link badge (only for non-optional)
             // updateLinkBadge(modulesLinkItem);
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           } else {
             // Якщо дізчекнули - ховаємо optional та result блок
             if (optional) {
@@ -1888,6 +1973,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Ховаємо link badge
             // updateLinkBadge(null);
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           }
         });
       });
@@ -2123,9 +2211,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Оновлюємо resultDataLinkOptional
           updateOptionalResult(optionalItem);
+
+          // Зберігаємо оновлену конфігурацію
+          updateAndSaveConfiguration();
         } else {
           // Якщо дізчекнули - ховаємо блок
           updateOptionalResult(null);
+
+          // Зберігаємо оновлену конфігурацію
+          updateAndSaveConfiguration();
         }
       });
     }
@@ -2215,6 +2309,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (window.playAnimationByName) {
               window.playAnimationByName(animationName);
             }
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           } else {
             // Якщо дізчекнули - ховаємо блок і зупиняємо всі анімації крім flight
             if (resultModule) {
@@ -2243,6 +2340,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (window.animations && window.animations.stopAll) {
               window.animations.stopAll();
             }
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           }
         });
       }
@@ -2285,6 +2385,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Початково показуємо всі application слайди (немає обраного модуля)
     filterApplicationSlides(null);
     filterApplicationSlidesBig(null);
+
+    // Зберігаємо початкову конфігурацію (дрон завжди визначений)
+    updateAndSaveConfiguration();
   }
 
   // ============================================
