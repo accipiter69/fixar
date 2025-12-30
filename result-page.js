@@ -1,11 +1,11 @@
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(6).glb",
-  "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(1).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(8).glb",
   "FIXAR 007 LE":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE.glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE+(2).glb",
+  "FIXAR 007 NG":
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(2).glb",
 };
 // Мапінг кольорів
 const colorMap = {
@@ -74,10 +74,10 @@ function hideAllResultBlocks() {
     document.querySelector("[data-choice=color]"),
     document.querySelector("[data-choice=module]"),
     document.querySelector("[data-choice=link]"),
-    document.querySelector("[data-choice=link-optional]")
+    document.querySelector("[data-choice=link-optional]"),
   ];
 
-  resultBlocks.forEach(block => {
+  resultBlocks.forEach((block) => {
     if (block) block.style.display = "none";
   });
 }
@@ -101,7 +101,11 @@ function populateDataChoiceElements(configData) {
 
       if (nameElement) nameElement.textContent = configData.drone.name;
       if (descElement) descElement.textContent = configData.drone.description;
-      if (imgElement && configData.drone.image && configData.drone.image.trim() !== "") {
+      if (
+        imgElement &&
+        configData.drone.image &&
+        configData.drone.image.trim() !== ""
+      ) {
         imgElement.setAttribute("src", configData.drone.image);
       }
 
@@ -118,7 +122,9 @@ function populateDataChoiceElements(configData) {
     if (colorElement) {
       const nameElement = colorElement.querySelector("[data-res-color-name]");
       const descElement = colorElement.querySelector("p");
-      const swatchElement = colorElement.querySelector(".model_form-color-btn-res");
+      const swatchElement = colorElement.querySelector(
+        ".model_form-color-btn-res"
+      );
 
       if (nameElement) nameElement.textContent = configData.color.name;
       if (descElement) descElement.textContent = configData.color.description;
@@ -145,7 +151,11 @@ function populateDataChoiceElements(configData) {
 
       if (titleElement) titleElement.textContent = configData.module.title;
       if (descElement) descElement.textContent = configData.module.description;
-      if (imgElement && configData.module.image && configData.module.image.trim() !== "") {
+      if (
+        imgElement &&
+        configData.module.image &&
+        configData.module.image.trim() !== ""
+      ) {
         imgElement.setAttribute("src", configData.module.image);
       }
 
@@ -166,8 +176,13 @@ function populateDataChoiceElements(configData) {
       const imgElement = linkElement.querySelector("img");
 
       if (titleElement) titleElement.textContent = configData.dataLink.title;
-      if (descElement) descElement.textContent = configData.dataLink.description;
-      if (imgElement && configData.dataLink.image && configData.dataLink.image.trim() !== "") {
+      if (descElement)
+        descElement.textContent = configData.dataLink.description;
+      if (
+        imgElement &&
+        configData.dataLink.image &&
+        configData.dataLink.image.trim() !== ""
+      ) {
         imgElement.setAttribute("src", configData.dataLink.image);
       }
 
@@ -180,7 +195,9 @@ function populateDataChoiceElements(configData) {
 
   // Заповнення Optional Data Link
   if (configData.dataLinkOptional) {
-    const optionalElement = document.querySelector("[data-choice=link-optional]");
+    const optionalElement = document.querySelector(
+      "[data-choice=link-optional]"
+    );
     if (optionalElement) {
       const titleElement = optionalElement.querySelector("h3");
       const descElement =
@@ -188,14 +205,23 @@ function populateDataChoiceElements(configData) {
         optionalElement.querySelector(".text-16");
       const imgElement = optionalElement.querySelector("img");
 
-      if (titleElement) titleElement.textContent = configData.dataLinkOptional.title;
-      if (descElement) descElement.textContent = configData.dataLinkOptional.description;
-      if (imgElement && configData.dataLinkOptional.image && configData.dataLinkOptional.image.trim() !== "") {
+      if (titleElement)
+        titleElement.textContent = configData.dataLinkOptional.title;
+      if (descElement)
+        descElement.textContent = configData.dataLinkOptional.description;
+      if (
+        imgElement &&
+        configData.dataLinkOptional.image &&
+        configData.dataLinkOptional.image.trim() !== ""
+      ) {
         imgElement.setAttribute("src", configData.dataLinkOptional.image);
       }
 
       // Показувати тільки якщо є title або description
-      if (configData.dataLinkOptional.title || configData.dataLinkOptional.description) {
+      if (
+        configData.dataLinkOptional.title ||
+        configData.dataLinkOptional.description
+      ) {
         optionalElement.style.display = "flex";
       }
     }
