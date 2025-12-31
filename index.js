@@ -264,10 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
-    // Знаходимо анімацію за назвою
+    // Знаходимо анімацію за назвою (з нормалізацією пробілів)
+    const normalizedAnimationName = normalizeString(animationName);
     const index = model.actions.findIndex((action) => {
       const clip = action.getClip();
-      return clip.name === animationName;
+      return normalizeString(clip.name) === normalizedAnimationName;
     });
 
     // Зупиняємо всі анімації крім flight

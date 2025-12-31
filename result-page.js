@@ -14,6 +14,12 @@ const colorMap = {
   Grey: "#C2C2C2",
 };
 
+// Нормалізує рядок: видаляє зайві пробіли на початку/кінці та множинні пробіли всередині
+function normalizeString(str) {
+  if (!str) return str;
+  return str.trim().replace(/\s+/g, ' ');
+}
+
 // ============================================
 // URL PARAMETER PARSER
 // ============================================
@@ -506,8 +512,8 @@ function setupAnimations(model, animations, moduleName) {
       action.enabled = true;
       action.weight = 1;
       action.play();
-    } else if (moduleName && animation.name === moduleName) {
-      // Анімація модуля - програємо один раз
+    } else if (moduleName && normalizeString(animation.name) === normalizeString(moduleName)) {
+      // Анімація модуля - програємо один раз (з нормалізацією пробілів)
       action.setLoop(THREE.LoopOnce);
       action.clampWhenFinished = true;
       action.enabled = true;
