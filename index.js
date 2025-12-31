@@ -16,10 +16,24 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(2).glb",
 };
 
-// Нормалізує рядок: видаляє зайві пробіли на початку/кінці та множинні пробіли всередині
+// Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
 function normalizeString(str) {
   if (!str) return str;
-  return str.trim().replace(/\s+/g, ' ');
+
+  // Мапінг схожих кирилічних та латинських символів
+  const cyrillicToLatin = {
+    'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H',
+    'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T', 'Х': 'X', 'а': 'a',
+    'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x'
+  };
+
+  // Видаляємо зайві пробіли
+  let normalized = str.trim().replace(/\s+/g, ' ');
+
+  // Замінюємо кирилічні символи на латинські
+  normalized = normalized.split('').map(char => cyrillicToLatin[char] || char).join('');
+
+  return normalized;
 }
 
 // Об'єднаний DOMContentLoaded
