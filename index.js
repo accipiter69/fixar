@@ -16,6 +16,12 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(2).glb",
 };
 
+// Нормалізує рядок: видаляє зайві пробіли на початку/кінці та множинні пробіли всередині
+function normalizeString(str) {
+  if (!str) return str;
+  return str.trim().replace(/\s+/g, ' ');
+}
+
 // Об'єднаний DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   // ============================================
@@ -2414,8 +2420,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply drone selection
   function applyDroneSelection(droneName) {
     return new Promise((resolve) => {
-      const droneBtn = document.querySelector(
-        `[data-drone-name="${droneName}"]`
+      const normalizedDroneName = normalizeString(droneName);
+      const droneButtons = document.querySelectorAll("[data-drone-name]");
+      const droneBtn = Array.from(droneButtons).find(
+        btn => normalizeString(btn.getAttribute("data-drone-name")) === normalizedDroneName
       );
 
       if (!droneBtn) {
@@ -2443,8 +2451,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Apply color selection
   function applyColorSelection(colorName) {
-    const colorInput = document.querySelector(
-      `.radio_input-color[value="${colorName}"]`
+    const normalizedColorName = normalizeString(colorName);
+    const colorInputs = document.querySelectorAll(".radio_input-color");
+    const colorInput = Array.from(colorInputs).find(
+      input => normalizeString(input.value) === normalizedColorName
     );
 
     if (!colorInput) {
@@ -2471,8 +2481,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply module selection
   function applyModuleSelection(moduleValue) {
     return new Promise((resolve) => {
-      const moduleInput = document.querySelector(
-        `.modules-item input[value="${moduleValue}"]`
+      const normalizedModuleValue = normalizeString(moduleValue);
+      const moduleInputs = document.querySelectorAll(".modules-item input");
+      const moduleInput = Array.from(moduleInputs).find(
+        input => normalizeString(input.value) === normalizedModuleValue
       );
 
       if (!moduleInput) {
@@ -2514,8 +2526,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply data link selection
   function applyDataLinkSelection(linkValue) {
     return new Promise((resolve) => {
-      const linkInput = document.querySelector(
-        `.modules-link input:not(#optional input)[value="${linkValue}"]`
+      const normalizedLinkValue = normalizeString(linkValue);
+      const linkInputs = document.querySelectorAll(
+        ".modules-link input:not(#optional input)"
+      );
+      const linkInput = Array.from(linkInputs).find(
+        input => normalizeString(input.value) === normalizedLinkValue
       );
 
       if (!linkInput) {
@@ -2656,7 +2672,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add form data to URLSearchParams
     for (const [key, value] of formData) {
       if (value && value.trim() !== "") {
-        params.append(key, value);
+        params.append(key, normalizeString(value));
       }
     }
 
