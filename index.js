@@ -1200,9 +1200,13 @@ document.addEventListener("DOMContentLoaded", () => {
               const visibleCountRecalc = getVisibleItems().length;
               span.textContent = `${Math.max(0, visibleCountRecalc - 3)}`;
 
-              // Застосовуємо нову висоту тільки якщо dropdown згорнутий
+              // Застосовуємо нову висоту
               if (newBtn.classList.contains("collapsed")) {
+                // Dropdown згорнутий - застосовуємо згорнуту висоту
                 list.style.maxHeight = `${collapsedHeight}px`;
+              } else {
+                // Dropdown розгорнутий - оновлюємо до нового scrollHeight
+                list.style.maxHeight = list.scrollHeight + "px";
               }
             }, 400);
           };
