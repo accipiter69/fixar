@@ -1111,6 +1111,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnText = newBtn.querySelector(".load-more-text");
         const span = newBtn.querySelector(".number-of-technologies");
 
+        // Функція для отримання тільки видимих елементів
+        const getVisibleItems = () => {
+          return Array.from(items).filter(item => {
+            const style = window.getComputedStyle(item);
+            return style.display !== 'none';
+          });
+        };
+
         // Функція для розрахунку згорнутої висоти
         const calculateCollapsedHeight = () => {
           // Зберігаємо поточний стан
@@ -1121,10 +1129,19 @@ document.addEventListener("DOMContentLoaded", () => {
           list.style.transition = "none";
           list.style.maxHeight = "none";
 
-          // Вимірюємо висоту
-          const listRect = block.getBoundingClientRect();
-          const itemRect = items[2].getBoundingClientRect();
-          const height = itemRect.bottom - listRect.top + 5;
+          // Вимірюємо висоту на основі видимих елементів
+          const visibleItems = getVisibleItems();
+          const itemsToShow = Math.min(3, visibleItems.length);
+
+          let height;
+          if (itemsToShow === 0) {
+            height = 0;
+          } else {
+            const listRect = block.getBoundingClientRect();
+            const lastVisibleItem = visibleItems[itemsToShow - 1];
+            const itemRect = lastVisibleItem.getBoundingClientRect();
+            height = itemRect.bottom - listRect.top + 5;
+          }
 
           // Повертаємо попередній maxHeight
           list.style.maxHeight = currentMaxHeight;
@@ -1142,14 +1159,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Встановлюємо початковий згорнутий стан
         list.style.maxHeight = `${collapsedHeight}px`;
-        span.textContent = `${items.length - 3}`;
+        const visibleCount = getVisibleItems().length;
+        span.textContent = `${Math.max(0, visibleCount - 3)}`;
 
         newBtn.addEventListener("click", () => {
           if (newBtn.classList.contains("collapsed")) {
             // Розгортаємо
             list.style.maxHeight = list.scrollHeight + "px";
             btnText.textContent = "Show less";
-            span.textContent = `${items.length - 3}`;
+            const visibleCountExpand = getVisibleItems().length;
+            span.textContent = `${Math.max(0, visibleCountExpand - 3)}`;
             newBtn.classList.remove("collapsed");
           } else {
             // Згортаємо - перераховуємо висоту перед згортанням
@@ -1163,7 +1182,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             btnText.textContent = "Show more";
-            span.textContent = `${items.length - 3}`;
+            const visibleCountCollapse = getVisibleItems().length;
+            span.textContent = `${Math.max(0, visibleCountCollapse - 3)}`;
             newBtn.classList.add("collapsed");
           }
         });
@@ -1171,18 +1191,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Динамічний перерахунок висоти при зміні вибору
         if (enableDynamicHeight) {
           const recalculateHeight = () => {
-            // Перераховуємо тільки якщо dropdown згорнутий
-            if (!newBtn.classList.contains("collapsed")) {
-              return;
-            }
-
             // Чекаємо завершення CSS transition (400ms) перед вимірюванням
             setTimeout(() => {
-              // Використовуємо ту ж функцію розрахунку
+              // Оновлюємо розраховану згорнуту висоту
               collapsedHeight = calculateCollapsedHeight();
 
-              // Застосовуємо нову висоту
-              list.style.maxHeight = `${collapsedHeight}px`;
+              // Оновлюємо лічильник прихованих елементів
+              const visibleCountRecalc = getVisibleItems().length;
+              span.textContent = `${Math.max(0, visibleCountRecalc - 3)}`;
+
+              // Застосовуємо нову висоту тільки якщо dropdown згорнутий
+              if (newBtn.classList.contains("collapsed")) {
+                list.style.maxHeight = `${collapsedHeight}px`;
+              }
             }, 400);
           };
 
