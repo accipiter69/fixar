@@ -17,21 +17,40 @@ const droneModels = {
 };
 
 // Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
+
 function normalizeString(str) {
   if (!str) return str;
 
   // Мапінг схожих кирилічних та латинських символів
   const cyrillicToLatin = {
-    'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H',
-    'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T', 'Х': 'X', 'а': 'a',
-    'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x'
+    А: "A",
+    В: "B",
+    Е: "E",
+    К: "K",
+    М: "M",
+    Н: "H",
+    О: "O",
+    Р: "P",
+    С: "C",
+    Т: "T",
+    Х: "X",
+    а: "a",
+    е: "e",
+    о: "o",
+    р: "p",
+    с: "c",
+    у: "y",
+    х: "x",
   };
 
   // Видаляємо зайві пробіли
-  let normalized = str.trim().replace(/\s+/g, ' ');
+  let normalized = str.trim().replace(/\s+/g, " ");
 
   // Замінюємо кирилічні символи на латинські
-  normalized = normalized.split('').map(char => cyrillicToLatin[char] || char).join('');
+  normalized = normalized
+    .split("")
+    .map((char) => cyrillicToLatin[char] || char)
+    .join("");
 
   return normalized;
 }
@@ -1113,9 +1132,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Функція для отримання тільки видимих елементів
         const getVisibleItems = () => {
-          return Array.from(items).filter(item => {
+          return Array.from(items).filter((item) => {
             const style = window.getComputedStyle(item);
-            return style.display !== 'none';
+            return style.display !== "none";
           });
         };
 
@@ -1140,7 +1159,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const listRect = block.getBoundingClientRect();
             const lastVisibleItem = visibleItems[itemsToShow - 1];
             const itemRect = lastVisibleItem.getBoundingClientRect();
-            height = itemRect.bottom - listRect.top + 5;
+            height = itemRect.bottom - listRect.top + 10;
           }
 
           // Повертаємо попередній maxHeight
@@ -1417,53 +1436,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Helper function to parse price
     const parsePriceFromText = (priceText) => {
-      if (!priceText || typeof priceText !== 'string') {
+      if (!priceText || typeof priceText !== "string") {
         return 0;
       }
-      const cleaned = priceText.replace(/[$€£,\s]/g, '');
+      const cleaned = priceText.replace(/[$€£,\s]/g, "");
       const parsed = parseFloat(cleaned);
       const result = isNaN(parsed) ? 0 : parsed;
       return result;
     };
 
     // Extract drone price
-    const droneBtn = document.querySelector('.nav_config-drones-item.w--current');
-    const dronePrice = droneBtn ? parsePriceFromText(droneBtn.getAttribute('data-price')) : 0;
+    const droneBtn = document.querySelector(
+      ".nav_config-drones-item.w--current"
+    );
+    const dronePrice = droneBtn
+      ? parsePriceFromText(droneBtn.getAttribute("data-price"))
+      : 0;
 
     // Extract module price
-    const moduleInput = document.querySelector('.modules-item input:checked');
+    const moduleInput = document.querySelector(".modules-item input:checked");
     let modulePrice = 0;
     if (moduleInput) {
-      const moduleItem = moduleInput.closest('.modules-item');
+      const moduleItem = moduleInput.closest(".modules-item");
       if (moduleItem) {
-        const priceElem = moduleItem.querySelector('.price_elem-num');
+        const priceElem = moduleItem.querySelector(".price_elem-num");
         modulePrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
       }
     }
 
     // Extract data link price
-    const linkInput = document.querySelector('.modules-link input:not(#optional input):checked');
+    const linkInput = document.querySelector(
+      ".modules-link input:not(#optional input):checked"
+    );
     let dataLinkPrice = 0;
     if (linkInput) {
-      const linkItem = linkInput.closest('.modules-link');
+      const linkItem = linkInput.closest(".modules-link");
       if (linkItem) {
-        const priceElem = linkItem.querySelector('.price_elem-num');
-        dataLinkPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+        const priceElem = linkItem.querySelector(".price_elem-num");
+        dataLinkPrice = priceElem
+          ? parsePriceFromText(priceElem.textContent)
+          : 0;
       }
     }
 
     // Extract optional price
-    const optionalInput = document.querySelector('#optional input:checked');
+    const optionalInput = document.querySelector("#optional input:checked");
     let dataLinkOptionalPrice = 0;
     if (optionalInput) {
-      const optionalItem = optionalInput.closest('.modules-link');
+      const optionalItem = optionalInput.closest(".modules-link");
       if (optionalItem) {
-        const priceElem = optionalItem.querySelector('.price_elem-num');
-        dataLinkOptionalPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+        const priceElem = optionalItem.querySelector(".price_elem-num");
+        dataLinkOptionalPrice = priceElem
+          ? parsePriceFromText(priceElem.textContent)
+          : 0;
       }
     }
 
-    const totalPrice = dronePrice + modulePrice + dataLinkPrice + dataLinkOptionalPrice;
+    const totalPrice =
+      dronePrice + modulePrice + dataLinkPrice + dataLinkOptionalPrice;
 
     configData.dronePrice = dronePrice;
     configData.modulePrice = modulePrice;
@@ -1497,8 +1527,8 @@ document.addEventListener("DOMContentLoaded", () => {
    * Форматування ціни
    */
   const formatPrice = (price) => {
-    if (!price || price === 0) return '';
-    return price.toLocaleString('en-US');
+    if (!price || price === 0) return "";
+    return price.toLocaleString("en-US");
   };
 
   /**
@@ -1507,9 +1537,9 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function clearPriceInElement(element) {
     if (!element) return;
-    const priceElem = element.querySelector('.price_elem-num');
+    const priceElem = element.querySelector(".price_elem-num");
     if (priceElem) {
-      priceElem.textContent = '';
+      priceElem.textContent = "";
     }
   }
 
@@ -1520,7 +1550,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updatePricesInUI(configData) {
     // Оновлення ціни дрона
     if (resultDrone) {
-      const dronePriceElem = resultDrone.querySelector('.price_elem-num');
+      const dronePriceElem = resultDrone.querySelector(".price_elem-num");
       if (dronePriceElem) {
         dronePriceElem.textContent = formatPrice(configData.dronePrice || 0);
       }
@@ -1528,7 +1558,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Оновлення ціни кольору
     if (resultColor) {
-      const colorPriceElem = resultColor.querySelector('.price_elem-num');
+      const colorPriceElem = resultColor.querySelector(".price_elem-num");
       if (colorPriceElem) {
         colorPriceElem.textContent = formatPrice(0);
       }
@@ -1536,7 +1566,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Оновлення ціни модуля
     if (resultModule) {
-      const modulePriceElem = resultModule.querySelector('.price_elem-num');
+      const modulePriceElem = resultModule.querySelector(".price_elem-num");
       if (modulePriceElem) {
         modulePriceElem.textContent = formatPrice(configData.modulePrice || 0);
       }
@@ -1544,7 +1574,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Оновлення ціни data link
     if (resultDataLink) {
-      const linkPriceElem = resultDataLink.querySelector('.price_elem-num');
+      const linkPriceElem = resultDataLink.querySelector(".price_elem-num");
       if (linkPriceElem) {
         linkPriceElem.textContent = formatPrice(configData.dataLinkPrice || 0);
       }
@@ -1552,15 +1582,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Оновлення ціни optional data link
     if (resultDataLinkOptional) {
-      const optionalPriceElem = resultDataLinkOptional.querySelector('.price_elem-num');
+      const optionalPriceElem =
+        resultDataLinkOptional.querySelector(".price_elem-num");
       if (optionalPriceElem) {
-        optionalPriceElem.textContent = formatPrice(configData.dataLinkOptionalPrice || 0);
+        optionalPriceElem.textContent = formatPrice(
+          configData.dataLinkOptionalPrice || 0
+        );
       }
     }
 
     // Оновлення total price в order-now-tooltip
     if (orderTooltip) {
-      const totalPriceElem = orderTooltip.querySelector('.price_elem-num');
+      const totalPriceElem = orderTooltip.querySelector(".price_elem-num");
       if (totalPriceElem) {
         totalPriceElem.textContent = formatPrice(configData.totalPrice || 0);
       }
@@ -1568,14 +1601,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Оновлення total price в різних можливих місцях
     const totalPriceSelectors = [
-      '[data-total-price] .price_elem-num',
-      '.total-price .price_elem-num',
-      '.model_total-price .price_elem-num',
+      "[data-total-price] .price_elem-num",
+      ".total-price .price_elem-num",
+      ".model_total-price .price_elem-num",
       '[data-choice="total"] .price_elem-num',
-      '.total_price .price_elem-num'
+      ".total_price .price_elem-num",
     ];
 
-    totalPriceSelectors.forEach(selector => {
+    totalPriceSelectors.forEach((selector) => {
       const elem = document.querySelector(selector);
       if (elem) {
         elem.textContent = formatPrice(configData.totalPrice || 0);
@@ -2463,7 +2496,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const normalizedDroneName = normalizeString(droneName);
       const droneButtons = document.querySelectorAll("[data-drone-name]");
       const droneBtn = Array.from(droneButtons).find(
-        btn => normalizeString(btn.getAttribute("data-drone-name")) === normalizedDroneName
+        (btn) =>
+          normalizeString(btn.getAttribute("data-drone-name")) ===
+          normalizedDroneName
       );
 
       if (!droneBtn) {
@@ -2494,7 +2529,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const normalizedColorName = normalizeString(colorName);
     const colorInputs = document.querySelectorAll(".radio_input-color");
     const colorInput = Array.from(colorInputs).find(
-      input => normalizeString(input.value) === normalizedColorName
+      (input) => normalizeString(input.value) === normalizedColorName
     );
 
     if (!colorInput) {
@@ -2524,7 +2559,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const normalizedModuleValue = normalizeString(moduleValue);
       const moduleInputs = document.querySelectorAll(".modules-item input");
       const moduleInput = Array.from(moduleInputs).find(
-        input => normalizeString(input.value) === normalizedModuleValue
+        (input) => normalizeString(input.value) === normalizedModuleValue
       );
 
       if (!moduleInput) {
@@ -2571,7 +2606,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ".modules-link input:not(#optional input)"
       );
       const linkInput = Array.from(linkInputs).find(
-        input => normalizeString(input.value) === normalizedLinkValue
+        (input) => normalizeString(input.value) === normalizedLinkValue
       );
 
       if (!linkInput) {
