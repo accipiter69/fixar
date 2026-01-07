@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   const modulesLinksParameters = {
-    telemetryOnly: ["RGB Mapping Cameras", "Multispectral", "Lidar"],
+    telemetryOnly: ["RGB Mapping Cameras", "Multispectral Imaging", "Lidar"],
     telemetryVideo: ["All"],
   };
 
