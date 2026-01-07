@@ -1083,7 +1083,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
 
   // Глобальний реєстр функцій перерахунку висоти для синхронізації між блоками
-  window.dropdownHeightRecalculators = window.dropdownHeightRecalculators || {};
+  window.dropdownHeightRecalculators = window.dropdownHeightRecalculators || [];
 
   function initDropdown(
     blockSelector,
@@ -1230,23 +1230,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 400);
           };
 
+          // Додаємо функцію перерахунку в глобальний масив ОДИН РАЗ для всього блоку
+          window.dropdownHeightRecalculators.push(recalculateHeight);
+
           // Додаємо listeners на всі radio inputs в items
           items.forEach((item) => {
             const input = item.querySelector('input[type="radio"]');
-            if (input && input.name) {
-              // Зберігаємо функцію перерахунку в глобальному реєстрі по name радіо
-              if (!window.dropdownHeightRecalculators[input.name]) {
-                window.dropdownHeightRecalculators[input.name] = [];
-              }
-              window.dropdownHeightRecalculators[input.name].push(
-                recalculateHeight
-              );
-
-              // При зміні радіо - викликаємо ВСІ функції для цього name
+            if (input) {
+              // При зміні будь-якого радіо - викликаємо ВСІ функції перерахунку для всіх дропдаунів
               input.addEventListener("change", () => {
-                const recalculators =
-                  window.dropdownHeightRecalculators[input.name] || [];
-                recalculators.forEach((fn) => fn());
+                window.dropdownHeightRecalculators.forEach((fn) => fn());
               });
             }
           });
@@ -1255,6 +1248,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Якщо елементів 3 або менше - показуємо всі і ховаємо кнопку
         list.style.maxHeight = "none";
         newBtn.style.display = "none";
+
+        // Але все одно додаємо listeners для перерахунку інших дропдаунів
+        if (enableDynamicHeight) {
+          items.forEach((item) => {
+            const input = item.querySelector('input[type="radio"]');
+            if (input) {
+              // При зміні будь-якого радіо - викликаємо ВСІ функції перерахунку для всіх дропдаунів
+              input.addEventListener("change", () => {
+                window.dropdownHeightRecalculators.forEach((fn) => fn());
+              });
+            }
+          });
+        }
       }
     });
   }
