@@ -1,11 +1,11 @@
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+(8).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
   "FIXAR 007 LE":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE+(2).glb",
   "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(2).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(8.01.26).glb",
 };
 // Мапінг кольорів
 const colorMap = {
@@ -20,16 +20,34 @@ function normalizeString(str) {
 
   // Мапінг схожих кирилічних та латинських символів
   const cyrillicToLatin = {
-    'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H',
-    'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T', 'Х': 'X', 'а': 'a',
-    'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x'
+    А: "A",
+    В: "B",
+    Е: "E",
+    К: "K",
+    М: "M",
+    Н: "H",
+    О: "O",
+    Р: "P",
+    С: "C",
+    Т: "T",
+    Х: "X",
+    а: "a",
+    е: "e",
+    о: "o",
+    р: "p",
+    с: "c",
+    у: "y",
+    х: "x",
   };
 
   // Видаляємо зайві пробіли
-  let normalized = str.trim().replace(/\s+/g, ' ');
+  let normalized = str.trim().replace(/\s+/g, " ");
 
   // Замінюємо кирилічні символи на латинські
-  normalized = normalized.split('').map(char => cyrillicToLatin[char] || char).join('');
+  normalized = normalized
+    .split("")
+    .map((char) => cyrillicToLatin[char] || char)
+    .join("");
 
   return normalized;
 }
@@ -263,39 +281,41 @@ function populatePriceDisplays(configData) {
   }
 
   const formatPrice = (price) => {
-    if (typeof price !== 'number') {
-      return '0';
+    if (typeof price !== "number") {
+      return "0";
     }
-    return price.toLocaleString('en-US', {
+    return price.toLocaleString("en-US", {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     });
   };
 
   // Update individual prices in result blocks
   if (configData.dronePrice !== undefined) {
-    const elem = document.querySelector('[data-choice=drone] .price_elem-num');
+    const elem = document.querySelector("[data-choice=drone] .price_elem-num");
     if (elem) {
       elem.textContent = formatPrice(configData.dronePrice);
     }
   }
 
   if (configData.modulePrice !== undefined) {
-    const elem = document.querySelector('[data-choice=module] .price_elem-num');
+    const elem = document.querySelector("[data-choice=module] .price_elem-num");
     if (elem) {
       elem.textContent = formatPrice(configData.modulePrice);
     }
   }
 
   if (configData.dataLinkPrice !== undefined) {
-    const elem = document.querySelector('[data-choice=link] .price_elem-num');
+    const elem = document.querySelector("[data-choice=link] .price_elem-num");
     if (elem) {
       elem.textContent = formatPrice(configData.dataLinkPrice);
     }
   }
 
   if (configData.dataLinkOptionalPrice !== undefined) {
-    const elem = document.querySelector('[data-choice=link-optional] .price_elem-num');
+    const elem = document.querySelector(
+      "[data-choice=link-optional] .price_elem-num"
+    );
     if (elem) {
       elem.textContent = formatPrice(configData.dataLinkOptionalPrice);
     }
@@ -303,7 +323,9 @@ function populatePriceDisplays(configData) {
 
   // Update total price displays
   if (configData.totalPrice !== undefined) {
-    const elems = document.querySelectorAll('[data-choice=total] .price_elem-num');
+    const elems = document.querySelectorAll(
+      "[data-choice=total] .price_elem-num"
+    );
     elems.forEach((elem) => {
       elem.textContent = formatPrice(configData.totalPrice);
     });
@@ -531,7 +553,10 @@ function setupAnimations(model, animations, moduleName) {
       action.enabled = true;
       action.weight = 1;
       action.play();
-    } else if (moduleName && normalizeString(animation.name) === normalizeString(moduleName)) {
+    } else if (
+      moduleName &&
+      normalizeString(animation.name) === normalizeString(moduleName)
+    ) {
       // Анімація модуля - програємо один раз (з нормалізацією пробілів)
       action.setLoop(THREE.LoopOnce);
       action.clampWhenFinished = true;
@@ -594,17 +619,20 @@ function populateFormFields(params, sessionConfig) {
   // Add price fields from SessionStorage
   if (sessionConfig) {
     const priceFields = [
-      { name: 'Drone price', value: sessionConfig.dronePrice },
-      { name: 'Module price', value: sessionConfig.modulePrice },
-      { name: 'Data link price', value: sessionConfig.dataLinkPrice },
-      { name: 'Data link optional', value: sessionConfig.dataLinkOptionalPrice },
-      { name: 'Total price', value: sessionConfig.totalPrice }
+      { name: "Drone price", value: sessionConfig.dronePrice },
+      { name: "Module price", value: sessionConfig.modulePrice },
+      { name: "Data link price", value: sessionConfig.dataLinkPrice },
+      {
+        name: "Data link optional",
+        value: sessionConfig.dataLinkOptionalPrice,
+      },
+      { name: "Total price", value: sessionConfig.totalPrice },
     ];
 
     priceFields.forEach(({ name, value }) => {
       if (value !== undefined && value !== null) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
+        const input = document.createElement("input");
+        input.type = "hidden";
         input.name = name;
         input.value = value;
         form.appendChild(input);
