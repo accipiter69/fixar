@@ -2107,18 +2107,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Копіюємо description (primary: .range .text-16, fallback: .text-16)
-      const srcDesc =
-        sourceItem.querySelector(".range .text-16") ||
-        sourceItem.querySelector(".text-16");
-      if (srcDesc) {
-        const destDesc =
-          resultBlock.querySelector("p") ||
-          resultBlock.querySelector(".text-16");
-        if (destDesc) {
-          destDesc.textContent = srcDesc.textContent;
-          hasData = true;
-        }
+      // Копіюємо вміст .horiz-8 (всіх дітей без .w-condition-invisible)
+      const srcHoriz = sourceItem.querySelector(".horiz-8");
+      const destHoriz = resultBlock.querySelector(".horiz-8");
+
+      if (srcHoriz && destHoriz) {
+        // Очищаємо destination .horiz-8
+        destHoriz.innerHTML = "";
+
+        // Перебираємо всіх дітей source .horiz-8
+        Array.from(srcHoriz.children).forEach((child) => {
+          // Копіюємо тільки якщо НЕ має клас .w-condition-invisible
+          if (!child.classList.contains("w-condition-invisible")) {
+            // Клонуємо елемент з усім вмістом
+            const clonedChild = child.cloneNode(true);
+            destHoriz.appendChild(clonedChild);
+            hasData = true;
+          }
+        });
       }
 
       // Показуємо блок тільки якщо скопіювали хоча б щось
