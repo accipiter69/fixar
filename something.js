@@ -16,6 +16,45 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(2).glb",
 };
 
+// Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
+
+function normalizeString(str) {
+  if (!str) return str;
+
+  // Мапінг схожих кирилічних та латинських символів
+  const cyrillicToLatin = {
+    А: "A",
+    В: "B",
+    Е: "E",
+    К: "K",
+    М: "M",
+    Н: "H",
+    О: "O",
+    Р: "P",
+    С: "C",
+    Т: "T",
+    Х: "X",
+    а: "a",
+    е: "e",
+    о: "o",
+    р: "p",
+    с: "c",
+    у: "y",
+    х: "x",
+  };
+
+  // Видаляємо зайві пробіли
+  let normalized = str.trim().replace(/\s+/g, " ");
+
+  // Замінюємо кирилічні символи на латинські
+  normalized = normalized
+    .split("")
+    .map((char) => cyrillicToLatin[char] || char)
+    .join("");
+
+  return normalized;
+}
+
 // Об'єднаний DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   // ============================================
@@ -64,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   const modulesLinksParameters = {
-    telemetryOnly: ["RGB Mapping Cameras", "Multispectral", "Lidar"],
+    telemetryOnly: ["RGB Mapping Cameras", "Multispectral Imaging", "Lidar"],
     telemetryVideo: ["All"],
   };
 
@@ -258,10 +297,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
-    // Знаходимо анімацію за назвою
+    // Знаходимо анімацію за назвою (з нормалізацією пробілів)
+    const normalizedAnimationName = normalizeString(animationName);
     const index = model.actions.findIndex((action) => {
       const clip = action.getClip();
-      return clip.name === animationName;
+      return normalizeString(clip.name) === normalizedAnimationName;
     });
 
     // Зупиняємо всі анімації крім flight
@@ -1043,7 +1083,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
 
   // Глобальний реєстр функцій перерахунку висоти для синхронізації між блоками
-  window.dropdownHeightRecalculators = window.dropdownHeightRecalculators || {};
+  window.dropdownHeightRecalculators = window.dropdownHeightRecalculators || [];
 
   function initDropdown(
     blockSelector,
@@ -1090,6 +1130,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const btnText = newBtn.querySelector(".load-more-text");
         const span = newBtn.querySelector(".number-of-technologies");
 
+        // Функція для отримання тільки видимих елементів
+        const getVisibleItems = () => {
+          return Array.from(items).filter((item) => {
+            const style = window.getComputedStyle(item);
+            return style.display !== "none";
+          });
+        };
+
         // Функція для розрахунку згорнутої висоти
         const calculateCollapsedHeight = () => {
           // Зберігаємо поточний стан
@@ -1100,10 +1148,19 @@ document.addEventListener("DOMContentLoaded", () => {
           list.style.transition = "none";
           list.style.maxHeight = "none";
 
-          // Вимірюємо висоту
-          const listRect = block.getBoundingClientRect();
-          const itemRect = items[2].getBoundingClientRect();
-          const height = itemRect.bottom - listRect.top + 5;
+          // Вимірюємо висоту на основі видимих елементів
+          const visibleItems = getVisibleItems();
+          const itemsToShow = Math.min(3, visibleItems.length);
+
+          let height;
+          if (itemsToShow === 0) {
+            height = 0;
+          } else {
+            const listRect = block.getBoundingClientRect();
+            const lastVisibleItem = visibleItems[itemsToShow - 1];
+            const itemRect = lastVisibleItem.getBoundingClientRect();
+            height = itemRect.bottom - listRect.top + 10;
+          }
 
           // Повертаємо попередній maxHeight
           list.style.maxHeight = currentMaxHeight;
@@ -1121,14 +1178,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Встановлюємо початковий згорнутий стан
         list.style.maxHeight = `${collapsedHeight}px`;
-        span.textContent = `${items.length - 3}`;
+        const visibleCount = getVisibleItems().length;
+        span.textContent = `${Math.max(0, visibleCount - 3)}`;
 
         newBtn.addEventListener("click", () => {
           if (newBtn.classList.contains("collapsed")) {
             // Розгортаємо
             list.style.maxHeight = list.scrollHeight + "px";
             btnText.textContent = "Show less";
-            span.textContent = `${items.length - 3}`;
+            const visibleCountExpand = getVisibleItems().length;
+            span.textContent = `${Math.max(0, visibleCountExpand - 3)}`;
             newBtn.classList.remove("collapsed");
           } else {
             // Згортаємо - перераховуємо висоту перед згортанням
@@ -1142,7 +1201,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             btnText.textContent = "Show more";
-            span.textContent = `${items.length - 3}`;
+            const visibleCountCollapse = getVisibleItems().length;
+            span.textContent = `${Math.max(0, visibleCountCollapse - 3)}`;
             newBtn.classList.add("collapsed");
           }
         });
@@ -1150,38 +1210,36 @@ document.addEventListener("DOMContentLoaded", () => {
         // Динамічний перерахунок висоти при зміні вибору
         if (enableDynamicHeight) {
           const recalculateHeight = () => {
-            // Перераховуємо тільки якщо dropdown згорнутий
-            if (!newBtn.classList.contains("collapsed")) {
-              return;
-            }
-
             // Чекаємо завершення CSS transition (400ms) перед вимірюванням
             setTimeout(() => {
-              // Використовуємо ту ж функцію розрахунку
+              // Оновлюємо розраховану згорнуту висоту
               collapsedHeight = calculateCollapsedHeight();
 
+              // Оновлюємо лічильник прихованих елементів
+              const visibleCountRecalc = getVisibleItems().length;
+              span.textContent = `${Math.max(0, visibleCountRecalc - 3)}`;
+
               // Застосовуємо нову висоту
-              list.style.maxHeight = `${collapsedHeight}px`;
+              if (newBtn.classList.contains("collapsed")) {
+                // Dropdown згорнутий - застосовуємо згорнуту висоту
+                list.style.maxHeight = `${collapsedHeight}px`;
+              } else {
+                // Dropdown розгорнутий - оновлюємо до нового scrollHeight
+                list.style.maxHeight = list.scrollHeight + "px";
+              }
             }, 400);
           };
+
+          // Додаємо функцію перерахунку в глобальний масив ОДИН РАЗ для всього блоку
+          window.dropdownHeightRecalculators.push(recalculateHeight);
 
           // Додаємо listeners на всі radio inputs в items
           items.forEach((item) => {
             const input = item.querySelector('input[type="radio"]');
-            if (input && input.name) {
-              // Зберігаємо функцію перерахунку в глобальному реєстрі по name радіо
-              if (!window.dropdownHeightRecalculators[input.name]) {
-                window.dropdownHeightRecalculators[input.name] = [];
-              }
-              window.dropdownHeightRecalculators[input.name].push(
-                recalculateHeight
-              );
-
-              // При зміні радіо - викликаємо ВСІ функції для цього name
+            if (input) {
+              // При зміні будь-якого радіо - викликаємо ВСІ функції перерахунку для всіх дропдаунів
               input.addEventListener("change", () => {
-                const recalculators =
-                  window.dropdownHeightRecalculators[input.name] || [];
-                recalculators.forEach((fn) => fn());
+                window.dropdownHeightRecalculators.forEach((fn) => fn());
               });
             }
           });
@@ -1190,6 +1248,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // Якщо елементів 3 або менше - показуємо всі і ховаємо кнопку
         list.style.maxHeight = "none";
         newBtn.style.display = "none";
+
+        // Але все одно додаємо listeners для перерахунку інших дропдаунів
+        if (enableDynamicHeight) {
+          items.forEach((item) => {
+            const input = item.querySelector('input[type="radio"]');
+            if (input) {
+              // При зміні будь-якого радіо - викликаємо ВСІ функції перерахунку для всіх дропдаунів
+              input.addEventListener("change", () => {
+                window.dropdownHeightRecalculators.forEach((fn) => fn());
+              });
+            }
+          });
+        }
       }
     });
   }
@@ -1327,9 +1398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const dataLinkElement = document.querySelector("[data-choice=link]");
     if (dataLinkElement && dataLinkElement.style.display !== "none") {
       const linkTitle = dataLinkElement.querySelector("h3")?.textContent;
-      const linkDescElement =
-        dataLinkElement.querySelector("p") ||
-        dataLinkElement.querySelector(".text-16");
+      const linkHoriz = dataLinkElement.querySelector(".horiz-8");
       const linkImage = dataLinkElement
         .querySelector("img")
         ?.getAttribute("src");
@@ -1337,7 +1406,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (linkTitle) {
         configData.dataLink = {
           title: linkTitle,
-          description: linkDescElement?.textContent || "",
+          descriptionHTML: linkHoriz?.innerHTML || "",
           image: linkImage || "",
         };
       }
@@ -1349,9 +1418,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     if (optionalElement && optionalElement.style.display !== "none") {
       const optionalTitle = optionalElement.querySelector("h3")?.textContent;
-      const optionalDescElement =
-        optionalElement.querySelector("p") ||
-        optionalElement.querySelector(".text-16");
+      const optionalHoriz = optionalElement.querySelector(".horiz-8");
       const optionalImage = optionalElement
         .querySelector("img")
         ?.getAttribute("src");
@@ -1359,11 +1426,82 @@ document.addEventListener("DOMContentLoaded", () => {
       if (optionalTitle) {
         configData.dataLinkOptional = {
           title: optionalTitle,
-          description: optionalDescElement?.textContent || "",
+          descriptionHTML: optionalHoriz?.innerHTML || "",
           image: optionalImage || "",
         };
       }
     }
+
+    // ============================================
+    // PRICE CALCULATION
+    // ============================================
+
+    // Helper function to parse price
+    const parsePriceFromText = (priceText) => {
+      if (!priceText || typeof priceText !== "string") {
+        return 0;
+      }
+      const cleaned = priceText.replace(/[$€£,\s]/g, "");
+      const parsed = parseFloat(cleaned);
+      const result = isNaN(parsed) ? 0 : parsed;
+      return result;
+    };
+
+    // Extract drone price
+    const droneBtn = document.querySelector(
+      ".nav_config-drones-item.w--current"
+    );
+    const dronePrice = droneBtn
+      ? parsePriceFromText(droneBtn.getAttribute("data-price"))
+      : 0;
+
+    // Extract module price
+    const moduleInput = document.querySelector(".modules-item input:checked");
+    let modulePrice = 0;
+    if (moduleInput) {
+      const moduleItem = moduleInput.closest(".modules-item");
+      if (moduleItem) {
+        const priceElem = moduleItem.querySelector(".price_elem-num");
+        modulePrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+      }
+    }
+
+    // Extract data link price
+    const linkInput = document.querySelector(
+      ".modules-link input:not(#optional input):checked"
+    );
+    let dataLinkPrice = 0;
+    if (linkInput) {
+      const linkItem = linkInput.closest(".modules-link");
+      if (linkItem) {
+        const priceElem = linkItem.querySelector(".price_elem-num");
+        dataLinkPrice = priceElem
+          ? parsePriceFromText(priceElem.textContent)
+          : 0;
+      }
+    }
+
+    // Extract optional price
+    const optionalInput = document.querySelector("#optional input:checked");
+    let dataLinkOptionalPrice = 0;
+    if (optionalInput) {
+      const optionalItem = optionalInput.closest(".modules-link");
+      if (optionalItem) {
+        const priceElem = optionalItem.querySelector(".price_elem-num");
+        dataLinkOptionalPrice = priceElem
+          ? parsePriceFromText(priceElem.textContent)
+          : 0;
+      }
+    }
+
+    const totalPrice =
+      dronePrice + modulePrice + dataLinkPrice + dataLinkOptionalPrice;
+
+    configData.dronePrice = dronePrice;
+    configData.modulePrice = modulePrice;
+    configData.dataLinkPrice = dataLinkPrice;
+    configData.dataLinkOptionalPrice = dataLinkOptionalPrice;
+    configData.totalPrice = totalPrice;
 
     return configData;
   }
@@ -1387,28 +1525,130 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  /**
+   * Форматування ціни
+   */
+  const formatPrice = (price) => {
+    if (!price || price === 0) return "";
+    return price.toLocaleString("en-US");
+  };
+
+  /**
+   * Очищує ціну в елементі
+   * @param {HTMLElement} element - Батьківський елемент
+   */
+  function clearPriceInElement(element) {
+    if (!element) return;
+    const priceElem = element.querySelector(".price_elem-num");
+    if (priceElem) {
+      priceElem.textContent = "";
+    }
+  }
+
+  /**
+   * Оновлює відображення цін в UI блоках data-choice
+   * @param {Object} configData - Дані конфігурації з цінами
+   */
+  function updatePricesInUI(configData) {
+    // Оновлення ціни дрона
+    if (resultDrone) {
+      const dronePriceElem = resultDrone.querySelector(".price_elem-num");
+      if (dronePriceElem) {
+        dronePriceElem.textContent = formatPrice(configData.dronePrice || 0);
+      }
+    }
+
+    // Оновлення ціни кольору
+    if (resultColor) {
+      const colorPriceElem = resultColor.querySelector(".price_elem-num");
+      if (colorPriceElem) {
+        colorPriceElem.textContent = formatPrice(0);
+      }
+    }
+
+    // Оновлення ціни модуля
+    if (resultModule) {
+      const modulePriceElem = resultModule.querySelector(".price_elem-num");
+      if (modulePriceElem) {
+        modulePriceElem.textContent = formatPrice(configData.modulePrice || 0);
+      }
+    }
+
+    // Оновлення ціни data link
+    if (resultDataLink) {
+      const linkPriceElem = resultDataLink.querySelector(".price_elem-num");
+      if (linkPriceElem) {
+        linkPriceElem.textContent = formatPrice(configData.dataLinkPrice || 0);
+      }
+    }
+
+    // Оновлення ціни optional data link
+    if (resultDataLinkOptional) {
+      const optionalPriceElem =
+        resultDataLinkOptional.querySelector(".price_elem-num");
+      if (optionalPriceElem) {
+        optionalPriceElem.textContent = formatPrice(
+          configData.dataLinkOptionalPrice || 0
+        );
+      }
+    }
+
+    // Оновлення total price в order-now-tooltip
+    if (orderTooltip) {
+      const totalPriceElem = orderTooltip.querySelector(".price_elem-num");
+      if (totalPriceElem) {
+        totalPriceElem.textContent = formatPrice(configData.totalPrice || 0);
+      }
+    }
+
+    // Оновлення total price в різних можливих місцях
+    const totalPriceSelectors = [
+      "[data-total-price] .price_elem-num",
+      ".total-price .price_elem-num",
+      ".model_total-price .price_elem-num",
+      '[data-choice="total"] .price_elem-num',
+      ".total_price .price_elem-num",
+    ];
+
+    totalPriceSelectors.forEach((selector) => {
+      const elem = document.querySelector(selector);
+      if (elem) {
+        elem.textContent = formatPrice(configData.totalPrice || 0);
+      }
+    });
+  }
+
+  /**
+   * Централізована функція для збору та збереження конфігурації
+   * Викликається при будь-яких змінах в конфігураторі
+   */
+  function updateAndSaveConfiguration() {
+    const configData = collectConfigurationData();
+    saveConfigurationToSession(configData);
+    updatePricesInUI(configData);
+    return configData;
+  }
+
   // ============================================
   // FORM - CONFIGURATOR
   // ============================================
 
   if (form) {
     const submitBtn = form.querySelector(".submit");
-    const droneBtns = document.querySelectorAll(".nav_config-drones-item");
 
-    submitBtn.addEventListener("click", (e) => {
-      e.preventDefault();
+    if (submitBtn) {
+      submitBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        updateAndSaveConfiguration();
 
-      // НОВЕ: Збір і збереження даних конфігурації в SessionStorage
-      const configData = collectConfigurationData();
-      saveConfigurationToSession(configData);
+        // Створення FormData та редірект з query параметрами
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
 
-      // ІСНУЮЧЕ: Створення FormData та редірект з query параметрами (БЕЗ ЗМІН)
-      const formData = new FormData(form);
-      const params = new URLSearchParams(formData);
-      console.log("Form data to be sent:", Object.fromEntries(formData));
-      // Редірект на сторінку з параметрами
-      window.location.href = `/configurator-form?${params.toString()}`;
-    });
+        // Редірект на сторінку з параметрами
+        window.location.href = `/configurator-form?${params.toString()}`;
+      });
+    }
 
     // ============================================
     // COLOR FIELDS
@@ -1586,6 +1826,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
         }
+
+        // Зберігаємо оновлену конфігурацію
+        updateAndSaveConfiguration();
       });
     });
 
@@ -1799,6 +2042,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Оновлюємо link badge (only for non-optional)
             // updateLinkBadge(modulesLinkItem);
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           } else {
             // Якщо дізчекнули - ховаємо optional та result блок
             if (optional) {
@@ -1808,6 +2054,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Ховаємо link badge
             // updateLinkBadge(null);
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           }
         });
       });
@@ -1854,18 +2103,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Копіюємо description (primary: .range .text-16, fallback: .text-16)
-      const srcDesc =
-        sourceItem.querySelector(".range .text-16") ||
-        sourceItem.querySelector(".text-16");
-      if (srcDesc) {
-        const destDesc =
-          resultBlock.querySelector("p") ||
-          resultBlock.querySelector(".text-16");
-        if (destDesc) {
-          destDesc.textContent = srcDesc.textContent;
-          hasData = true;
-        }
+      // Копіюємо вміст .horiz-8 (всіх дітей без .w-condition-invisible)
+      const srcHoriz = sourceItem.querySelector(".horiz-8");
+      const destHoriz = resultBlock.querySelector(".horiz-8");
+
+      if (srcHoriz && destHoriz) {
+        // Очищаємо destination .horiz-8
+        destHoriz.innerHTML = "";
+
+        // Перебираємо всіх дітей source .horiz-8
+        Array.from(srcHoriz.children).forEach((child) => {
+          // Копіюємо тільки якщо НЕ має клас .w-condition-invisible
+          if (!child.classList.contains("w-condition-invisible")) {
+            // Клонуємо елемент з усім вмістом
+            const clonedChild = child.cloneNode(true);
+            destHoriz.appendChild(clonedChild);
+            hasData = true;
+          }
+        });
       }
 
       // Показуємо блок тільки якщо скопіювали хоча б щось
@@ -2043,9 +2298,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Оновлюємо resultDataLinkOptional
           updateOptionalResult(optionalItem);
+
+          // Зберігаємо оновлену конфігурацію
+          updateAndSaveConfiguration();
         } else {
           // Якщо дізчекнули - ховаємо блок
           updateOptionalResult(null);
+
+          // Зберігаємо оновлену конфігурацію
+          updateAndSaveConfiguration();
         }
       });
     }
@@ -2135,6 +2396,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (window.playAnimationByName) {
               window.playAnimationByName(animationName);
             }
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           } else {
             // Якщо дізчекнули - ховаємо блок і зупиняємо всі анімації крім flight
             if (resultModule) {
@@ -2163,6 +2427,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (window.animations && window.animations.stopAll) {
               window.animations.stopAll();
             }
+
+            // Зберігаємо оновлену конфігурацію
+            updateAndSaveConfiguration();
           }
         });
       }
@@ -2205,6 +2472,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Початково показуємо всі application слайди (немає обраного модуля)
     filterApplicationSlides(null);
     filterApplicationSlidesBig(null);
+
+    // Зберігаємо початкову конфігурацію (дрон завжди визначений)
+    updateAndSaveConfiguration();
   }
 
   // ============================================
@@ -2231,8 +2501,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply drone selection
   function applyDroneSelection(droneName) {
     return new Promise((resolve) => {
-      const droneBtn = document.querySelector(
-        `[data-drone-name="${droneName}"]`
+      const normalizedDroneName = normalizeString(droneName);
+      const droneButtons = document.querySelectorAll("[data-drone-name]");
+      const droneBtn = Array.from(droneButtons).find(
+        (btn) =>
+          normalizeString(btn.getAttribute("data-drone-name")) ===
+          normalizedDroneName
       );
 
       if (!droneBtn) {
@@ -2260,8 +2534,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Apply color selection
   function applyColorSelection(colorName) {
-    const colorInput = document.querySelector(
-      `.radio_input-color[value="${colorName}"]`
+    const normalizedColorName = normalizeString(colorName);
+    const colorInputs = document.querySelectorAll(".radio_input-color");
+    const colorInput = Array.from(colorInputs).find(
+      (input) => normalizeString(input.value) === normalizedColorName
     );
 
     if (!colorInput) {
@@ -2288,8 +2564,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply module selection
   function applyModuleSelection(moduleValue) {
     return new Promise((resolve) => {
-      const moduleInput = document.querySelector(
-        `.modules-item input[value="${moduleValue}"]`
+      const normalizedModuleValue = normalizeString(moduleValue);
+      const moduleInputs = document.querySelectorAll(".modules-item input");
+      const moduleInput = Array.from(moduleInputs).find(
+        (input) => normalizeString(input.value) === normalizedModuleValue
       );
 
       if (!moduleInput) {
@@ -2331,8 +2609,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply data link selection
   function applyDataLinkSelection(linkValue) {
     return new Promise((resolve) => {
-      const linkInput = document.querySelector(
-        `.modules-link input:not(#optional input)[value="${linkValue}"]`
+      const normalizedLinkValue = normalizeString(linkValue);
+      const linkInputs = document.querySelectorAll(
+        ".modules-link input:not(#optional input)"
+      );
+      const linkInput = Array.from(linkInputs).find(
+        (input) => normalizeString(input.value) === normalizedLinkValue
       );
 
       if (!linkInput) {
@@ -2473,7 +2755,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add form data to URLSearchParams
     for (const [key, value] of formData) {
       if (value && value.trim() !== "") {
-        params.append(key, value);
+        params.append(key, normalizeString(value));
       }
     }
 
