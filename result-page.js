@@ -191,13 +191,16 @@ function populateDataChoiceElements(configData) {
     const linkElement = document.querySelector("[data-choice=link]");
     if (linkElement) {
       const titleElement = linkElement.querySelector("h3");
-      const descElement =
-        linkElement.querySelector("p") || linkElement.querySelector(".text-16");
+      const horizElement = linkElement.querySelector(".horiz-8");
       const imgElement = linkElement.querySelector("img");
 
       if (titleElement) titleElement.textContent = configData.dataLink.title;
-      if (descElement)
-        descElement.textContent = configData.dataLink.description;
+
+      // Заповнюємо .horiz-8 HTML вмістом
+      if (horizElement && configData.dataLink.descriptionHTML) {
+        horizElement.innerHTML = configData.dataLink.descriptionHTML;
+      }
+
       if (
         imgElement &&
         configData.dataLink.image &&
@@ -206,8 +209,8 @@ function populateDataChoiceElements(configData) {
         imgElement.setAttribute("src", configData.dataLink.image);
       }
 
-      // Показувати тільки якщо є title або description
-      if (configData.dataLink.title || configData.dataLink.description) {
+      // Показувати тільки якщо є title або descriptionHTML
+      if (configData.dataLink.title || configData.dataLink.descriptionHTML) {
         linkElement.style.display = "flex";
       }
     }
@@ -220,15 +223,17 @@ function populateDataChoiceElements(configData) {
     );
     if (optionalElement) {
       const titleElement = optionalElement.querySelector("h3");
-      const descElement =
-        optionalElement.querySelector("p") ||
-        optionalElement.querySelector(".text-16");
+      const horizElement = optionalElement.querySelector(".horiz-8");
       const imgElement = optionalElement.querySelector("img");
 
       if (titleElement)
         titleElement.textContent = configData.dataLinkOptional.title;
-      if (descElement)
-        descElement.textContent = configData.dataLinkOptional.description;
+
+      // Заповнюємо .horiz-8 HTML вмістом
+      if (horizElement && configData.dataLinkOptional.descriptionHTML) {
+        horizElement.innerHTML = configData.dataLinkOptional.descriptionHTML;
+      }
+
       if (
         imgElement &&
         configData.dataLinkOptional.image &&
@@ -237,10 +242,10 @@ function populateDataChoiceElements(configData) {
         imgElement.setAttribute("src", configData.dataLinkOptional.image);
       }
 
-      // Показувати тільки якщо є title або description
+      // Показувати тільки якщо є title або descriptionHTML
       if (
         configData.dataLinkOptional.title ||
-        configData.dataLinkOptional.description
+        configData.dataLinkOptional.descriptionHTML
       ) {
         optionalElement.style.display = "flex";
       }

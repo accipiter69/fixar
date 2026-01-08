@@ -1398,9 +1398,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const dataLinkElement = document.querySelector("[data-choice=link]");
     if (dataLinkElement && dataLinkElement.style.display !== "none") {
       const linkTitle = dataLinkElement.querySelector("h3")?.textContent;
-      const linkDescElement =
-        dataLinkElement.querySelector("p") ||
-        dataLinkElement.querySelector(".text-16");
+      const linkHoriz = dataLinkElement.querySelector(".horiz-8");
       const linkImage = dataLinkElement
         .querySelector("img")
         ?.getAttribute("src");
@@ -1408,7 +1406,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (linkTitle) {
         configData.dataLink = {
           title: linkTitle,
-          description: linkDescElement?.textContent || "",
+          descriptionHTML: linkHoriz?.innerHTML || "",
           image: linkImage || "",
         };
       }
@@ -1420,9 +1418,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     if (optionalElement && optionalElement.style.display !== "none") {
       const optionalTitle = optionalElement.querySelector("h3")?.textContent;
-      const optionalDescElement =
-        optionalElement.querySelector("p") ||
-        optionalElement.querySelector(".text-16");
+      const optionalHoriz = optionalElement.querySelector(".horiz-8");
       const optionalImage = optionalElement
         .querySelector("img")
         ?.getAttribute("src");
@@ -1430,7 +1426,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (optionalTitle) {
         configData.dataLinkOptional = {
           title: optionalTitle,
-          description: optionalDescElement?.textContent || "",
+          descriptionHTML: optionalHoriz?.innerHTML || "",
           image: optionalImage || "",
         };
       }
