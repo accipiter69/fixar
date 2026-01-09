@@ -11,9 +11,9 @@ const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
   "FIXAR 007 LE":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE+(2).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE(9.01.26).glb",
   "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG+(8.01.26).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG(9.01.26).glb",
 };
 
 // Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
