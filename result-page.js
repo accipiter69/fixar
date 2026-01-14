@@ -59,7 +59,7 @@ function normalizeString(str) {
 function parseUrlParameters() {
   const urlParams = new URLSearchParams(window.location.search);
   return {
-    droneModel: urlParams.get("Drone Model") || "FIXAR 025",
+    droneModel: urlParams.get("model") || "FIXAR 025",
     color: urlParams.get("color") || "Red",
     module: urlParams.get("module"),
     dataLink: urlParams.get("Data Link"),
@@ -611,7 +611,8 @@ function populateFormFields(params, sessionConfig) {
     if (value) {
       const input = document.createElement("input");
       input.type = "hidden";
-      input.name = key;
+      // Перетворюємо droneModel на "model" для відповідності з URL параметрами
+      input.name = key === "droneModel" ? "model" : key;
       input.value = value;
       form.appendChild(input);
     }
