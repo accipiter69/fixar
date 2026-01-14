@@ -2715,8 +2715,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // CRITICAL SEQUENCE:
 
     // 1. Drone Model (resets everything else)
-    if (params["Model"]) {
-      await applyDroneSelection(params["Model"]);
+    if (params["model"]) {
+      await applyDroneSelection(params["model"]);
       await delay(300); // Allow filterAddons/filterDataLinks to complete
     }
 
@@ -2760,8 +2760,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add form data to URLSearchParams
     for (const [key, value] of formData) {
       if (value && value.trim() !== "") {
-        // Rename "Drone Model" to just "Model" in URL
-        const paramKey = key === "Drone Model" ? "Model" : key;
+        // Rename "Drone Model" to just "model" in URL
+        const paramKey = key === "Drone Model" ? "model" : key;
         params.append(paramKey, normalizeString(value));
       }
     }
