@@ -1,4 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Order tooltip setup
+  const orderTooltip = document.querySelector(".order-now-tooltip");
+  let orderTooltipTl = null;
+
+  if (orderTooltip) {
+    const orderBtn = orderTooltip.querySelector(".u-btn-order");
+
+    if (orderBtn) {
+      orderBtn.addEventListener("click", () => {
+        window.location.href = "/order";
+      });
+    }
+
+    orderTooltipTl = gsap.timeline({ paused: true });
+
+    orderTooltipTl.fromTo(
+      orderTooltip,
+      { opacity: 1, pointerEvents: "auto" },
+      { opacity: 0, pointerEvents: "none", duration: 0.3 }
+    );
+
+    orderTooltipTl.progress(1);
+  }
+
+  function updateOrderTooltipVisibility() {
+    if (!orderTooltip || !orderTooltipTl) {
+      return;
+    }
+
+    let mmTooltip = gsap.matchMedia();
+
+    mmTooltip.add("(min-width: 992px)", () => {
+      const modulesList = document.querySelectorAll(".modules-item");
+      let hasSelectedModule = false;
+
+      modulesList.forEach((moduleItem) => {
+        const input = moduleItem.querySelector("input");
+        if (input && input.checked) {
+          hasSelectedModule = true;
+        }
+      });
+
+      if (hasSelectedModule) {
+        orderTooltip.style.display = "flex";
+        orderTooltipTl.reverse();
+      } else {
+        orderTooltipTl.play();
+        setTimeout(() => {
+          if (orderTooltipTl.progress() === 1) {
+            orderTooltip.style.display = "none";
+          }
+        }, 300);
+      }
+    });
+
+    mmTooltip.add("(max-width: 991px)", () => {
+      orderTooltip.style.display = "none";
+    });
+  }
+
+  // Modules item selection listener
+  const moduleItems = document.querySelectorAll(".modules-item");
+  moduleItems.forEach((moduleItem) => {
+    const input = moduleItem.querySelector("input");
+    if (input) {
+      input.addEventListener("change", () => {
+        updateOrderTooltipVisibility();
+      });
+    }
+  });
+
   const redirectUrls = {
     "FIXAR 025": "/configurator-v-2/configurator-025",
     "FIXAR 007 LE": "/configurator-v-2/configurator-007-le",
