@@ -1518,60 +1518,89 @@ document.addEventListener("DOMContentLoaded", () => {
       // Читаємо application з sessionStorage
       const application = sessionStorage.getItem("application");
 
-      console.log("[filterByApplication] Application from sessionStorage:", application);
+      console.log(
+        "[filterByApplication] Application from sessionStorage:",
+        application
+      );
 
       if (!application) {
         // Якщо application не встановлено - показуємо всі елементи
-        console.log("[filterByApplication] No application set, showing all modules");
+        console.log(
+          "[filterByApplication] No application set, showing all modules"
+        );
         return;
       }
 
       const modulesList = document.querySelectorAll(".modules-item");
-      console.log("[filterByApplication] Total modules found:", modulesList.length);
+      console.log(
+        "[filterByApplication] Total modules found:",
+        modulesList.length
+      );
 
       let shownCount = 0;
       let hiddenCount = 0;
       let skippedCount = 0;
 
       modulesList.forEach((item) => {
-        const itemName = item.querySelector("h3")?.textContent || item.querySelector("input")?.value || "Unknown";
+        const itemName =
+          item.querySelector("h3")?.textContent ||
+          item.querySelector("input")?.value ||
+          "Unknown";
 
         // Якщо елемент вже прихований filterAddons() - не чіпаємо
         if (item.style.display === "none") {
           skippedCount++;
-          console.log(`[filterByApplication] "${itemName}" - skipped (already hidden by filterAddons)`);
+          console.log(
+            `[filterByApplication] "${itemName}" - skipped (already hidden by filterAddons)`
+          );
           return;
         }
 
-        const forApplicationElements = item.querySelectorAll(".for-application");
+        const forApplicationElements =
+          item.querySelectorAll(".for-application");
 
         if (forApplicationElements.length === 0) {
           // Якщо немає .for-application - показуємо елемент (універсальний модуль)
           shownCount++;
-          console.log(`[filterByApplication] "${itemName}" - shown (no .for-application, universal module)`);
+          console.log(
+            `[filterByApplication] "${itemName}" - shown (no .for-application, universal module)`
+          );
           return;
         }
 
         // Перевіряємо чи application є серед значень .for-application
-        const applicationValues = Array.from(forApplicationElements).map(
-          (el) => el.textContent.trim()
+        const applicationValues = Array.from(forApplicationElements).map((el) =>
+          el.textContent.trim()
         );
 
         if (applicationValues.includes(application.trim())) {
           shownCount++;
-          console.log(`[filterByApplication] "${itemName}" - shown (matches: [${applicationValues.join(", ")}])`);
+          console.log(
+            `[filterByApplication] "${itemName}" - shown (matches: [${applicationValues.join(
+              ", "
+            )}])`
+          );
         } else {
           item.style.display = "none";
           hiddenCount++;
-          console.log(`[filterByApplication] "${itemName}" - hidden (values: [${applicationValues.join(", ")}], looking for: "${application}")`);
+          console.log(
+            `[filterByApplication] "${itemName}" - hidden (values: [${applicationValues.join(
+              ", "
+            )}], looking for: "${application}")`
+          );
         }
       });
 
-      console.log(`[filterByApplication] Summary: ${shownCount} shown, ${hiddenCount} hidden, ${skippedCount} skipped`);
+      console.log(
+        `[filterByApplication] Summary: ${shownCount} shown, ${hiddenCount} hidden, ${skippedCount} skipped`
+      );
 
       // Ховаємо батьківські .model_form-elem якщо всі .modules-item всередині приховані
       const formElems = document.querySelectorAll(".model_form-elem");
-      console.log("[filterByApplication] Checking parent containers (.model_form-elem):", formElems.length);
+      console.log(
+        "[filterByApplication] Checking parent containers (.model_form-elem):",
+        formElems.length
+      );
 
       formElems.forEach((formElem) => {
         const modulesInside = formElem.querySelectorAll(".modules-item");
@@ -1585,13 +1614,18 @@ document.addEventListener("DOMContentLoaded", () => {
           (item) => item.style.display !== "none"
         );
 
-        const sectionName = formElem.querySelector("h2")?.textContent || "Unknown section";
+        const sectionName =
+          formElem.querySelector("h2")?.textContent || "Unknown section";
 
         if (visibleModules.length === 0) {
           formElem.style.display = "none";
-          console.log(`[filterByApplication] Section "${sectionName}" - hidden (0 visible modules)`);
+          console.log(
+            `[filterByApplication] Section "${sectionName}" - hidden (0 visible modules)`
+          );
         } else {
-          console.log(`[filterByApplication] Section "${sectionName}" - shown (${visibleModules.length} visible modules)`);
+          console.log(
+            `[filterByApplication] Section "${sectionName}" - shown (${visibleModules.length} visible modules)`
+          );
         }
       });
     }
@@ -1599,7 +1633,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Затримка для динамічно підвантажених .for-application елементів
     setTimeout(() => {
       filterByApplication();
-    }, 300);
+    }, 1000);
 
     // ============================================
     // FILTER DATA LINKS
