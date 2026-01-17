@@ -2550,16 +2550,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   let mm = gsap.matchMedia();
 
-  // Функція створення scroll handler для різних елементів
-  const createScrollBehavior = (targetSelector) => {
+  mm.add("(max-width: 100000000px)", () => {
     const header = document.querySelector(".nav_config");
-    const targetElement = document.querySelector(targetSelector);
+    const modelContain = document.querySelector(".model_contain");
 
-    if (!header || !targetElement) {
+    if (!header || !modelContain) {
       console.warn(
-        `Header or ${targetSelector} not found for mobile scroll behavior`
+        "Header or modelContain not found for mobile scroll behavior"
       );
-      return null;
+      return;
     }
 
     let lastScrollY = window.scrollY;
@@ -2568,7 +2567,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ініціалізація стану при завантаженні
     if (lastScrollY > 50) {
       gsap.set(header, { y: -header.offsetHeight });
-      gsap.set(targetElement, { y: -header.offsetHeight });
+      gsap.set(modelContain, { y: -header.offsetHeight });
     }
 
     const handleScroll = () => {
@@ -2578,27 +2577,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY > 100) {
-        // Скрол вниз - ховаємо header, зсуваємо target вгору
+        // Скрол вниз - ховаємо header, зсуваємо modelContain вгору
         if (currentScrollY > lastScrollY) {
           gsap.to(header, {
             y: -header.offsetHeight,
             duration: 0.2,
             ease: "power2.out",
           });
-          gsap.to(targetElement, {
+          gsap.to(modelContain, {
             y: -header.offsetHeight,
             duration: 0.2,
             ease: "power2.out",
           });
         }
-        // Скрол вверх - показуємо header, повертаємо target
+        // Скрол вверх - показуємо header, повертаємо modelContain
         else if (currentScrollY < lastScrollY) {
           gsap.to(header, {
             y: 0,
             duration: 0.2,
             ease: "power2.out",
           });
-          gsap.to(targetElement, {
+          gsap.to(modelContain, {
             y: 0,
             duration: 0.2,
             ease: "power2.out",
@@ -2613,28 +2612,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 300);
     };
 
-    return handleScroll;
-  };
+    window.addEventListener("scroll", handleScroll);
 
-  // Для екранів >= 480px - зсуваємо .model_contain
-  mm.add("(min-width: 480px)", () => {
-    const handleScroll = createScrollBehavior(".model_contain");
-    if (handleScroll) {
-      window.addEventListener("scroll", handleScroll);
-      return () => {
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
-  });
-
-  // Для екранів < 480px - зсуваємо .model_scene-wrp
-  mm.add("(max-width: 479px)", () => {
-    const handleScroll = createScrollBehavior(".model_scene-wrp");
-    if (handleScroll) {
-      window.addEventListener("scroll", handleScroll);
-      return () => {
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
+    return () => {
+      // matchMedia автоматично очищає анімації та listeners
+    };
   });
 });
