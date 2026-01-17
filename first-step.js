@@ -4,14 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let orderTooltipTl = null;
 
   if (orderTooltip) {
-    const orderBtn = orderTooltip.querySelector(".u-btn-order");
-
-    if (orderBtn) {
-      orderBtn.addEventListener("click", () => {
-        window.location.href = "/order";
-      });
-    }
-
     orderTooltipTl = gsap.timeline({ paused: true });
 
     orderTooltipTl.fromTo(
