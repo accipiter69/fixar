@@ -78,6 +78,22 @@ document.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem("application", application);
         }
 
+        // Зберігаємо дані обраного модуля
+        const selectedModule = document.querySelector(
+          ".model_form-module:has(input:checked)"
+        );
+        if (selectedModule) {
+          const img = selectedModule.querySelector("img");
+          const h4 = selectedModule.querySelector("h4");
+          const p = selectedModule.querySelector("p");
+          const moduleData = {
+            imgSrc: img ? img.src : "",
+            title: h4 ? h4.textContent.trim() : "",
+            description: p ? p.textContent.trim() : "",
+          };
+          sessionStorage.setItem("selectedModule", JSON.stringify(moduleData));
+        }
+
         // Редірект на відповідну сторінку залежно від моделі
         const normalizedModel = normalizeKey(model || "");
         const redirectUrl = Object.entries(redirectUrls).find(

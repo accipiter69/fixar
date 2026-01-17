@@ -56,6 +56,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector(".model_form");
   const submitBtn = form.querySelector(".submit");
 
+  // Заповнюємо дані обраного модуля з першого кроку
+  const selectedModuleData = sessionStorage.getItem("selectedModule");
+  if (selectedModuleData) {
+    const moduleData = JSON.parse(selectedModuleData);
+    const selectedImg = document.getElementById("selected-img");
+    const selectedTitle = document.getElementById("selected-title");
+    const selectedDescription = document.getElementById("selected-description");
+
+    if (selectedImg && moduleData.imgSrc) {
+      selectedImg.src = moduleData.imgSrc;
+    }
+    if (selectedTitle && moduleData.title) {
+      selectedTitle.textContent = moduleData.title;
+    }
+    if (selectedDescription && moduleData.description) {
+      selectedDescription.textContent = moduleData.description;
+    }
+  }
+
   const resultDrone = document.querySelector("[data-choice=drone]");
   const resultColor = document.querySelector("[data-choice=color]");
   const resultModule = document.querySelector("[data-choice=module]");
