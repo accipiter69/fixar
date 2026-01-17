@@ -4,12 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const sourceModel = urlParams.get("source-model");
 
   if (sourceModel) {
-    const modelInput = document.querySelector(
-      `input[name="model"][value="${sourceModel}"]`
-    );
-    if (modelInput) {
-      modelInput.checked = true;
-    }
+    const normalizedSource = sourceModel.trim().toUpperCase();
+    const modelInputs = document.querySelectorAll('input[name="model"]');
+
+    modelInputs.forEach((input) => {
+      if (input.value.trim().toUpperCase() === normalizedSource) {
+        input.checked = true;
+      }
+    });
   }
 
   // Order tooltip setup
