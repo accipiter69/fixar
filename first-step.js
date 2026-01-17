@@ -1,4 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Pre-select model from URL param
+  const urlParams = new URLSearchParams(window.location.search);
+  const sourceModel = urlParams.get("source-model");
+
+  if (sourceModel) {
+    const modelInput = document.querySelector(
+      `input[name="model"][value="${sourceModel}"]`
+    );
+    if (modelInput) {
+      modelInput.checked = true;
+    }
+  }
+
   // Order tooltip setup
   const orderTooltip = document.querySelector(".order-now-tooltip");
   let orderTooltipTl = null;
