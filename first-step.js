@@ -60,9 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
     modelInput.addEventListener("focus", () => {
       orderTooltipTl.play();
     });
-    modelInput.addEventListener("blur", () => {
-      updateOrderTooltipVisibility();
-    });
   }
 
   const redirectUrls = {
