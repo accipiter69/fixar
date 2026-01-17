@@ -897,7 +897,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Dropdown розгорнутий - оновлюємо до нового scrollHeight
                 list.style.maxHeight = list.scrollHeight + "px";
               }
-            }, 400);
+            }, 1100);
           };
 
           // Додаємо функцію перерахунку в глобальний масив ОДИН РАЗ для всього блоку
