@@ -28,35 +28,27 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let mmTooltip = gsap.matchMedia();
+    const modulesList = document.querySelectorAll(".modules-item");
+    let hasSelectedModule = false;
 
-    mmTooltip.add("(min-width: 992px)", () => {
-      const modulesList = document.querySelectorAll(".modules-item");
-      let hasSelectedModule = false;
-
-      modulesList.forEach((moduleItem) => {
-        const input = moduleItem.querySelector("input");
-        if (input && input.checked) {
-          hasSelectedModule = true;
-        }
-      });
-
-      if (hasSelectedModule) {
-        orderTooltip.style.display = "flex";
-        orderTooltipTl.reverse();
-      } else {
-        orderTooltipTl.play();
-        setTimeout(() => {
-          if (orderTooltipTl.progress() === 1) {
-            orderTooltip.style.display = "none";
-          }
-        }, 300);
+    modulesList.forEach((moduleItem) => {
+      const input = moduleItem.querySelector("input");
+      if (input && input.checked) {
+        hasSelectedModule = true;
       }
     });
 
-    mmTooltip.add("(max-width: 991px)", () => {
-      orderTooltip.style.display = "none";
-    });
+    if (hasSelectedModule) {
+      orderTooltip.style.display = "flex";
+      orderTooltipTl.reverse();
+    } else {
+      orderTooltipTl.play();
+      setTimeout(() => {
+        if (orderTooltipTl.progress() === 1) {
+          orderTooltip.style.display = "none";
+        }
+      }, 300);
+    }
   }
 
   // Modules item selection listener
