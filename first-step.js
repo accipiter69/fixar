@@ -54,6 +54,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Hide Order tooltip when model input is focused
+  const modelInput = document.querySelector('input[name="model"]');
+  if (modelInput && orderTooltip && orderTooltipTl) {
+    modelInput.addEventListener("focus", () => {
+      orderTooltipTl.play();
+    });
+    modelInput.addEventListener("blur", () => {
+      updateOrderTooltipVisibility();
+    });
+  }
+
   const redirectUrls = {
     "FIXAR 025": "/configurator-v-2/configurator-025",
     "FIXAR 007 LE": "/configurator-v-2/configurator-007-le",
