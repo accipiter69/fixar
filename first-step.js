@@ -67,19 +67,19 @@ document.addEventListener("DOMContentLoaded", () => {
         updateOrderTooltipVisibility();
       });
     }
-    // Для мобільних пристроїв додаємо click на сам елемент
-    moduleItem.addEventListener("click", () => {
-      setTimeout(() => {
-        updateOrderTooltipVisibility();
-      }, 50);
-    });
   });
 
-  // Hide Order tooltip when model input is focused
-  const modelInput = document.querySelector('input[name="model"]');
-  if (modelInput && orderTooltip && orderTooltipTl) {
-    modelInput.addEventListener("focus", () => {
-      orderTooltipTl.play();
+  // Hide Order tooltip when model input is focused or clicked
+  const modelInputs = document.querySelectorAll('input[name="model"]');
+  if (orderTooltip && orderTooltipTl) {
+    modelInputs.forEach((modelInput) => {
+      modelInput.addEventListener("focus", () => {
+        orderTooltipTl.play();
+      });
+      // Для мобільних пристроїв додаємо click
+      modelInput.addEventListener("click", () => {
+        orderTooltipTl.play();
+      });
     });
   }
 
