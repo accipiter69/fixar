@@ -67,6 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
         updateOrderTooltipVisibility();
       });
     }
+    // Для мобільних пристроїв додаємо click на сам елемент
+    moduleItem.addEventListener("click", () => {
+      setTimeout(() => {
+        updateOrderTooltipVisibility();
+      }, 50);
+    });
   });
 
   // Hide Order tooltip when model input is focused
