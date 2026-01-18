@@ -933,13 +933,13 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   // Ініціалізація блоків модулів (тільки видимі елементи)
-  initDropdown(
-    ".modules-list-drop",
-    ".modules-list-wrp",
-    ".modules-item",
-    true,
-    true
-  );
+  //   initDropdown(
+  //     ".modules-list-drop",
+  //     ".modules-list-wrp",
+  //     ".modules-item",
+  //     true,
+  //     true
+  //   );
   initDropdown(
     ".modules-list-drop",
     ".modules-list-wrp",
