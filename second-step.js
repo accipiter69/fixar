@@ -1024,12 +1024,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const colorValue = colorSwatchElement
         ? window.getComputedStyle(colorSwatchElement).backgroundColor
         : "";
+      const colorBackgroundImage = colorSwatchElement
+        ? window.getComputedStyle(colorSwatchElement).backgroundImage
+        : "";
 
       if (colorName) {
         configData.color = {
           name: colorName,
           description: colorDescription || "",
           value: colorValue || "",
+          backgroundImage:
+            colorBackgroundImage !== "none" ? colorBackgroundImage : "",
         };
       }
     }
@@ -1334,10 +1339,15 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       if (colorBtn) {
-        const bgColor = window.getComputedStyle(colorBtn).backgroundColor;
-        resultColor.querySelector(
-          ".model_form-color-btn-res"
-        ).style.backgroundColor = bgColor;
+        const styles = window.getComputedStyle(colorBtn);
+        const bgColor = styles.backgroundColor;
+        const bgImage = styles.backgroundImage;
+        const resultBtn = resultColor.querySelector(".model_form-color-btn-res");
+        resultBtn.style.backgroundColor = bgColor;
+        resultBtn.style.backgroundImage = bgImage !== "none" ? bgImage : "";
+        resultBtn.style.backgroundPosition = "50% 50%";
+        resultBtn.style.backgroundSize = "auto";
+        resultBtn.style.backgroundRepeat = "no-repeat";
       }
 
       // Початковий колір буде застосовано після завантаження 3D моделі
@@ -1361,10 +1371,15 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           if (colorBtn) {
-            const bgColor = window.getComputedStyle(colorBtn).backgroundColor;
-            resultColor.querySelector(
-              ".model_form-color-btn-res"
-            ).style.backgroundColor = bgColor;
+            const styles = window.getComputedStyle(colorBtn);
+            const bgColor = styles.backgroundColor;
+            const bgImage = styles.backgroundImage;
+            const resultBtn = resultColor.querySelector(".model_form-color-btn-res");
+            resultBtn.style.backgroundColor = bgColor;
+            resultBtn.style.backgroundImage = bgImage !== "none" ? bgImage : "";
+            resultBtn.style.backgroundPosition = "50% 50%";
+            resultBtn.style.backgroundSize = "auto";
+            resultBtn.style.backgroundRepeat = "no-repeat";
           }
         }
 

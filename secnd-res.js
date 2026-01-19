@@ -848,16 +848,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Встановлюємо початковий згорнутий стан
         list.style.maxHeight = `${collapsedHeight}px`;
-        const visibleCount = getVisibleItems().length;
-        span.textContent = `${Math.max(0, visibleCount - 3)}`;
 
         newBtn.addEventListener("click", () => {
           if (newBtn.classList.contains("collapsed")) {
             // Розгортаємо
             list.style.maxHeight = list.scrollHeight + "px";
             btnText.textContent = "Show less";
-            const visibleCountExpand = getVisibleItems().length;
-            span.textContent = `${Math.max(0, visibleCountExpand - 3)}`;
             newBtn.classList.remove("collapsed");
           } else {
             // Згортаємо - перераховуємо висоту перед згортанням
@@ -871,8 +867,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             btnText.textContent = "Show more";
-            const visibleCountCollapse = getVisibleItems().length;
-            span.textContent = `${Math.max(0, visibleCountCollapse - 3)}`;
             newBtn.classList.add("collapsed");
           }
         });
@@ -885,10 +879,6 @@ document.addEventListener("DOMContentLoaded", () => {
               // Оновлюємо розраховану згорнуту висоту
               collapsedHeight = calculateCollapsedHeight();
 
-              // Оновлюємо лічильник прихованих елементів
-              const visibleCountRecalc = getVisibleItems().length;
-              span.textContent = `${Math.max(0, visibleCountRecalc - 3)}`;
-
               // Застосовуємо нову висоту
               if (newBtn.classList.contains("collapsed")) {
                 // Dropdown згорнутий - застосовуємо згорнуту висоту
@@ -897,7 +887,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Dropdown розгорнутий - оновлюємо до нового scrollHeight
                 list.style.maxHeight = list.scrollHeight + "px";
               }
-            }, 400);
+            }, 1100);
           };
 
           // Додаємо функцію перерахунку в глобальний масив ОДИН РАЗ для всього блоку
@@ -943,13 +933,13 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   // Ініціалізація блоків модулів (тільки видимі елементи)
-  initDropdown(
-    ".modules-list-drop",
-    ".modules-list-wrp",
-    ".modules-item",
-    true,
-    true
-  );
+  //   initDropdown(
+  //     ".modules-list-drop",
+  //     ".modules-list-wrp",
+  //     ".modules-item",
+  //     true,
+  //     true
+  //   );
   initDropdown(
     ".modules-list-drop",
     ".modules-list-wrp",
@@ -2550,15 +2540,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================
   let mm = gsap.matchMedia();
 
-  mm.add("(max-width: 100000000px)", () => {
+  // Функція створення scroll handler для різних елементів
+  const createScrollBehavior = (targetSelector) => {
     const header = document.querySelector(".nav_config");
-    const modelContain = document.querySelector(".model_contain");
+    const targetElement = document.querySelector(targetSelector);
 
-    if (!header || !modelContain) {
+    if (!header || !targetElement) {
       console.warn(
-        "Header or modelContain not found for mobile scroll behavior"
+        `Header or ${targetSelector} not found for mobile scroll behavior`
       );
-      return;
+      return null;
     }
 
     let lastScrollY = window.scrollY;
@@ -2567,7 +2558,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ініціалізація стану при завантаженні
     if (lastScrollY > 50) {
       gsap.set(header, { y: -header.offsetHeight });
-      gsap.set(modelContain, { y: -header.offsetHeight });
+      gsap.set(targetElement, { y: -header.offsetHeight });
     }
 
     const handleScroll = () => {
@@ -2577,27 +2568,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const currentScrollY = window.scrollY;
 
       if (currentScrollY > 100) {
-        // Скрол вниз - ховаємо header, зсуваємо modelContain вгору
+        // Скрол вниз - ховаємо header, зсуваємо target вгору
         if (currentScrollY > lastScrollY) {
           gsap.to(header, {
             y: -header.offsetHeight,
             duration: 0.2,
             ease: "power2.out",
           });
-          gsap.to(modelContain, {
+          gsap.to(targetElement, {
             y: -header.offsetHeight,
             duration: 0.2,
             ease: "power2.out",
           });
         }
-        // Скрол вверх - показуємо header, повертаємо modelContain
+        // Скрол вверх - показуємо header, повертаємо target
         else if (currentScrollY < lastScrollY) {
           gsap.to(header, {
             y: 0,
             duration: 0.2,
             ease: "power2.out",
           });
-          gsap.to(modelContain, {
+          gsap.to(targetElement, {
             y: 0,
             duration: 0.2,
             ease: "power2.out",
@@ -2612,10 +2603,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 300);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    return handleScroll;
+  };
 
-    return () => {
-      // matchMedia автоматично очищає анімації та listeners
-    };
+  // Для екранів >= 480px - зсуваємо .model_contain
+  mm.add("(min-width: 480px)", () => {
+    const handleScroll = createScrollBehavior(".model_contain");
+    if (handleScroll) {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
+  });
+
+  // Для екранів < 480px - зсуваємо .model_scene-wrp
+  mm.add("(max-width: 479px)", () => {
+    const handleScroll = createScrollBehavior(".model_scene-wrp");
+    if (handleScroll) {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    }
   });
 });

@@ -167,8 +167,18 @@ function populateDataChoiceElements(configData) {
 
       if (nameElement) nameElement.textContent = configData.color.name;
       if (descElement) descElement.textContent = configData.color.description;
-      if (swatchElement && configData.color.value) {
-        swatchElement.style.backgroundColor = configData.color.value;
+      if (swatchElement) {
+        if (configData.color.value) {
+          swatchElement.style.backgroundColor = configData.color.value;
+        }
+        if (configData.color.backgroundImage) {
+          swatchElement.style.backgroundImage = configData.color.backgroundImage;
+          swatchElement.style.backgroundPosition = "50% 50%";
+          swatchElement.style.backgroundSize = "auto";
+          swatchElement.style.backgroundRepeat = "no-repeat";
+        } else {
+          swatchElement.style.backgroundImage = "";
+        }
       }
 
       // Показувати тільки якщо є name
