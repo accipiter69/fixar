@@ -93,6 +93,46 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector("form");
   if (form) {
     const submitBtn = form.querySelector(".submit");
+    const applicationInputs = document.querySelectorAll(
+      'input[name="application"]'
+    );
+    const modelInputsForSubmit = document.querySelectorAll(
+      'input[name="model"]'
+    );
+
+    // Функція для перевірки чи обрано application та model
+    function updateSubmitButtonState() {
+      if (!submitBtn) return;
+
+      const formData = new FormData(form);
+      const application = formData.get("application");
+      const model = formData.get("model");
+
+      if (application && model) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("disabled");
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add("disabled");
+      }
+    }
+
+    // Початковий стан - disabled
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.classList.add("disabled");
+    }
+
+    // Слухачі для оновлення стану кнопки
+    applicationInputs.forEach((input) => {
+      input.addEventListener("change", updateSubmitButtonState);
+    });
+    modelInputsForSubmit.forEach((input) => {
+      input.addEventListener("change", updateSubmitButtonState);
+    });
+
+    // Перевіряємо початковий стан (якщо щось вже обрано)
+    updateSubmitButtonState();
 
     if (submitBtn) {
       submitBtn.addEventListener("click", (e) => {
