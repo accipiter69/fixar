@@ -9,7 +9,6 @@ const droneModels = {
 };
 
 // Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
-
 function normalizeString(str) {
   if (!str) return str;
 
@@ -82,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultModule = document.querySelector("[data-choice=module]");
   const resultDataLink = document.querySelector("[data-choice=link]");
   const resultDataLinkOptional = document.querySelector(
-    "[data-choice=link-optional]"
+    "[data-choice=link-optional]",
   );
   const resultModuleBadge = document.querySelector(".model_scene-gimbal");
   const resultLinkBadge = document.querySelector(".range-selected");
@@ -110,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const telemetryOnly = document.querySelector("#telemetry-only");
   const telemetryVideo = document.querySelector("#telemetry-video-links");
   const configureDataLinkSection = document.querySelector(
-    "#configure-data-link"
+    "#configure-data-link",
   );
 
   const modulesLinksParameters = {
@@ -166,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
   orderTooltipTl.fromTo(
     orderTooltip,
     { opacity: 1, pointerEvents: "auto" }, // FROM: visible state (position 0)
-    { opacity: 0, pointerEvents: "none", duration: 0.3 } // TO: hidden state (position 1)
+    { opacity: 0, pointerEvents: "none", duration: 0.3 }, // TO: hidden state (position 1)
   );
 
   // Initialize timeline to hidden state (position 1)
@@ -325,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (index === -1) {
       console.warn(
-        `Анімація "${animationName}" не знайдена для моделі ${targetDrone}`
+        `Анімація "${animationName}" не знайдена для моделі ${targetDrone}`,
       );
       return false;
     }
@@ -344,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     75,
     container.clientWidth / container.clientHeight,
     0.1,
-    1000
+    1000,
   );
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -397,13 +396,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.changeColorByMaterialName = (
     materialName,
     hexColor,
-    droneName = null
+    droneName = null,
   ) => {
     const targetDrone = droneName || currentDroneModel;
     const model = window.loadedModels[targetDrone];
 
     console.log(
-      `[changeColorByMaterialName] targetDrone: ${targetDrone}, materialName: ${materialName}, hexColor: ${hexColor}`
+      `[changeColorByMaterialName] targetDrone: ${targetDrone}, materialName: ${materialName}, hexColor: ${hexColor}`,
     );
 
     if (!model) {
@@ -419,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (matName === materialName) {
           if (child.material.color) {
             child.material.color.setHex(
-              parseInt(hexColor.replace("#", ""), 16)
+              parseInt(hexColor.replace("#", ""), 16),
             );
             changedCount++;
           }
@@ -428,14 +427,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     console.log(
-      `[changeColorByMaterialName] ${targetDrone}: змінено ${changedCount} елементів`
+      `[changeColorByMaterialName] ${targetDrone}: змінено ${changedCount} елементів`,
     );
     return changedCount;
   };
 
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
   );
 
   const loader = new THREE.GLTFLoader();
@@ -580,18 +579,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // Застосовуємо початковий колір до щойно завантаженої моделі
       setTimeout(() => {
         console.log(
-          `[Color Init] Модель ${droneName} завантажена, застосовуємо початковий колір`
+          `[Color Init] Модель ${droneName} завантажена, застосовуємо початковий колір`,
         );
         const checkedColorField = document.querySelector(
-          ".radio_input-color:checked"
+          ".radio_input-color:checked",
         );
         console.log(
           `[Color Init] Checked color field:`,
-          checkedColorField?.value
+          checkedColorField?.value,
         );
         if (checkedColorField) {
           checkedColorField.dispatchEvent(
-            new Event("change", { bubbles: true })
+            new Event("change", { bubbles: true }),
           );
         } else {
           console.warn("[Color Init] Не знайдено checked color field!");
@@ -689,7 +688,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const h3 = technologyItem.querySelector("h3");
     const firstP = technologyItem.querySelector("p");
     const technologyLink = technologyItem.querySelector(
-      ".text-16.is--technologies-link"
+      ".text-16.is--technologies-link",
     );
 
     // Отримуємо елементи попапу
@@ -760,7 +759,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listSelector,
     itemsSelector,
     onlyVisible = false,
-    enableDynamicHeight = false
+    enableDynamicHeight = false,
   ) {
     const blocks = document.querySelectorAll(blockSelector);
 
@@ -929,7 +928,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initDropdown(
     ".model_form-technologies-elem",
     ".model_form-technologies-wrp",
-    ".model_form-technologies-item"
+    ".model_form-technologies-item",
   );
 
   // Ініціалізація блоків модулів (тільки видимі елементи)
@@ -945,7 +944,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ".modules-list-wrp",
     ".modules-link",
     true,
-    true
+    true,
   );
 
   // ============================================
@@ -954,7 +953,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Обробники для відкриття попапу при кліку на технології
   const technologyItems = document.querySelectorAll(
-    ".model_form-technologies-item"
+    ".model_form-technologies-item",
   );
   technologyItems.forEach((item) => {
     const technologyLink = item.querySelector(".text-16.is--technologies-link");
@@ -1015,11 +1014,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorElement = document.querySelector("[data-choice=color]");
     if (colorElement && colorElement.style.display !== "none") {
       const colorName = colorElement.querySelector(
-        "[data-res-color-name]"
+        "[data-res-color-name]",
       )?.textContent;
       const colorDescription = colorElement.querySelector("p")?.textContent;
       const colorSwatchElement = colorElement.querySelector(
-        ".model_form-color-btn-res"
+        ".model_form-color-btn-res",
       );
       const colorValue = colorSwatchElement
         ? window.getComputedStyle(colorSwatchElement).backgroundColor
@@ -1039,7 +1038,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (moduleElement && moduleElement.style.display !== "none") {
       const moduleTitle = moduleElement.querySelector("h3")?.textContent;
       const moduleDescription = moduleElement.querySelector(
-        "[data-module-description]"
+        "[data-module-description]",
       )?.textContent;
       const moduleImage = moduleElement
         .querySelector("img")
@@ -1074,7 +1073,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Збір даних Optional Data Link
     const optionalElement = document.querySelector(
-      "[data-choice=link-optional]"
+      "[data-choice=link-optional]",
     );
     if (optionalElement && optionalElement.style.display !== "none") {
       const optionalTitle = optionalElement.querySelector("h3")?.textContent;
@@ -1109,7 +1108,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Extract drone price
     const droneBtn = document.querySelector(
-      ".nav_config-drones-item.w--current"
+      ".nav_config-drones-item.w--current",
     );
     const dronePrice = droneBtn
       ? parsePriceFromText(droneBtn.getAttribute("data-price"))
@@ -1128,7 +1127,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Extract data link price
     const linkInput = document.querySelector(
-      ".modules-link input:not(#optional input):checked"
+      ".modules-link input:not(#optional input):checked",
     );
     let dataLinkPrice = 0;
     if (linkInput) {
@@ -1248,7 +1247,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultDataLinkOptional.querySelector(".price_elem-num");
       if (optionalPriceElem) {
         optionalPriceElem.textContent = formatPrice(
-          configData.dataLinkOptionalPrice || 0
+          configData.dataLinkOptionalPrice || 0,
         );
       }
     }
@@ -1330,13 +1329,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
       const colorBtn = initialColorField.parentElement?.querySelector(
-        ".model_form-color-btn"
+        ".model_form-color-btn",
       );
 
       if (colorBtn) {
         const bgColor = window.getComputedStyle(colorBtn).backgroundColor;
         resultColor.querySelector(
-          ".model_form-color-btn-res"
+          ".model_form-color-btn-res",
         ).style.backgroundColor = bgColor;
       }
 
@@ -1357,13 +1356,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
           const colorBtn = field.parentElement?.querySelector(
-            ".model_form-color-btn"
+            ".model_form-color-btn",
           );
 
           if (colorBtn) {
             const bgColor = window.getComputedStyle(colorBtn).backgroundColor;
             resultColor.querySelector(
-              ".model_form-color-btn-res"
+              ".model_form-color-btn-res",
             ).style.backgroundColor = bgColor;
           }
         }
@@ -1399,7 +1398,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (!colorElement) {
           colorElement = field.parentElement?.querySelector(
-            ".model_form-color-btn"
+            ".model_form-color-btn",
           );
         }
 
@@ -1432,7 +1431,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const changedCount = window.changeColorByMaterialName(
                 "red",
                 hexColor,
-                modelName
+                modelName,
               );
 
               if (changedCount === 0) {
@@ -1471,13 +1470,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         child.material.color.setRGB(
                           originalColor.r,
                           originalColor.g,
-                          originalColor.b
+                          originalColor.b,
                         );
                       }
                     } else {
                       // Якщо НЕ червоний - фарбуємо в обраний колір
                       child.material.color.setHex(
-                        parseInt(hexColor.replace("#", ""), 16)
+                        parseInt(hexColor.replace("#", ""), 16),
                       );
                     }
                   }
@@ -1552,7 +1551,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Перевіряємо чи application є серед значень .for-application
         const applicationValues = Array.from(forApplicationElements).map((el) =>
-          el.textContent.trim()
+          el.textContent.trim(),
         );
 
         if (!applicationValues.includes(application.trim())) {
@@ -1572,7 +1571,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const visibleModules = Array.from(modulesInside).filter(
-          (item) => item.style.display !== "none"
+          (item) => item.style.display !== "none",
         );
 
         if (visibleModules.length === 0) {
@@ -1623,7 +1622,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetModulesLinkSelection() {
       // Дізчекаємо всі modules-link inputs
       const allModulesLinkInputs = document.querySelectorAll(
-        ".modules-link input"
+        ".modules-link input",
       );
       allModulesLinkInputs.forEach((input) => {
         input.checked = false;
@@ -1655,7 +1654,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterModulesLinksByCategory() {
       // Знаходимо активний modules-item (checked input)
       const activeModuleInput = document.querySelector(
-        ".modules-item input:checked"
+        ".modules-item input:checked",
       );
 
       if (!activeModuleInput) {
@@ -1689,7 +1688,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Застосовуємо правила фільтрації (порівняння в нижньому регістрі)
       const telemetryOnlyCategories = modulesLinksParameters.telemetryOnly.map(
-        (cat) => cat.toLowerCase()
+        (cat) => cat.toLowerCase(),
       );
       if (telemetryOnlyCategories.includes(category)) {
         // Показуємо telemetryOnly
@@ -1712,7 +1711,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Функція обробки вибору modules-link (для показу optional блоку)
     function handleModulesLinkSelection() {
       const allModulesLinkInputs = document.querySelectorAll(
-        ".modules-link input"
+        ".modules-link input",
       );
 
       allModulesLinkInputs.forEach((input) => {
@@ -1903,7 +1902,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultModuleBadge.style.display = "flex";
       } else {
         console.warn(
-          "Could not find .text-16 element inside resultModuleBadge"
+          "Could not find .text-16 element inside resultModuleBadge",
         );
         resultModuleBadge.style.display = "none";
       }
@@ -2063,7 +2062,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const moduleImg = moduleItem.querySelector("img");
               const moduleTitle = moduleItem.querySelector("h3");
               const moduleDescription = moduleItem.querySelector(
-                "[data-module-description]"
+                "[data-module-description]",
               );
 
               // Оновлюємо resultModule
@@ -2083,7 +2082,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
               if (moduleDescription) {
                 const resultDesc = resultModule.querySelector(
-                  "[data-module-description]"
+                  "[data-module-description]",
                 );
                 if (resultDesc) {
                   resultDesc.textContent = moduleDescription.textContent;
@@ -2218,15 +2217,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const droneBtn = Array.from(droneButtons).find(
         (btn) =>
           normalizeString(btn.getAttribute("data-drone-name")) ===
-          normalizedDroneName
+          normalizedDroneName,
       );
 
       if (!droneBtn) {
         console.warn(
           `Drone "${droneName}" not found. Available drones:`,
           Array.from(document.querySelectorAll("[data-drone-name]")).map(
-            (btn) => btn.getAttribute("data-drone-name")
-          )
+            (btn) => btn.getAttribute("data-drone-name"),
+          ),
         );
         resolve(false);
         return;
@@ -2249,15 +2248,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const normalizedColorName = normalizeString(colorName);
     const colorInputs = document.querySelectorAll(".radio_input-color");
     const colorInput = Array.from(colorInputs).find(
-      (input) => normalizeString(input.value) === normalizedColorName
+      (input) => normalizeString(input.value) === normalizedColorName,
     );
 
     if (!colorInput) {
       console.warn(
         `Color "${colorName}" not found. Available colors:`,
         Array.from(document.querySelectorAll(".radio_input-color")).map(
-          (input) => input.value
-        )
+          (input) => input.value,
+        ),
       );
       return false;
     }
@@ -2279,7 +2278,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const normalizedModuleValue = normalizeString(moduleValue);
       const moduleInputs = document.querySelectorAll(".modules-item input");
       const moduleInput = Array.from(moduleInputs).find(
-        (input) => normalizeString(input.value) === normalizedModuleValue
+        (input) => normalizeString(input.value) === normalizedModuleValue,
       );
 
       if (!moduleInput) {
@@ -2290,7 +2289,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const item = input.closest(".modules-item");
               return item && item.style.display !== "none";
             })
-            .map((input) => input.value)
+            .map((input) => input.value),
         );
         resolve(false);
         return;
@@ -2299,7 +2298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const moduleItem = moduleInput.closest(".modules-item");
       if (moduleItem && moduleItem.style.display === "none") {
         console.warn(
-          `Module "${moduleValue}" is not available for selected drone`
+          `Module "${moduleValue}" is not available for selected drone`,
         );
         resolve(false);
         return;
@@ -2323,10 +2322,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Promise((resolve) => {
       const normalizedLinkValue = normalizeString(linkValue);
       const linkInputs = document.querySelectorAll(
-        ".modules-link input:not(#optional input)"
+        ".modules-link input:not(#optional input)",
       );
       const linkInput = Array.from(linkInputs).find(
-        (input) => normalizeString(input.value) === normalizedLinkValue
+        (input) => normalizeString(input.value) === normalizedLinkValue,
       );
 
       if (!linkInput) {
@@ -2334,14 +2333,14 @@ document.addEventListener("DOMContentLoaded", () => {
           `Data Link "${linkValue}" not found. Available links:`,
           Array.from(
             document.querySelectorAll(
-              ".modules-link input:not(#optional input)"
-            )
+              ".modules-link input:not(#optional input)",
+            ),
           )
             .filter((input) => {
               const item = input.closest(".modules-link");
               return item && item.style.display !== "none";
             })
-            .map((input) => input.value)
+            .map((input) => input.value),
         );
         resolve(false);
         return;
@@ -2350,7 +2349,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const linkItem = linkInput.closest(".modules-link");
       if (linkItem && linkItem.style.display === "none") {
         console.warn(
-          `Data Link "${linkValue}" is not available for selected configuration`
+          `Data Link "${linkValue}" is not available for selected configuration`,
         );
         resolve(false);
         return;
@@ -2375,22 +2374,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const optional = document.querySelector("#optional");
       if (!optional || optional.style.display === "none") {
         console.warn(
-          `Optional data link not available (requires FIXAR 025 + DTC)`
+          `Optional data link not available (requires FIXAR 025 + DTC)`,
         );
         resolve(false);
         return;
       }
 
       const optionalInput = document.querySelector(
-        `#optional input[value="${optionalValue}"]`
+        `#optional input[value="${optionalValue}"]`,
       );
 
       if (!optionalInput) {
         console.warn(
           `Optional Data Link "${optionalValue}" not found. Available:`,
           Array.from(document.querySelectorAll("#optional input")).map(
-            (input) => input.value
-          )
+            (input) => input.value,
+          ),
         );
         resolve(false);
         return;
@@ -2547,7 +2546,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!header || !targetElement) {
       console.warn(
-        `Header or ${targetSelector} not found for mobile scroll behavior`
+        `Header or ${targetSelector} not found for mobile scroll behavior`,
       );
       return null;
     }

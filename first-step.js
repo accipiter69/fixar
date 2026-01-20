@@ -20,7 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const modulesLists = document.querySelectorAll("[data-list-name]");
   console.log("[Init] Found data-list-name containers:", modulesLists.length);
   modulesLists.forEach((list) => {
-    console.log("[Init] Hiding container:", list.getAttribute("data-list-name"));
+    console.log(
+      "[Init] Hiding container:",
+      list.getAttribute("data-list-name"),
+    );
     list.classList.add("hidden-now");
   });
 
@@ -72,18 +75,29 @@ document.addEventListener("DOMContentLoaded", () => {
   function showModulesByIndustry(industryValue) {
     console.log("[showModulesByIndustry] Called with value:", industryValue);
     const modulesLists = document.querySelectorAll("[data-list-name]");
-    console.log("[showModulesByIndustry] Found containers:", modulesLists.length);
+    console.log(
+      "[showModulesByIndustry] Found containers:",
+      modulesLists.length,
+    );
 
     modulesLists.forEach((list) => {
       const listName = list.getAttribute("data-list-name");
-      console.log("[showModulesByIndustry] Checking container:", listName, "against:", industryValue);
+      console.log(
+        "[showModulesByIndustry] Checking container:",
+        listName,
+        "against:",
+        industryValue,
+      );
 
       // Uncheck inputs in lists that will be hidden
       if (listName !== industryValue) {
         const inputs = list.querySelectorAll(".modules-item input");
         inputs.forEach((input) => {
           if (input.checked) {
-            console.log("[showModulesByIndustry] Unchecking input in:", listName);
+            console.log(
+              "[showModulesByIndustry] Unchecking input in:",
+              listName,
+            );
             input.checked = false;
           }
         });
@@ -131,11 +145,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Industry filter listener
   const industryInputs = document.querySelectorAll('input[name="Industry"]');
-  console.log("[Industry Listener] Found Industry inputs:", industryInputs.length);
+  console.log(
+    "[Industry Listener] Found Industry inputs:",
+    industryInputs.length,
+  );
   industryInputs.forEach((input) => {
     console.log("[Industry Listener] Adding listener to:", input.value);
     input.addEventListener("change", () => {
-      console.log("[Industry Listener] Change event fired! Value:", input.value);
+      console.log(
+        "[Industry Listener] Change event fired! Value:",
+        input.value,
+      );
       showModulesByIndustry(input.value);
     });
   });
@@ -206,19 +226,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Зберігаємо дані обраного модуля
-        const selectedModule = document.querySelector(
+        const selectedApplication = document.querySelector(
           ".model_form-module:has(input:checked)",
         );
-        if (selectedModule) {
-          const img = selectedModule.querySelector("img");
-          const h4 = selectedModule.querySelector("h4");
-          const p = selectedModule.querySelector("p");
+        if (selectedApplication) {
+          const img = selectedApplication.querySelector("img");
+          const h4 = selectedApplication.querySelector("h4");
+          const p = selectedApplication.querySelector("p");
           const moduleData = {
             imgSrc: img ? img.src : "",
             title: h4 ? h4.textContent.trim() : "",
             description: p ? p.textContent.trim() : "",
           };
-          sessionStorage.setItem("selectedModule", JSON.stringify(moduleData));
+          sessionStorage.setItem(
+            "selectedApplication",
+            JSON.stringify(moduleData),
+          );
         }
 
         // Редірект на відповідну сторінку залежно від моделі

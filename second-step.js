@@ -8,6 +8,117 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG(9.01.26).glb",
 };
 
+const selectedApplications = {
+  "Detecting illegal activities": {
+    subtitle:
+      "Identify and track illegal activities such as fishing, poaching, and drug cultivation in remote areas",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8fa7e332be8f6ac88deb8_Frame%201484582887_converted.avif",
+  },
+  "Pursuit and tracking": {
+    subtitle:
+      "AI tracking ensures continuous suspect surveillance while reducing officer risk and enabling dynamic target following",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68ff6f36865952d21f742392_%D0%94%D1%80%D0%BE%D0%BD-025-%D0%B23.avif",
+  },
+  "Evidence collection": {
+    subtitle:
+      "Capture high-resolution aerial imagery and 3D scene mapping for crime scene analysis and detailed forensic reconstructions",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876954cf9022d6a691d0d9_Evidence-collection.avif",
+  },
+  "SWAT and tactical operations": {
+    subtitle:
+      "Live aerial video for high-risk missions like hostage rescues, enabling detailed recon of buildings and areas before entry",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68be86a84e3ca14874219b60_SWAT.avif",
+  },
+  "Traffic and road safety": {
+    subtitle:
+      "Enhance road safety through live traffic monitoring, automated violation detection, and rapid response to accidents",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876a0c0e177409e21d018e_Traffic-and-road-safety.avif",
+  },
+  "Border patrol and surveillance": {
+    subtitle:
+      "Detect unauthorized crossings and smuggling operations by monitoring vast border areas in real time",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876a48d7024ee7afd43ed1_Border-patrol-and-surveillance2%20(1).avif",
+  },
+  "Wildlife observation on land and water": {
+    subtitle:
+      "Monitor wildlife, track migration, and habitat changes on land and water without disturbing ecosystems",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8faa1072523dbebd23fb6_Frame%201484582886_converted.avif",
+  },
+  "Infrastructure monitoring": {
+    subtitle:
+      "Automated inspections of critical infrastructure such as gold mining sites, oil and gas pipelines, bridges, power lines, and facilities to reduce costs and enhance safety",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68877ce33e087d22c7971f3d_Infrastructure-monitoring3.avif",
+  },
+  "Precision agriculture and forest valuation": {
+    subtitle:
+      "Optimize crop management and forest valuation via aerial monitoring, detecting vegetation index, soil conditions, moisture levels, drainage forecasting, supporting organic farming, and refining field boundaries and maps",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876aa8c59d57c9a4cd91a9_Precision-agriculture-and-forest-valuation.avif",
+  },
+  Mapping: {
+    subtitle:
+      "Capture high-resolution aerial images and geospatial data to deliver RGB/multispectral photos. Resulting in orthomosaics and 3D models (DSM, DEM), produced for construction, urban planning, moisture control, flood monitoring, surface mines, etc.",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68878cbc1205f2d260010945_Photogrammetry2.avif",
+  },
+  "LiDAR scanning": {
+    subtitle:
+      "High-precision aerial laser scanning for terrain mapping and 3D models, even in remote, dense forests, or hard-to-reach areas",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876acbc028951b445d2f06_LiDAR-scanning-and-mapping.avif",
+  },
+  "Medical and vital goods delivery": {
+    subtitle:
+      "Fast, reliable transport of medical supplies, vaccines, and essential goods to remote areas or during emergencies",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876d423500090723b351e0_Medical%20and%20vital%20goods%20delivery.avif",
+  },
+  "Fire response and incident assessment": {
+    subtitle:
+      "Deliver real-time aerial intelligence on critical situations such as fires, hazardous material spills, or structural collapses",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/6887891f2ece7bf624258a86_Incident-assessment2.avif",
+  },
+  "Disaster management and recovery": {
+    subtitle:
+      "Assess damage from natural disasters like floods, earthquakes, or wildfires, and identify survivors in need of rescue",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876b758f85e9d081c317a8_Disaster-management-and-recovery2%20(1).avif",
+  },
+  "Remote communication and control": {
+    subtitle:
+      "Utilize UAVs as mobile communication mesh in areas with limited infrastructure or during large-scale emergencies",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8fac1fa22351df00bb027_Frame%201484582888_converted.avif",
+  },
+  "Emergency response": {
+    subtitle:
+      "Eyes in the air, aid on the way. FIXAR drones provide first responders with real-time aerial visibility, route optimization, and remote coordination in chaotic or inaccessible environments",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876af7afd1e08bedb9882c_Emergency-response-.avif",
+  },
+  "Search and rescue operations": {
+    subtitle:
+      "Deploy thermal imaging and night vision payloads to locate missing persons in remote or hard-to-reach areas",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876b9fb300f80b5d5c522f_Search%20and%20rescue%20operations%20(1).avif",
+  },
+  "Surveillance and monitoring": {
+    subtitle:
+      "Monitor large public gatherings, protests, or events to identify potential disturbances and manage crowd behavior in real time",
+    imageSrc:
+      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/688795a05c6589af1992a10a_Surveillance-and-monitoring2.avif",
+  },
+};
+
 // Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
 
 function normalizeString(str) {
@@ -57,11 +168,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = form.querySelector(".submit");
 
   // Заповнюємо дані обраного модуля з першого кроку
-  const selectedModuleData = sessionStorage.getItem("selectedModule");
-  console.log("[selectedModule] Data from sessionStorage:", selectedModuleData);
-  if (selectedModuleData) {
-    const moduleData = JSON.parse(selectedModuleData);
-    console.log("[selectedModule] Parsed data:", moduleData);
+  const selectedApplicationData = sessionStorage.getItem("selectedApplication");
+  console.log(
+    "[selectedApplication] Data from sessionStorage:",
+    selectedApplicationData,
+  );
+  if (selectedApplicationData) {
+    const moduleData = JSON.parse(selectedApplicationData);
+    console.log("[selectedApplication] Parsed data:", moduleData);
     const selectedImg = document.getElementById("selected-img");
     const selectedTitle = document.getElementById("selected-title");
     const selectedDescription = document.getElementById("selected-description");
@@ -82,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultModule = document.querySelector("[data-choice=module]");
   const resultDataLink = document.querySelector("[data-choice=link]");
   const resultDataLinkOptional = document.querySelector(
-    "[data-choice=link-optional]"
+    "[data-choice=link-optional]",
   );
   const resultModuleBadge = document.querySelector(".model_scene-gimbal");
   const resultLinkBadge = document.querySelector(".range-selected");
@@ -110,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const telemetryOnly = document.querySelector("#telemetry-only");
   const telemetryVideo = document.querySelector("#telemetry-video-links");
   const configureDataLinkSection = document.querySelector(
-    "#configure-data-link"
+    "#configure-data-link",
   );
 
   const modulesLinksParameters = {
@@ -166,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
   orderTooltipTl.fromTo(
     orderTooltip,
     { opacity: 1, pointerEvents: "auto" }, // FROM: visible state (position 0)
-    { opacity: 0, pointerEvents: "none", duration: 0.3 } // TO: hidden state (position 1)
+    { opacity: 0, pointerEvents: "none", duration: 0.3 }, // TO: hidden state (position 1)
   );
 
   // Initialize timeline to hidden state (position 1)
@@ -325,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (index === -1) {
       console.warn(
-        `Анімація "${animationName}" не знайдена для моделі ${targetDrone}`
+        `Анімація "${animationName}" не знайдена для моделі ${targetDrone}`,
       );
       return false;
     }
@@ -344,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
     75,
     container.clientWidth / container.clientHeight,
     0.1,
-    1000
+    1000,
   );
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -397,13 +511,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.changeColorByMaterialName = (
     materialName,
     hexColor,
-    droneName = null
+    droneName = null,
   ) => {
     const targetDrone = droneName || currentDroneModel;
     const model = window.loadedModels[targetDrone];
 
     console.log(
-      `[changeColorByMaterialName] targetDrone: ${targetDrone}, materialName: ${materialName}, hexColor: ${hexColor}`
+      `[changeColorByMaterialName] targetDrone: ${targetDrone}, materialName: ${materialName}, hexColor: ${hexColor}`,
     );
 
     if (!model) {
@@ -419,7 +533,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (matName === materialName) {
           if (child.material.color) {
             child.material.color.setHex(
-              parseInt(hexColor.replace("#", ""), 16)
+              parseInt(hexColor.replace("#", ""), 16),
             );
             changedCount++;
           }
@@ -428,14 +542,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     console.log(
-      `[changeColorByMaterialName] ${targetDrone}: змінено ${changedCount} елементів`
+      `[changeColorByMaterialName] ${targetDrone}: змінено ${changedCount} елементів`,
     );
     return changedCount;
   };
 
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
   );
 
   const loader = new THREE.GLTFLoader();
@@ -580,18 +694,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // Застосовуємо початковий колір до щойно завантаженої моделі
       setTimeout(() => {
         console.log(
-          `[Color Init] Модель ${droneName} завантажена, застосовуємо початковий колір`
+          `[Color Init] Модель ${droneName} завантажена, застосовуємо початковий колір`,
         );
         const checkedColorField = document.querySelector(
-          ".radio_input-color:checked"
+          ".radio_input-color:checked",
         );
         console.log(
           `[Color Init] Checked color field:`,
-          checkedColorField?.value
+          checkedColorField?.value,
         );
         if (checkedColorField) {
           checkedColorField.dispatchEvent(
-            new Event("change", { bubbles: true })
+            new Event("change", { bubbles: true }),
           );
         } else {
           console.warn("[Color Init] Не знайдено checked color field!");
@@ -689,7 +803,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const h3 = technologyItem.querySelector("h3");
     const firstP = technologyItem.querySelector("p");
     const technologyLink = technologyItem.querySelector(
-      ".text-16.is--technologies-link"
+      ".text-16.is--technologies-link",
     );
 
     // Отримуємо елементи попапу
@@ -760,7 +874,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listSelector,
     itemsSelector,
     onlyVisible = false,
-    enableDynamicHeight = false
+    enableDynamicHeight = false,
   ) {
     const blocks = document.querySelectorAll(blockSelector);
 
@@ -929,7 +1043,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initDropdown(
     ".model_form-technologies-elem",
     ".model_form-technologies-wrp",
-    ".model_form-technologies-item"
+    ".model_form-technologies-item",
   );
 
   // Ініціалізація блоків модулів (тільки видимі елементи)
@@ -945,7 +1059,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ".modules-list-wrp",
     ".modules-link",
     true,
-    true
+    true,
   );
 
   // ============================================
@@ -954,7 +1068,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Обробники для відкриття попапу при кліку на технології
   const technologyItems = document.querySelectorAll(
-    ".model_form-technologies-item"
+    ".model_form-technologies-item",
   );
   technologyItems.forEach((item) => {
     const technologyLink = item.querySelector(".text-16.is--technologies-link");
@@ -1015,11 +1129,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const colorElement = document.querySelector("[data-choice=color]");
     if (colorElement && colorElement.style.display !== "none") {
       const colorName = colorElement.querySelector(
-        "[data-res-color-name]"
+        "[data-res-color-name]",
       )?.textContent;
       const colorDescription = colorElement.querySelector("p")?.textContent;
       const colorSwatchElement = colorElement.querySelector(
-        ".model_form-color-btn-res"
+        ".model_form-color-btn-res",
       );
       const colorValue = colorSwatchElement
         ? window.getComputedStyle(colorSwatchElement).backgroundColor
@@ -1044,7 +1158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (moduleElement && moduleElement.style.display !== "none") {
       const moduleTitle = moduleElement.querySelector("h3")?.textContent;
       const moduleDescription = moduleElement.querySelector(
-        "[data-module-description]"
+        "[data-module-description]",
       )?.textContent;
       const moduleImage = moduleElement
         .querySelector("img")
@@ -1079,7 +1193,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Збір даних Optional Data Link
     const optionalElement = document.querySelector(
-      "[data-choice=link-optional]"
+      "[data-choice=link-optional]",
     );
     if (optionalElement && optionalElement.style.display !== "none") {
       const optionalTitle = optionalElement.querySelector("h3")?.textContent;
@@ -1114,7 +1228,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Extract drone price
     const droneBtn = document.querySelector(
-      ".nav_config-drones-item.w--current"
+      ".nav_config-drones-item.w--current",
     );
     const dronePrice = droneBtn
       ? parsePriceFromText(droneBtn.getAttribute("data-price"))
@@ -1133,7 +1247,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Extract data link price
     const linkInput = document.querySelector(
-      ".modules-link input:not(#optional input):checked"
+      ".modules-link input:not(#optional input):checked",
     );
     let dataLinkPrice = 0;
     if (linkInput) {
@@ -1253,7 +1367,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultDataLinkOptional.querySelector(".price_elem-num");
       if (optionalPriceElem) {
         optionalPriceElem.textContent = formatPrice(
-          configData.dataLinkOptionalPrice || 0
+          configData.dataLinkOptionalPrice || 0,
         );
       }
     }
@@ -1335,14 +1449,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
       const colorBtn = initialColorField.parentElement?.querySelector(
-        ".model_form-color-btn"
+        ".model_form-color-btn",
       );
 
       if (colorBtn) {
         const styles = window.getComputedStyle(colorBtn);
         const bgColor = styles.backgroundColor;
         const bgImage = styles.backgroundImage;
-        const resultBtn = resultColor.querySelector(".model_form-color-btn-res");
+        const resultBtn = resultColor.querySelector(
+          ".model_form-color-btn-res",
+        );
         resultBtn.style.backgroundColor = bgColor;
         resultBtn.style.backgroundImage = bgImage !== "none" ? bgImage : "";
         resultBtn.style.backgroundPosition = "50% 50%";
@@ -1367,14 +1483,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
           const colorBtn = field.parentElement?.querySelector(
-            ".model_form-color-btn"
+            ".model_form-color-btn",
           );
 
           if (colorBtn) {
             const styles = window.getComputedStyle(colorBtn);
             const bgColor = styles.backgroundColor;
             const bgImage = styles.backgroundImage;
-            const resultBtn = resultColor.querySelector(".model_form-color-btn-res");
+            const resultBtn = resultColor.querySelector(
+              ".model_form-color-btn-res",
+            );
             resultBtn.style.backgroundColor = bgColor;
             resultBtn.style.backgroundImage = bgImage !== "none" ? bgImage : "";
             resultBtn.style.backgroundPosition = "50% 50%";
@@ -1414,7 +1532,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (!colorElement) {
           colorElement = field.parentElement?.querySelector(
-            ".model_form-color-btn"
+            ".model_form-color-btn",
           );
         }
 
@@ -1447,7 +1565,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const changedCount = window.changeColorByMaterialName(
                 "red",
                 hexColor,
-                modelName
+                modelName,
               );
 
               if (changedCount === 0) {
@@ -1486,13 +1604,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         child.material.color.setRGB(
                           originalColor.r,
                           originalColor.g,
-                          originalColor.b
+                          originalColor.b,
                         );
                       }
                     } else {
                       // Якщо НЕ червоний - фарбуємо в обраний колір
                       child.material.color.setHex(
-                        parseInt(hexColor.replace("#", ""), 16)
+                        parseInt(hexColor.replace("#", ""), 16),
                       );
                     }
                   }
@@ -1567,7 +1685,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Перевіряємо чи application є серед значень .for-application
         const applicationValues = Array.from(forApplicationElements).map((el) =>
-          el.textContent.trim()
+          el.textContent.trim(),
         );
 
         if (!applicationValues.includes(application.trim())) {
@@ -1587,7 +1705,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const visibleModules = Array.from(modulesInside).filter(
-          (item) => item.style.display !== "none"
+          (item) => item.style.display !== "none",
         );
 
         if (visibleModules.length === 0) {
@@ -1638,7 +1756,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetModulesLinkSelection() {
       // Дізчекаємо всі modules-link inputs
       const allModulesLinkInputs = document.querySelectorAll(
-        ".modules-link input"
+        ".modules-link input",
       );
       allModulesLinkInputs.forEach((input) => {
         input.checked = false;
@@ -1670,7 +1788,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterModulesLinksByCategory() {
       // Знаходимо активний modules-item (checked input)
       const activeModuleInput = document.querySelector(
-        ".modules-item input:checked"
+        ".modules-item input:checked",
       );
 
       if (!activeModuleInput) {
@@ -1704,7 +1822,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Застосовуємо правила фільтрації (порівняння в нижньому регістрі)
       const telemetryOnlyCategories = modulesLinksParameters.telemetryOnly.map(
-        (cat) => cat.toLowerCase()
+        (cat) => cat.toLowerCase(),
       );
       if (telemetryOnlyCategories.includes(category)) {
         // Показуємо telemetryOnly
@@ -1727,7 +1845,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Функція обробки вибору modules-link (для показу optional блоку)
     function handleModulesLinkSelection() {
       const allModulesLinkInputs = document.querySelectorAll(
-        ".modules-link input"
+        ".modules-link input",
       );
 
       allModulesLinkInputs.forEach((input) => {
@@ -1918,7 +2036,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resultModuleBadge.style.display = "flex";
       } else {
         console.warn(
-          "Could not find .text-16 element inside resultModuleBadge"
+          "Could not find .text-16 element inside resultModuleBadge",
         );
         resultModuleBadge.style.display = "none";
       }
@@ -2078,7 +2196,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const moduleImg = moduleItem.querySelector("img");
               const moduleTitle = moduleItem.querySelector("h3");
               const moduleDescription = moduleItem.querySelector(
-                "[data-module-description]"
+                "[data-module-description]",
               );
 
               // Оновлюємо resultModule
@@ -2098,7 +2216,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
               if (moduleDescription) {
                 const resultDesc = resultModule.querySelector(
-                  "[data-module-description]"
+                  "[data-module-description]",
                 );
                 if (resultDesc) {
                   resultDesc.textContent = moduleDescription.textContent;
@@ -2233,15 +2351,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const droneBtn = Array.from(droneButtons).find(
         (btn) =>
           normalizeString(btn.getAttribute("data-drone-name")) ===
-          normalizedDroneName
+          normalizedDroneName,
       );
 
       if (!droneBtn) {
         console.warn(
           `Drone "${droneName}" not found. Available drones:`,
           Array.from(document.querySelectorAll("[data-drone-name]")).map(
-            (btn) => btn.getAttribute("data-drone-name")
-          )
+            (btn) => btn.getAttribute("data-drone-name"),
+          ),
         );
         resolve(false);
         return;
@@ -2264,15 +2382,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const normalizedColorName = normalizeString(colorName);
     const colorInputs = document.querySelectorAll(".radio_input-color");
     const colorInput = Array.from(colorInputs).find(
-      (input) => normalizeString(input.value) === normalizedColorName
+      (input) => normalizeString(input.value) === normalizedColorName,
     );
 
     if (!colorInput) {
       console.warn(
         `Color "${colorName}" not found. Available colors:`,
         Array.from(document.querySelectorAll(".radio_input-color")).map(
-          (input) => input.value
-        )
+          (input) => input.value,
+        ),
       );
       return false;
     }
@@ -2294,7 +2412,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const normalizedModuleValue = normalizeString(moduleValue);
       const moduleInputs = document.querySelectorAll(".modules-item input");
       const moduleInput = Array.from(moduleInputs).find(
-        (input) => normalizeString(input.value) === normalizedModuleValue
+        (input) => normalizeString(input.value) === normalizedModuleValue,
       );
 
       if (!moduleInput) {
@@ -2305,7 +2423,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const item = input.closest(".modules-item");
               return item && item.style.display !== "none";
             })
-            .map((input) => input.value)
+            .map((input) => input.value),
         );
         resolve(false);
         return;
@@ -2314,7 +2432,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const moduleItem = moduleInput.closest(".modules-item");
       if (moduleItem && moduleItem.style.display === "none") {
         console.warn(
-          `Module "${moduleValue}" is not available for selected drone`
+          `Module "${moduleValue}" is not available for selected drone`,
         );
         resolve(false);
         return;
@@ -2338,10 +2456,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return new Promise((resolve) => {
       const normalizedLinkValue = normalizeString(linkValue);
       const linkInputs = document.querySelectorAll(
-        ".modules-link input:not(#optional input)"
+        ".modules-link input:not(#optional input)",
       );
       const linkInput = Array.from(linkInputs).find(
-        (input) => normalizeString(input.value) === normalizedLinkValue
+        (input) => normalizeString(input.value) === normalizedLinkValue,
       );
 
       if (!linkInput) {
@@ -2349,14 +2467,14 @@ document.addEventListener("DOMContentLoaded", () => {
           `Data Link "${linkValue}" not found. Available links:`,
           Array.from(
             document.querySelectorAll(
-              ".modules-link input:not(#optional input)"
-            )
+              ".modules-link input:not(#optional input)",
+            ),
           )
             .filter((input) => {
               const item = input.closest(".modules-link");
               return item && item.style.display !== "none";
             })
-            .map((input) => input.value)
+            .map((input) => input.value),
         );
         resolve(false);
         return;
@@ -2365,7 +2483,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const linkItem = linkInput.closest(".modules-link");
       if (linkItem && linkItem.style.display === "none") {
         console.warn(
-          `Data Link "${linkValue}" is not available for selected configuration`
+          `Data Link "${linkValue}" is not available for selected configuration`,
         );
         resolve(false);
         return;
@@ -2390,22 +2508,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const optional = document.querySelector("#optional");
       if (!optional || optional.style.display === "none") {
         console.warn(
-          `Optional data link not available (requires FIXAR 025 + DTC)`
+          `Optional data link not available (requires FIXAR 025 + DTC)`,
         );
         resolve(false);
         return;
       }
 
       const optionalInput = document.querySelector(
-        `#optional input[value="${optionalValue}"]`
+        `#optional input[value="${optionalValue}"]`,
       );
 
       if (!optionalInput) {
         console.warn(
           `Optional Data Link "${optionalValue}" not found. Available:`,
           Array.from(document.querySelectorAll("#optional input")).map(
-            (input) => input.value
-          )
+            (input) => input.value,
+          ),
         );
         resolve(false);
         return;
@@ -2424,6 +2542,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Apply application selection from URL parameter
+  function applyApplicationSelection(applicationTitle) {
+    const appData = selectedApplications[applicationTitle];
+    if (!appData) {
+      console.warn(
+        `Application "${applicationTitle}" not found in selectedApplications`,
+      );
+      return;
+    }
+
+    const selectedImg = document.getElementById("selected-img");
+    const selectedTitle = document.getElementById("selected-title");
+    const selectedDescription = document.getElementById("selected-description");
+
+    if (selectedImg && appData.imageSrc) {
+      selectedImg.src = appData.imageSrc;
+    }
+    if (selectedTitle) {
+      selectedTitle.textContent = applicationTitle;
+    }
+    if (selectedDescription && appData.subtitle) {
+      selectedDescription.textContent = appData.subtitle;
+    }
+
+    console.log(`Applied application from URL: ${applicationTitle}`);
+  }
+
   // Main function to apply URL parameters
   async function applyUrlParameters() {
     const params = parseUrlParameters();
@@ -2433,6 +2578,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     console.log("Applying URL parameters:", params);
+
+    // Application (only if not already populated from sessionStorage)
+    if (params["application"]) {
+      const existingTitle = document.getElementById("selected-title");
+      if (!existingTitle || !existingTitle.textContent.trim()) {
+        applyApplicationSelection(params["application"]);
+      }
+    }
 
     // CRITICAL SEQUENCE:
 
@@ -2486,6 +2639,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const paramKey = key === "Drone Model" ? "model" : key;
         params.append(paramKey, normalizeString(value));
       }
+    }
+
+    // Include application from sessionStorage (try both keys)
+    let applicationTitle = null;
+
+    // Try "selectedApplication" first (object with title)
+    const selectedApplicationData = sessionStorage.getItem("selectedApplication");
+    if (selectedApplicationData) {
+      try {
+        const appData = JSON.parse(selectedApplicationData);
+        if (appData.title) {
+          applicationTitle = appData.title;
+        }
+      } catch (e) {
+        console.warn("Failed to parse selectedApplication from sessionStorage");
+      }
+    }
+
+    // Fallback to "application" key (just the string)
+    if (!applicationTitle) {
+      applicationTitle = sessionStorage.getItem("application");
+    }
+
+    if (applicationTitle) {
+      params.append("application", applicationTitle);
     }
 
     // Build complete URL
@@ -2562,7 +2740,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!header || !targetElement) {
       console.warn(
-        `Header or ${targetSelector} not found for mobile scroll behavior`
+        `Header or ${targetSelector} not found for mobile scroll behavior`,
       );
       return null;
     }
