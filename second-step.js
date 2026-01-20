@@ -2579,10 +2579,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Applying URL parameters:", params);
 
-    // Application (only if not already populated from sessionStorage)
+    // Application (only if sessionStorage doesn't have the data)
     if (params["application"]) {
-      const existingTitle = document.getElementById("selected-title");
-      if (!existingTitle || !existingTitle.textContent.trim()) {
+      const hasSessionData = sessionStorage.getItem("selectedApplication") || sessionStorage.getItem("application");
+      if (!hasSessionData) {
         applyApplicationSelection(params["application"]);
       }
     }
