@@ -287,51 +287,52 @@ function populateDataChoiceElements(configData) {
 
   // Заповнення Survey Items (PPK, Station, Software)
   if (configData.surveyItems) {
-    // PPK Receiver
-    if (configData.surveyItems.ppk && configData.surveyItems.ppk.checked) {
-      const ppkElement = document.querySelector("[data-choice='PPK Receiver']");
-      if (ppkElement) {
-        const titleElement = ppkElement.querySelector("h3");
-        if (titleElement && configData.surveyItems.ppk.title) {
-          titleElement.textContent = configData.surveyItems.ppk.title;
-        }
-        ppkElement.style.display = "flex";
+    // Helper function to populate survey item
+    const populateSurveyItem = (selector, itemData) => {
+      if (!itemData || !itemData.checked) return;
+
+      const element = document.querySelector(selector);
+      if (!element) return;
+
+      // Set title
+      const titleElement = element.querySelector("h3");
+      if (titleElement && itemData.title) {
+        titleElement.textContent = itemData.title;
       }
-    }
+
+      // Set description
+      const descElement = element.querySelector("p");
+      if (descElement && itemData.description) {
+        descElement.textContent = itemData.description;
+      }
+
+      // Set image and clear srcset
+      const imgElement = element.querySelector("img");
+      if (imgElement && itemData.image) {
+        imgElement.setAttribute("src", itemData.image);
+        imgElement.removeAttribute("srcset");
+      }
+
+      element.style.display = "flex";
+    };
+
+    // PPK Receiver
+    populateSurveyItem(
+      "[data-choice='PPK Receiver']",
+      configData.surveyItems.ppk,
+    );
 
     // Ground base station
-    if (
-      configData.surveyItems.station &&
-      configData.surveyItems.station.checked
-    ) {
-      const stationElement = document.querySelector(
-        "[data-choice='Ground base station']",
-      );
-      if (stationElement) {
-        const titleElement = stationElement.querySelector("h3");
-        if (titleElement && configData.surveyItems.station.title) {
-          titleElement.textContent = configData.surveyItems.station.title;
-        }
-        stationElement.style.display = "flex";
-      }
-    }
+    populateSurveyItem(
+      "[data-choice='Ground base station']",
+      configData.surveyItems.station,
+    );
 
     // Data processing software
-    if (
-      configData.surveyItems.software &&
-      configData.surveyItems.software.checked
-    ) {
-      const softwareElement = document.querySelector(
-        "[data-choice='Data processing software']",
-      );
-      if (softwareElement) {
-        const titleElement = softwareElement.querySelector("h3");
-        if (titleElement && configData.surveyItems.software.title) {
-          titleElement.textContent = configData.surveyItems.software.title;
-        }
-        softwareElement.style.display = "flex";
-      }
-    }
+    populateSurveyItem(
+      "[data-choice='Data processing software']",
+      configData.surveyItems.software,
+    );
   }
 }
 

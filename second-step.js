@@ -1334,36 +1334,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Collect survey items data
+    const getSurveyItemData = (checkbox, price) => {
+      if (!checkbox) return null;
+      const item = checkbox.closest(".modules_survay-item");
+      if (!item) return null;
+      const img = item.querySelector("img");
+      return {
+        title: item.querySelector("h3")?.textContent || "",
+        description:
+          item.querySelector("[data-module-description]")?.textContent || "",
+        image: img?.getAttribute("src") || "",
+        price: price,
+        checked: true,
+      };
+    };
+
     configData.surveyItems = {
-      ppk: ppkCheckbox
-        ? {
-            title:
-              ppkCheckbox.closest(".modules_survay-item")?.querySelector("h3")
-                ?.textContent || "",
-            price: ppkPrice,
-            checked: true,
-          }
-        : null,
-      station: stationCheckbox
-        ? {
-            title:
-              stationCheckbox
-                .closest(".modules_survay-item")
-                ?.querySelector("h3")?.textContent || "",
-            price: stationPrice,
-            checked: true,
-          }
-        : null,
-      software: softwareCheckbox
-        ? {
-            title:
-              softwareCheckbox
-                .closest(".modules_survay-item")
-                ?.querySelector("h3")?.textContent || "",
-            price: softwarePrice,
-            checked: true,
-          }
-        : null,
+      ppk: getSurveyItemData(ppkCheckbox, ppkPrice),
+      station: getSurveyItemData(stationCheckbox, stationPrice),
+      software: getSurveyItemData(softwareCheckbox, softwarePrice),
     };
 
     const totalPrice =
