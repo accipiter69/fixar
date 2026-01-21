@@ -225,6 +225,25 @@ document.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem("application", application);
         }
 
+        // Зберігаємо дані обраного модуля
+        const selectedApplication = document.querySelector(
+          ".model_form-module:has(input:checked)",
+        );
+        if (selectedApplication) {
+          const img = selectedApplication.querySelector("img");
+          const h4 = selectedApplication.querySelector("h4");
+          const p = selectedApplication.querySelector("p");
+          const moduleData = {
+            imgSrc: img ? img.src : "",
+            title: h4 ? h4.textContent.trim() : "",
+            description: p ? p.textContent.trim() : "",
+          };
+          sessionStorage.setItem(
+            "selectedApplication",
+            JSON.stringify(moduleData),
+          );
+        }
+
         // Редірект на відповідну сторінку залежно від моделі
         const normalizedModel = normalizeKey(model || "");
         const redirectUrl = Object.entries(redirectUrls).find(

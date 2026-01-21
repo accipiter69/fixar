@@ -14,66 +14,77 @@ const selectedApplications = {
       "Identify and track illegal activities such as fishing, poaching, and drug cultivation in remote areas",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8fa7e332be8f6ac88deb8_Frame%201484582887_converted.avif",
+    survey: true,
   },
   "Pursuit and tracking": {
     subtitle:
       "AI tracking ensures continuous suspect surveillance while reducing officer risk and enabling dynamic target following",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68ff6f36865952d21f742392_%D0%94%D1%80%D0%BE%D0%BD-025-%D0%B23.avif",
+    survey: false,
   },
   "Evidence collection": {
     subtitle:
       "Capture high-resolution aerial imagery and 3D scene mapping for crime scene analysis and detailed forensic reconstructions",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876954cf9022d6a691d0d9_Evidence-collection.avif",
+    survey: true,
   },
   "SWAT and tactical operations": {
     subtitle:
       "Live aerial video for high-risk missions like hostage rescues, enabling detailed recon of buildings and areas before entry",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68be86a84e3ca14874219b60_SWAT.avif",
+    survey: false,
   },
   "Traffic and road safety": {
     subtitle:
       "Enhance road safety through live traffic monitoring, automated violation detection, and rapid response to accidents",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876a0c0e177409e21d018e_Traffic-and-road-safety.avif",
+    survey: false,
   },
   "Border patrol and surveillance": {
     subtitle:
       "Detect unauthorized crossings and smuggling operations by monitoring vast border areas in real time",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876a48d7024ee7afd43ed1_Border-patrol-and-surveillance2%20(1).avif",
+    survey: true,
   },
   "Wildlife observation on land and water": {
     subtitle:
       "Monitor wildlife, track migration, and habitat changes on land and water without disturbing ecosystems",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8faa1072523dbebd23fb6_Frame%201484582886_converted.avif",
+    survey: true,
   },
   "Infrastructure monitoring": {
     subtitle:
       "Automated inspections of critical infrastructure such as gold mining sites, oil and gas pipelines, bridges, power lines, and facilities to reduce costs and enhance safety",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68877ce33e087d22c7971f3d_Infrastructure-monitoring3.avif",
+    survey: true,
   },
   "Precision agriculture and forest valuation": {
     subtitle:
       "Optimize crop management and forest valuation via aerial monitoring, detecting vegetation index, soil conditions, moisture levels, drainage forecasting, supporting organic farming, and refining field boundaries and maps",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876aa8c59d57c9a4cd91a9_Precision-agriculture-and-forest-valuation.avif",
+    survey: true,
   },
   Mapping: {
     subtitle:
       "Capture high-resolution aerial images and geospatial data to deliver RGB/multispectral photos. Resulting in orthomosaics and 3D models (DSM, DEM), produced for construction, urban planning, moisture control, flood monitoring, surface mines, etc.",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68878cbc1205f2d260010945_Photogrammetry2.avif",
+    survey: true,
   },
   "LiDAR scanning": {
     subtitle:
       "High-precision aerial laser scanning for terrain mapping and 3D models, even in remote, dense forests, or hard-to-reach areas",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876acbc028951b445d2f06_LiDAR-scanning-and-mapping.avif",
+    survey: true,
   },
   "Medical and vital goods delivery": {
     subtitle:
@@ -86,37 +97,53 @@ const selectedApplications = {
       "Deliver real-time aerial intelligence on critical situations such as fires, hazardous material spills, or structural collapses",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/6887891f2ece7bf624258a86_Incident-assessment2.avif",
+    survey: true,
   },
   "Disaster management and recovery": {
     subtitle:
       "Assess damage from natural disasters like floods, earthquakes, or wildfires, and identify survivors in need of rescue",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876b758f85e9d081c317a8_Disaster-management-and-recovery2%20(1).avif",
+    survey: true,
   },
   "Remote communication and control": {
     subtitle:
       "Utilize UAVs as mobile communication mesh in areas with limited infrastructure or during large-scale emergencies",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8fac1fa22351df00bb027_Frame%201484582888_converted.avif",
+    survey: false,
   },
   "Emergency response": {
     subtitle:
       "Eyes in the air, aid on the way. FIXAR drones provide first responders with real-time aerial visibility, route optimization, and remote coordination in chaotic or inaccessible environments",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876af7afd1e08bedb9882c_Emergency-response-.avif",
+    survey: false,
   },
   "Search and rescue operations": {
     subtitle:
       "Deploy thermal imaging and night vision payloads to locate missing persons in remote or hard-to-reach areas",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876b9fb300f80b5d5c522f_Search%20and%20rescue%20operations%20(1).avif",
+    survey: false,
   },
   "Surveillance and monitoring": {
     subtitle:
       "Monitor large public gatherings, protests, or events to identify potential disturbances and manage crowd behavior in real time",
     imageSrc:
       "https://cdn.prod.website-files.com/68499960a31d60de178103d5/688795a05c6589af1992a10a_Surveillance-and-monitoring2.avif",
+    survey: false,
   },
+};
+
+const survayParameters = {
+  telemetryOnly: [
+    "RGB Mapping Cameras",
+    "Multispectral Imaging",
+    "Lidar",
+    "360° Spherical Video",
+  ],
+  telemetryVideo: ["All"],
 };
 
 // Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
@@ -168,26 +195,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = form.querySelector(".submit");
 
   // Заповнюємо дані обраного модуля з першого кроку
-  const selectedApplicationData = sessionStorage.getItem("selectedApplication");
-  console.log(
-    "[selectedApplication] Data from sessionStorage:",
-    selectedApplicationData,
-  );
-  if (selectedApplicationData) {
-    const moduleData = JSON.parse(selectedApplicationData);
-    console.log("[selectedApplication] Parsed data:", moduleData);
+  const application = sessionStorage.getItem("application");
+  if (application && selectedApplications[application]) {
+    const appData = selectedApplications[application];
     const selectedImg = document.getElementById("selected-img");
     const selectedTitle = document.getElementById("selected-title");
     const selectedDescription = document.getElementById("selected-description");
 
-    if (selectedImg && moduleData.imgSrc) {
-      selectedImg.src = moduleData.imgSrc;
+    if (selectedImg && appData.imageSrc) {
+      selectedImg.src = appData.imageSrc;
     }
-    if (selectedTitle && moduleData.title) {
-      selectedTitle.textContent = moduleData.title;
+    if (selectedTitle) {
+      selectedTitle.textContent = application;
     }
-    if (selectedDescription && moduleData.description) {
-      selectedDescription.textContent = moduleData.description;
+    if (selectedDescription && appData.subtitle) {
+      selectedDescription.textContent = appData.subtitle;
     }
   }
 
@@ -2581,7 +2603,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Application (only if sessionStorage doesn't have the data)
     if (params["application"]) {
-      const hasSessionData = sessionStorage.getItem("selectedApplication") || sessionStorage.getItem("application");
+      const hasSessionData =
+        sessionStorage.getItem("selectedApplication") ||
+        sessionStorage.getItem("application");
       if (!hasSessionData) {
         applyApplicationSelection(params["application"]);
       }
@@ -2641,27 +2665,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Include application from sessionStorage (try both keys)
-    let applicationTitle = null;
-
-    // Try "selectedApplication" first (object with title)
-    const selectedApplicationData = sessionStorage.getItem("selectedApplication");
-    if (selectedApplicationData) {
-      try {
-        const appData = JSON.parse(selectedApplicationData);
-        if (appData.title) {
-          applicationTitle = appData.title;
-        }
-      } catch (e) {
-        console.warn("Failed to parse selectedApplication from sessionStorage");
-      }
-    }
-
-    // Fallback to "application" key (just the string)
-    if (!applicationTitle) {
-      applicationTitle = sessionStorage.getItem("application");
-    }
-
+    // Include application from sessionStorage
+    const applicationTitle = sessionStorage.getItem("application");
     if (applicationTitle) {
       params.append("application", applicationTitle);
     }
