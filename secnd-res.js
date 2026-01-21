@@ -195,26 +195,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = form.querySelector(".submit");
 
   // Заповнюємо дані обраного модуля з першого кроку
-  const selectedApplicationData = sessionStorage.getItem("selectedApplication");
-  console.log(
-    "[selectedApplication] Data from sessionStorage:",
-    selectedApplicationData,
-  );
-  if (selectedApplicationData) {
-    const moduleData = JSON.parse(selectedApplicationData);
-    console.log("[selectedApplication] Parsed data:", moduleData);
+  const application = sessionStorage.getItem("application");
+  if (application && selectedApplications[application]) {
+    const appData = selectedApplications[application];
     const selectedImg = document.getElementById("selected-img");
     const selectedTitle = document.getElementById("selected-title");
     const selectedDescription = document.getElementById("selected-description");
 
-    if (selectedImg && moduleData.imgSrc) {
-      selectedImg.src = moduleData.imgSrc;
+    if (selectedImg && appData.imageSrc) {
+      selectedImg.src = appData.imageSrc;
     }
-    if (selectedTitle && moduleData.title) {
-      selectedTitle.textContent = moduleData.title;
+    if (selectedTitle) {
+      selectedTitle.textContent = application;
     }
-    if (selectedDescription && moduleData.description) {
-      selectedDescription.textContent = moduleData.description;
+    if (selectedDescription && appData.subtitle) {
+      selectedDescription.textContent = appData.subtitle;
     }
   }
 
@@ -2670,29 +2665,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Include application from sessionStorage (try both keys)
-    let applicationTitle = null;
-
-    // Try "selectedApplication" first (object with title)
-    const selectedApplicationData = sessionStorage.getItem(
-      "selectedApplication",
-    );
-    if (selectedApplicationData) {
-      try {
-        const appData = JSON.parse(selectedApplicationData);
-        if (appData.title) {
-          applicationTitle = appData.title;
-        }
-      } catch (e) {
-        console.warn("Failed to parse selectedApplication from sessionStorage");
-      }
-    }
-
-    // Fallback to "application" key (just the string)
-    if (!applicationTitle) {
-      applicationTitle = sessionStorage.getItem("application");
-    }
-
+    // Include application from sessionStorage
+    const applicationTitle = sessionStorage.getItem("application");
     if (applicationTitle) {
       params.append("application", applicationTitle);
     }

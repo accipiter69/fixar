@@ -136,14 +136,11 @@ const selectedApplications = {
   },
 };
 
-const survayParameters = {
-  telemetryOnly: [
-    "RGB Mapping Cameras",
-    "Multispectral Imaging",
-    "Lidar",
-    "360° Spherical Video",
-  ],
-  telemetryVideo: ["All"],
+const surveyParameters = {
+  categories: {
+    optional: ["RGB Mapping Cameras", "Multispectral Imaging"],
+    included: ["LiDAR"],
+  },
 };
 
 // Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
@@ -220,6 +217,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultDataLinkOptional = document.querySelector(
     "[data-choice=link-optional]",
   );
+  const resultPpk = document.querySelector("[data-choice='PPK Receiver']");
+  const resultStation = document.querySelector(
+    "[data-choice='Ground base station']",
+  );
+  const resultSoftware = document.querySelector(
+    "[data-choice='Data processing software']",
+  );
+  const surveyBlock = document.querySelector("[data-survey-element]");
+
   const resultModuleBadge = document.querySelector(".model_scene-gimbal");
   const resultLinkBadge = document.querySelector(".range-selected");
   const sliderBg = document.querySelector(".slider-bg");
@@ -1295,13 +1301,87 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Extract survey item prices
+    let ppkPrice = 0;
+    let stationPrice = 0;
+    let softwarePrice = 0;
+
+    const ppkCheckbox = document.querySelector(
+      "[data-survey-item='ppk'] input:checked",
+    );
+    if (ppkCheckbox) {
+      const item = ppkCheckbox.closest(".modules_survay-item");
+      const priceElem = item?.querySelector(".price_elem-num");
+      ppkPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+    }
+
+    const stationCheckbox = document.querySelector(
+      "[data-survey-item='station'] input:checked",
+    );
+    if (stationCheckbox) {
+      const item = stationCheckbox.closest(".modules_survay-item");
+      const priceElem = item?.querySelector(".price_elem-num");
+      stationPrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+    }
+
+    const softwareCheckbox = document.querySelector(
+      "[data-survey-item='software'] input:checked",
+    );
+    if (softwareCheckbox) {
+      const item = softwareCheckbox.closest(".modules_survay-item");
+      const priceElem = item?.querySelector(".price_elem-num");
+      softwarePrice = priceElem ? parsePriceFromText(priceElem.textContent) : 0;
+    }
+
+    // Collect survey items data
+    configData.surveyItems = {
+      ppk: ppkCheckbox
+        ? {
+            title:
+              ppkCheckbox.closest(".modules_survay-item")?.querySelector("h3")
+                ?.textContent || "",
+            price: ppkPrice,
+            checked: true,
+          }
+        : null,
+      station: stationCheckbox
+        ? {
+            title:
+              stationCheckbox
+                .closest(".modules_survay-item")
+                ?.querySelector("h3")?.textContent || "",
+            price: stationPrice,
+            checked: true,
+          }
+        : null,
+      software: softwareCheckbox
+        ? {
+            title:
+              softwareCheckbox
+                .closest(".modules_survay-item")
+                ?.querySelector("h3")?.textContent || "",
+            price: softwarePrice,
+            checked: true,
+          }
+        : null,
+    };
+
     const totalPrice =
-      dronePrice + modulePrice + dataLinkPrice + dataLinkOptionalPrice;
+      dronePrice +
+      modulePrice +
+      dataLinkPrice +
+      dataLinkOptionalPrice +
+      ppkPrice +
+      stationPrice +
+      softwarePrice;
 
     configData.dronePrice = dronePrice;
     configData.modulePrice = modulePrice;
     configData.dataLinkPrice = dataLinkPrice;
     configData.dataLinkOptionalPrice = dataLinkOptionalPrice;
+    configData.ppkPrice = ppkPrice;
+    configData.stationPrice = stationPrice;
+    configData.softwarePrice = softwarePrice;
     configData.totalPrice = totalPrice;
 
     return configData;
@@ -1390,6 +1470,32 @@ document.addEventListener("DOMContentLoaded", () => {
       if (optionalPriceElem) {
         optionalPriceElem.textContent = formatPrice(
           configData.dataLinkOptionalPrice || 0,
+        );
+      }
+    }
+
+    // Оновлення цін survey items
+    if (resultPpk) {
+      const ppkPriceElem = resultPpk.querySelector(".price_elem-num");
+      if (ppkPriceElem) {
+        ppkPriceElem.textContent = formatPrice(configData.ppkPrice || 0);
+      }
+    }
+
+    if (resultStation) {
+      const stationPriceElem = resultStation.querySelector(".price_elem-num");
+      if (stationPriceElem) {
+        stationPriceElem.textContent = formatPrice(
+          configData.stationPrice || 0,
+        );
+      }
+    }
+
+    if (resultSoftware) {
+      const softwarePriceElem = resultSoftware.querySelector(".price_elem-num");
+      if (softwarePriceElem) {
+        softwarePriceElem.textContent = formatPrice(
+          configData.softwarePrice || 0,
         );
       }
     }
@@ -1864,6 +1970,242 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // ============================================
+    // SURVEY BLOCK FUNCTIONS
+    // ============================================
+
+    /**
+     * Filters survey block visibility based on selected module category
+     * Shows/hides survey block and configures checkboxes based on category rules
+     */
+    function filterSurveyByCategory() {
+      if (!surveyBlock) return;
+
+      // Find active module input
+      const activeModuleInput = document.querySelector(
+        ".modules-item input:checked",
+      );
+
+      if (!activeModuleInput) {
+        // No module selected - hide survey block and reset
+        surveyBlock.style.display = "none";
+        resetSurveyCheckboxes();
+        return;
+      }
+
+      // Find category h2 through DOM traversal (same logic as filterModulesLinksByCategory)
+      const moduleItem = activeModuleInput.closest(".modules-item");
+      if (!moduleItem) {
+        surveyBlock.style.display = "none";
+        resetSurveyCheckboxes();
+        return;
+      }
+
+      let categoryH2 = null;
+      let parent = moduleItem.parentElement;
+
+      while (parent && !categoryH2) {
+        categoryH2 = parent.querySelector("h2");
+        if (categoryH2) break;
+        parent = parent.parentElement;
+      }
+
+      if (!categoryH2) {
+        surveyBlock.style.display = "none";
+        resetSurveyCheckboxes();
+        return;
+      }
+
+      const category = categoryH2.textContent.trim();
+
+      // Check against surveyParameters categories
+      const includedCategories = surveyParameters.categories.included || [];
+      const optionalCategories = surveyParameters.categories.optional || [];
+
+      const isIncluded = includedCategories.some(
+        (cat) => cat.toLowerCase() === category.toLowerCase(),
+      );
+      const isOptional = optionalCategories.some(
+        (cat) => cat.toLowerCase() === category.toLowerCase(),
+      );
+
+      if (isIncluded) {
+        // Show survey block, checkboxes checked + disabled
+        surveyBlock.style.display = "flex";
+        setupSurveyCheckboxes("included");
+        // Update result blocks for all survey items
+        updateAllSurveyResultBlocks();
+      } else if (isOptional) {
+        // Show survey block, checkboxes freely toggleable
+        surveyBlock.style.display = "flex";
+        setupSurveyCheckboxes("optional");
+        // Reset result blocks (user can choose)
+        resetAllSurveyResultBlocks();
+      } else {
+        // Hide survey block
+        surveyBlock.style.display = "none";
+        resetSurveyCheckboxes();
+        resetAllSurveyResultBlocks();
+      }
+    }
+
+    /**
+     * Sets up survey checkboxes based on mode
+     * @param {string} mode - "included" or "optional"
+     */
+    function setupSurveyCheckboxes(mode) {
+      if (!surveyBlock) return;
+
+      const checkboxes = surveyBlock.querySelectorAll(
+        ".modules_survay-item input",
+      );
+
+      checkboxes.forEach((checkbox) => {
+        if (mode === "included") {
+          checkbox.checked = true;
+          checkbox.disabled = true;
+        } else if (mode === "optional") {
+          // Reset to unchecked and enabled state when switching to optional
+          checkbox.checked = false;
+          checkbox.disabled = false;
+        }
+      });
+    }
+
+    /**
+     * Resets all survey checkboxes to unchecked and enabled state
+     */
+    function resetSurveyCheckboxes() {
+      if (!surveyBlock) return;
+
+      const checkboxes = surveyBlock.querySelectorAll(
+        ".modules_survay-item input",
+      );
+
+      checkboxes.forEach((checkbox) => {
+        checkbox.checked = false;
+        checkbox.disabled = false;
+      });
+    }
+
+    /**
+     * Updates a specific survey result block based on checkbox state
+     * @param {HTMLInputElement} checkbox - The survey checkbox element
+     */
+    function updateSurveyResultBlock(checkbox) {
+      const surveyItem = checkbox.closest(".modules_survay-item");
+      if (!surveyItem) return;
+
+      const surveyType = surveyItem.getAttribute("data-survey-item");
+      if (!surveyType) return;
+
+      // Map survey type to result block
+      let resultBlock = null;
+      switch (surveyType) {
+        case "ppk":
+          resultBlock = resultPpk;
+          break;
+        case "station":
+          resultBlock = resultStation;
+          break;
+        case "software":
+          resultBlock = resultSoftware;
+          break;
+        default:
+          return;
+      }
+
+      if (!resultBlock) return;
+
+      if (checkbox.checked) {
+        // Copy data from survey item to result block (custom logic for survey items)
+        let hasData = false;
+
+        // Copy img src and srcset
+        const srcImg = surveyItem.querySelector("img");
+        const destImg = resultBlock.querySelector("img");
+        if (srcImg && destImg) {
+          destImg.setAttribute("src", srcImg.getAttribute("src"));
+          // Copy srcset if exists, otherwise clear it
+          if (srcImg.hasAttribute("srcset")) {
+            destImg.setAttribute("srcset", srcImg.getAttribute("srcset"));
+          } else {
+            destImg.removeAttribute("srcset");
+          }
+          hasData = true;
+        }
+
+        // Copy h3 title
+        const srcTitle = surveyItem.querySelector("h3");
+        const destTitle = resultBlock.querySelector("h3");
+        if (srcTitle && destTitle) {
+          destTitle.textContent = srcTitle.textContent;
+          hasData = true;
+        }
+
+        // Copy description from [data-module-description] to p
+        const srcDesc = surveyItem.querySelector("[data-module-description]");
+        const destDesc = resultBlock.querySelector("p");
+        if (srcDesc && destDesc) {
+          destDesc.textContent = srcDesc.textContent;
+          hasData = true;
+        }
+
+        // Show result block if we copied any data
+        if (hasData) {
+          resultBlock.style.display = "flex";
+        }
+      } else {
+        // Hide result block
+        resultBlock.style.display = "none";
+      }
+    }
+
+    /**
+     * Updates all survey result blocks based on current checkbox states
+     */
+    function updateAllSurveyResultBlocks() {
+      if (!surveyBlock) return;
+
+      const checkboxes = surveyBlock.querySelectorAll(
+        ".modules_survay-item input",
+      );
+
+      checkboxes.forEach((checkbox) => {
+        updateSurveyResultBlock(checkbox);
+      });
+    }
+
+    /**
+     * Resets (hides) all survey result blocks
+     */
+    function resetAllSurveyResultBlocks() {
+      if (resultPpk) resultPpk.style.display = "none";
+      if (resultStation) resultStation.style.display = "none";
+      if (resultSoftware) resultSoftware.style.display = "none";
+    }
+
+    /**
+     * Sets up event handlers for survey checkbox changes
+     */
+    function handleSurveySelection() {
+      if (!surveyBlock) return;
+
+      const checkboxes = surveyBlock.querySelectorAll(
+        ".modules_survay-item input",
+      );
+
+      checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          // Update result block for this checkbox
+          updateSurveyResultBlock(checkbox);
+
+          // Recalculate prices and save configuration
+          updateAndSaveConfiguration();
+        });
+      });
+    }
+
     // Функція обробки вибору modules-link (для показу optional блоку)
     function handleModulesLinkSelection() {
       const allModulesLinkInputs = document.querySelectorAll(
@@ -1946,6 +2288,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Початкова фільтрація modules-link блоків
     filterModulesLinksByCategory();
+
+    // Ініціалізація обробників для survey
+    handleSurveySelection();
+
+    // Початкова фільтрація survey блоків
+    filterSurveyByCategory();
 
     // ============================================
     // DATA LINK RESULT UPDATE FUNCTIONS
@@ -2267,6 +2615,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // Фільтруємо modules-link блоки по категорії
             filterModulesLinksByCategory();
 
+            // Фільтруємо survey блок по категорії
+            filterSurveyByCategory();
+
             // Програємо анімацію
             if (window.playAnimationByName) {
               window.playAnimationByName(animationName);
@@ -2295,6 +2646,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // Ховаємо telemetryOnly та optional
             filterModulesLinksByCategory();
 
+            // Ховаємо survey блок
+            filterSurveyByCategory();
+
             if (window.animations && window.animations.stopAll) {
               window.animations.stopAll();
             }
@@ -2319,6 +2673,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (resultDataLinkOptional) {
       resultDataLinkOptional.style.display = "none";
+    }
+    // Початково ховаємо survey блок та survey result блоки
+    if (surveyBlock) {
+      surveyBlock.style.display = "none";
+    }
+    if (resultPpk) {
+      resultPpk.style.display = "none";
+    }
+    if (resultStation) {
+      resultStation.style.display = "none";
+    }
+    if (resultSoftware) {
+      resultSoftware.style.display = "none";
     }
     // Початково ховаємо badges
     if (resultModuleBadge) {
@@ -2591,6 +2958,34 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(`Applied application from URL: ${applicationTitle}`);
   }
 
+  // Apply survey selection from URL parameters
+  function applySurveySelections(params) {
+    if (!surveyBlock) return;
+
+    // Map of URL parameter names to data-survey-item values
+    const surveyParamMap = {
+      "PPK Receiver": "ppk",
+      "Ground base station": "station",
+      "Data processing software": "software",
+    };
+
+    Object.entries(surveyParamMap).forEach(([paramName, surveyType]) => {
+      if (params[paramName] === "on") {
+        const surveyItem = surveyBlock.querySelector(
+          `[data-survey-item="${surveyType}"]`,
+        );
+        if (surveyItem) {
+          const checkbox = surveyItem.querySelector("input");
+          if (checkbox && !checkbox.disabled) {
+            checkbox.checked = true;
+            checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+            console.log(`Applied survey selection: ${paramName}`);
+          }
+        }
+      }
+    });
+  }
+
   // Main function to apply URL parameters
   async function applyUrlParameters() {
     const params = parseUrlParameters();
@@ -2641,6 +3036,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (params["Data Link Optional"]) {
       await applyOptionalDataLinkSelection(params["Data Link Optional"]);
     }
+
+    // 6. Survey selections (PPK, Station, Software)
+    await delay(100);
+    applySurveySelections(params);
 
     console.log("URL parameters applied successfully");
   }

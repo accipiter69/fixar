@@ -114,6 +114,9 @@ function hideAllResultBlocks() {
     document.querySelector("[data-choice=module]"),
     document.querySelector("[data-choice=link]"),
     document.querySelector("[data-choice=link-optional]"),
+    document.querySelector("[data-choice='PPK Receiver']"),
+    document.querySelector("[data-choice='Ground base station']"),
+    document.querySelector("[data-choice='Data processing software']"),
   ];
 
   resultBlocks.forEach((block) => {
@@ -162,7 +165,7 @@ function populateDataChoiceElements(configData) {
       const nameElement = colorElement.querySelector("[data-res-color-name]");
       const descElement = colorElement.querySelector("p");
       const swatchElement = colorElement.querySelector(
-        ".model_form-color-btn-res"
+        ".model_form-color-btn-res",
       );
 
       if (nameElement) nameElement.textContent = configData.color.name;
@@ -172,7 +175,8 @@ function populateDataChoiceElements(configData) {
           swatchElement.style.backgroundColor = configData.color.value;
         }
         if (configData.color.backgroundImage) {
-          swatchElement.style.backgroundImage = configData.color.backgroundImage;
+          swatchElement.style.backgroundImage =
+            configData.color.backgroundImage;
           swatchElement.style.backgroundPosition = "50% 50%";
           swatchElement.style.backgroundSize = "auto";
           swatchElement.style.backgroundRepeat = "no-repeat";
@@ -248,7 +252,7 @@ function populateDataChoiceElements(configData) {
   // Заповнення Optional Data Link
   if (configData.dataLinkOptional) {
     const optionalElement = document.querySelector(
-      "[data-choice=link-optional]"
+      "[data-choice=link-optional]",
     );
     if (optionalElement) {
       const titleElement = optionalElement.querySelector("h3");
@@ -277,6 +281,55 @@ function populateDataChoiceElements(configData) {
         configData.dataLinkOptional.descriptionHTML
       ) {
         optionalElement.style.display = "flex";
+      }
+    }
+  }
+
+  // Заповнення Survey Items (PPK, Station, Software)
+  if (configData.surveyItems) {
+    // PPK Receiver
+    if (configData.surveyItems.ppk && configData.surveyItems.ppk.checked) {
+      const ppkElement = document.querySelector("[data-choice='PPK Receiver']");
+      if (ppkElement) {
+        const titleElement = ppkElement.querySelector("h3");
+        if (titleElement && configData.surveyItems.ppk.title) {
+          titleElement.textContent = configData.surveyItems.ppk.title;
+        }
+        ppkElement.style.display = "flex";
+      }
+    }
+
+    // Ground base station
+    if (
+      configData.surveyItems.station &&
+      configData.surveyItems.station.checked
+    ) {
+      const stationElement = document.querySelector(
+        "[data-choice='Ground base station']",
+      );
+      if (stationElement) {
+        const titleElement = stationElement.querySelector("h3");
+        if (titleElement && configData.surveyItems.station.title) {
+          titleElement.textContent = configData.surveyItems.station.title;
+        }
+        stationElement.style.display = "flex";
+      }
+    }
+
+    // Data processing software
+    if (
+      configData.surveyItems.software &&
+      configData.surveyItems.software.checked
+    ) {
+      const softwareElement = document.querySelector(
+        "[data-choice='Data processing software']",
+      );
+      if (softwareElement) {
+        const titleElement = softwareElement.querySelector("h3");
+        if (titleElement && configData.surveyItems.software.title) {
+          titleElement.textContent = configData.surveyItems.software.title;
+        }
+        softwareElement.style.display = "flex";
       }
     }
   }
@@ -325,17 +378,45 @@ function populatePriceDisplays(configData) {
 
   if (configData.dataLinkOptionalPrice !== undefined) {
     const elem = document.querySelector(
-      "[data-choice=link-optional] .price_elem-num"
+      "[data-choice=link-optional] .price_elem-num",
     );
     if (elem) {
       elem.textContent = formatPrice(configData.dataLinkOptionalPrice);
     }
   }
 
+  // Update survey item prices
+  if (configData.ppkPrice !== undefined) {
+    const elem = document.querySelector(
+      "[data-choice='PPK Receiver'] .price_elem-num",
+    );
+    if (elem) {
+      elem.textContent = formatPrice(configData.ppkPrice);
+    }
+  }
+
+  if (configData.stationPrice !== undefined) {
+    const elem = document.querySelector(
+      "[data-choice='Ground base station'] .price_elem-num",
+    );
+    if (elem) {
+      elem.textContent = formatPrice(configData.stationPrice);
+    }
+  }
+
+  if (configData.softwarePrice !== undefined) {
+    const elem = document.querySelector(
+      "[data-choice='Data processing software'] .price_elem-num",
+    );
+    if (elem) {
+      elem.textContent = formatPrice(configData.softwarePrice);
+    }
+  }
+
   // Update total price displays
   if (configData.totalPrice !== undefined) {
     const elems = document.querySelectorAll(
-      "[data-choice=total] .price_elem-num"
+      "[data-choice=total] .price_elem-num",
     );
     elems.forEach((elem) => {
       elem.textContent = formatPrice(configData.totalPrice);
@@ -353,7 +434,7 @@ function initThreeScene(container) {
     75,
     container.clientWidth / container.clientHeight,
     0.1,
-    1000
+    1000,
   );
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -407,7 +488,7 @@ function initThreeScene(container) {
 function initLoaders() {
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath(
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
+    "https://www.gstatic.com/draco/versioned/decoders/1.5.6/",
   );
 
   const loader = new THREE.GLTFLoader();
@@ -423,7 +504,7 @@ async function loadDroneModel(
   droneName,
   loader,
   progressBarFill = null,
-  progressBarContainer = null
+  progressBarContainer = null,
 ) {
   return new Promise((resolve, reject) => {
     const modelUrl = droneModels[droneName];
@@ -533,7 +614,7 @@ function applyColorToModel(model, colorName, droneName) {
           if (!isRedColor) {
             // Якщо НЕ червоний - фарбуємо в обраний колір
             child.material.color.setHex(
-              parseInt(hexColor.replace("#", ""), 16)
+              parseInt(hexColor.replace("#", ""), 16),
             );
           }
         }
@@ -775,7 +856,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       params.droneModel,
       loader,
       progressBarFill,
-      progressBarContainer
+      progressBarContainer,
     );
     scene.add(model);
 
