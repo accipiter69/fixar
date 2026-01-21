@@ -732,6 +732,48 @@ function populateFormFields(params, sessionConfig) {
         form.appendChild(input);
       }
     });
+
+    // Add survey items as hidden fields
+    if (sessionConfig.surveyItems) {
+      // Survey item checkboxes and prices
+      const surveyFields = [
+        {
+          name: "PPK Receiver",
+          priceName: "PPK Receiver price",
+          data: sessionConfig.surveyItems.ppk,
+        },
+        {
+          name: "Ground base station",
+          priceName: "Ground base station price",
+          data: sessionConfig.surveyItems.station,
+        },
+        {
+          name: "Data processing software",
+          priceName: "Data processing software price",
+          data: sessionConfig.surveyItems.software,
+        },
+      ];
+
+      surveyFields.forEach(({ name, priceName, data }) => {
+        if (data && data.checked) {
+          // Add checkbox field (value "on" to simulate checked checkbox)
+          const checkboxInput = document.createElement("input");
+          checkboxInput.type = "hidden";
+          checkboxInput.name = name;
+          checkboxInput.value = "on";
+          form.appendChild(checkboxInput);
+
+          // Add price field
+          if (data.price !== undefined && data.price !== null) {
+            const priceInput = document.createElement("input");
+            priceInput.type = "hidden";
+            priceInput.name = priceName;
+            priceInput.value = data.price;
+            form.appendChild(priceInput);
+          }
+        }
+      });
+    }
   }
 }
 
