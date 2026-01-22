@@ -698,13 +698,21 @@ function populateFormFields(params, sessionConfig) {
     return;
   }
 
+  // Мапінг ключів параметрів на назви полів форми з великої букви
+  const fieldNameMap = {
+    droneModel: "Model",
+    color: "Color",
+    module: "Module",
+    dataLink: "Data Link",
+    dataLinkOptional: "Data Link Optional",
+  };
+
   // Додаємо hidden input для кожного параметра
   Object.entries(params).forEach(([key, value]) => {
     if (value) {
       const input = document.createElement("input");
       input.type = "hidden";
-      // Перетворюємо droneModel на "model" для відповідності з URL параметрами
-      input.name = key === "droneModel" ? "model" : key;
+      input.name = fieldNameMap[key] || key;
       input.value = value;
       form.appendChild(input);
     }
