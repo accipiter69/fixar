@@ -143,6 +143,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Hide Order tooltip when #step-two is fully in viewport
+  const stepTwo = document.getElementById("step-two");
+  let isStepTwoVisible = false;
+
+  if (stepTwo && orderTooltip && orderTooltipTl) {
+    const stepTwoObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isStepTwoVisible = entry.isIntersecting;
+
+          if (entry.isIntersecting) {
+            // step-two is fully visible - hide tooltip
+            orderTooltipTl.play();
+          } else {
+            // step-two is not visible - show tooltip only if module is selected
+            updateOrderTooltipVisibility();
+          }
+        });
+      },
+      { threshold: 1.0 },
+    );
+    stepTwoObserver.observe(stepTwo);
+  }
+
+  // Update function to respect step-two visibility
+  const originalUpdateOrderTooltipVisibility = updateOrderTooltipVisibility;
+  updateOrderTooltipVisibility = function () {
+    // Don't show tooltip if step-two is visible
+    if (isStepTwoVisible) {
+      orderTooltipTl.play();
+      return;
+    }
+    originalUpdateOrderTooltipVisibility();
+  };
+
   // Industry filter listener
   const industryInputs = document.querySelectorAll('input[name="Industry"]');
   console.log(
