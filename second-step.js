@@ -1,5 +1,3 @@
-console.log("hi");
-
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025":
@@ -297,7 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return () => {
       mobileDropdown.removeEventListener("click", handleDropdownClick);
-      if (newBurger) newBurger.removeEventListener("click", handleDropdownClick);
+      if (newBurger)
+        newBurger.removeEventListener("click", handleDropdownClick);
     };
   });
 
@@ -1859,9 +1858,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const surveyText = surveyBlock.querySelector("#survey-text");
       if (surveyText) {
         if (mode === "included") {
-          surveyText.textContent = "These items are required for the selected application and payload";
+          surveyText.textContent =
+            "These items are required for the selected application and payload";
         } else if (mode === "optional") {
-          surveyText.textContent = "These items are highly recommended for the selected application and payload";
+          surveyText.textContent =
+            "These items are highly recommended for the selected application and payload";
         }
       }
 
