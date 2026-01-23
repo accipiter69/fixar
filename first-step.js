@@ -111,7 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Scroll to the block on mobile (<992px)
         if (window.innerWidth < 992) {
           setTimeout(() => {
-            const offsetTop = list.getBoundingClientRect().top + window.scrollY - 100;
+            const offsetTop =
+              list.getBoundingClientRect().top + window.scrollY - 200;
             window.scrollTo({ top: offsetTop, behavior: "smooth" });
           }, 100);
         }
@@ -149,6 +150,24 @@ document.addEventListener("DOMContentLoaded", () => {
         orderTooltipTl.play();
       });
     });
+  }
+
+  // Scroll to submit button on model click (mobile only, if not pre-selected)
+  if (!sourceModel) {
+    const submitElement = document.querySelector(".submit");
+    if (submitElement) {
+      modelInputs.forEach((modelInput) => {
+        modelInput.addEventListener("click", () => {
+          if (window.innerWidth < 992) {
+            setTimeout(() => {
+              const offsetTop =
+                submitElement.getBoundingClientRect().top + window.scrollY - 200;
+              window.scrollTo({ top: offsetTop, behavior: "smooth" });
+            }, 100);
+          }
+        });
+      });
+    }
   }
 
   // Industry filter listener
