@@ -3202,15 +3202,4 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
   });
-
-  // Для екранів < 480px - зсуваємо .model_scene-wrp
-  mm.add("(max-width: 479px)", () => {
-    const handleScroll = createScrollBehavior(".model_scene-wrp");
-    if (handleScroll) {
-      window.addEventListener("scroll", handleScroll);
-      return () => {
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
-  });
 });
