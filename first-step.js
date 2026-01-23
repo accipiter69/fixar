@@ -161,7 +161,10 @@ document.addEventListener("DOMContentLoaded", () => {
           if (window.innerWidth < 992) {
             setTimeout(() => {
               const offsetTop =
-                submitElement.getBoundingClientRect().top + window.scrollY - 200;
+                submitElement.getBoundingClientRect().top +
+                window.scrollY -
+                window.innerHeight +
+                50;
               window.scrollTo({ top: offsetTop, behavior: "smooth" });
             }, 100);
           }
