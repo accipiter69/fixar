@@ -1856,6 +1856,15 @@ document.addEventListener("DOMContentLoaded", () => {
     function setupSurveyCheckboxes(mode) {
       if (!surveyBlock) return;
 
+      const surveyText = surveyBlock.querySelector("#survey-text");
+      if (surveyText) {
+        if (mode === "included") {
+          surveyText.textContent = "These items are required for the selected application and payload";
+        } else if (mode === "optional") {
+          surveyText.textContent = "These items are highly recommended for the selected application and payload";
+        }
+      }
+
       const checkboxes = surveyBlock.querySelectorAll(
         ".modules_survay-item input",
       );
