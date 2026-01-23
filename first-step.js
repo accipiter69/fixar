@@ -107,6 +107,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (listName === industryValue) {
         console.log("[showModulesByIndustry] SHOWING:", listName);
         list.classList.remove("hidden-now");
+
+        // Scroll to the block on mobile (<992px)
+        if (window.innerWidth < 992) {
+          setTimeout(() => {
+            list.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 100);
+        }
       } else {
         console.log("[showModulesByIndustry] HIDING:", listName);
         list.classList.add("hidden-now");
