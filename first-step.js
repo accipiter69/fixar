@@ -1,4 +1,3 @@
-console.log("[first-step.js] Script loaded");
 document.addEventListener("DOMContentLoaded", () => {
   console.log("[first-step.js] DOMContentLoaded fired");
   // Pre-select model from URL param
@@ -166,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.innerHeight +
                 100;
               window.scrollTo({ top: offsetTop, behavior: "smooth" });
-            }, 100);
+            }, 120);
           }
         });
       });
