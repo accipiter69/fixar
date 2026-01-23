@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 submitElement.getBoundingClientRect().top +
                 window.scrollY -
                 window.innerHeight +
-                50;
+                100;
               window.scrollTo({ top: offsetTop, behavior: "smooth" });
             }, 100);
           }
