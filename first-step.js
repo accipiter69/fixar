@@ -111,7 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Scroll to the block on mobile (<992px)
         if (window.innerWidth < 992) {
           setTimeout(() => {
-            list.scrollIntoView({ behavior: "smooth", block: "start" });
+            const offsetTop = list.getBoundingClientRect().top + window.scrollY - 100;
+            window.scrollTo({ top: offsetTop, behavior: "smooth" });
           }, 100);
         }
       } else {
