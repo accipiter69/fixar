@@ -283,17 +283,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const newBurger = document.querySelector(".new-burger");
+
     const handleDropdownClick = () => {
       mobileDropdown.classList.toggle("is--active");
       if (navConfigBg) navConfigBg.classList.toggle("is--active");
       if (navContainer) navContainer.classList.toggle("is--active");
+      if (newBurger) newBurger.classList.toggle("is--open");
     };
 
     mobileDropdown.addEventListener("click", handleDropdownClick);
+    if (newBurger) newBurger.addEventListener("click", handleDropdownClick);
 
     return () => {
-      // Cleanup function - автоматично викличеться при виході з breakpoint
       mobileDropdown.removeEventListener("click", handleDropdownClick);
+      if (newBurger) newBurger.removeEventListener("click", handleDropdownClick);
     };
   });
 
