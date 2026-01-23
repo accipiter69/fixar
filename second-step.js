@@ -1821,6 +1821,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const includedCategories = surveyParameters.categories.included || [];
       const optionalCategories = surveyParameters.categories.optional || [];
 
+      console.log("[handleModuleSelection] Category from H2:", category);
+      console.log("[handleModuleSelection] includedCategories:", includedCategories);
+      console.log("[handleModuleSelection] optionalCategories:", optionalCategories);
+
       const isIncluded = includedCategories.some(
         (cat) => cat.toLowerCase() === category.toLowerCase(),
       );
@@ -1828,20 +1832,25 @@ document.addEventListener("DOMContentLoaded", () => {
         (cat) => cat.toLowerCase() === category.toLowerCase(),
       );
 
+      console.log("[handleModuleSelection] isIncluded:", isIncluded, "| isOptional:", isOptional);
+
       if (isIncluded) {
         // Show survey block, checkboxes checked + disabled
+        console.log("[handleModuleSelection] -> Calling setupSurveyCheckboxes('included')");
         surveyBlock.style.display = "flex";
         setupSurveyCheckboxes("included");
         // Update result blocks for all survey items
         updateAllSurveyResultBlocks();
       } else if (isOptional) {
         // Show survey block, checkboxes freely toggleable
+        console.log("[handleModuleSelection] -> Calling setupSurveyCheckboxes('optional')");
         surveyBlock.style.display = "flex";
         setupSurveyCheckboxes("optional");
         // Reset result blocks (user can choose)
         resetAllSurveyResultBlocks();
       } else {
         // Hide survey block
+        console.log("[handleModuleSelection] -> Neither included nor optional, hiding surveyBlock");
         surveyBlock.style.display = "none";
         resetSurveyCheckboxes();
         resetAllSurveyResultBlocks();
@@ -1853,17 +1862,35 @@ document.addEventListener("DOMContentLoaded", () => {
      * @param {string} mode - "included" or "optional"
      */
     function setupSurveyCheckboxes(mode) {
-      if (!surveyBlock) return;
+      console.log("[setupSurveyCheckboxes] Called with mode:", mode);
+      console.log("[setupSurveyCheckboxes] surveyBlock exists:", !!surveyBlock);
+
+      if (!surveyBlock) {
+        console.warn("[setupSurveyCheckboxes] surveyBlock is null, returning early");
+        return;
+      }
 
       const surveyText = surveyBlock.querySelector("#survey-text");
+      console.log("[setupSurveyCheckboxes] surveyText element found:", !!surveyText);
+      console.log("[setupSurveyCheckboxes] surveyText element:", surveyText);
+
       if (surveyText) {
+        console.log("[setupSurveyCheckboxes] Current textContent:", surveyText.textContent);
         if (mode === "included") {
           surveyText.textContent =
             "These items are required for the selected application and payload";
+          console.log("[setupSurveyCheckboxes] Set text to 'required' message");
         } else if (mode === "optional") {
           surveyText.textContent =
             "These items are highly recommended for the selected application and payload";
+          console.log("[setupSurveyCheckboxes] Set text to 'recommended' message");
+        } else {
+          console.warn("[setupSurveyCheckboxes] Unknown mode:", mode);
         }
+        console.log("[setupSurveyCheckboxes] New textContent:", surveyText.textContent);
+      } else {
+        console.warn("[setupSurveyCheckboxes] #survey-text not found inside surveyBlock");
+        console.log("[setupSurveyCheckboxes] surveyBlock innerHTML preview:", surveyBlock.innerHTML.substring(0, 500));
       }
 
       const checkboxes = surveyBlock.querySelectorAll(
