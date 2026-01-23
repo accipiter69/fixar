@@ -1369,10 +1369,20 @@ document.addEventListener("DOMContentLoaded", () => {
         Array.from(colorFields).find((field) => field.checked) ||
         colorFields[0];
 
-      resultColor.querySelector("[data-res-color-name]").textContent =
-        initialColorField.value;
-      resultColor.querySelector("p").textContent =
-        initialColorField.dataset.description;
+      const resColorName = resultColor.querySelector("[data-res-color-name]");
+      const resColorDesc = resultColor.querySelector("p");
+
+      if (resColorName) {
+        resColorName.textContent = initialColorField.value;
+      } else {
+        console.warn("[COLOR FIELDS] Element [data-res-color-name] not found in resultColor");
+      }
+
+      if (resColorDesc) {
+        resColorDesc.textContent = initialColorField.dataset.description;
+      } else {
+        console.warn("[COLOR FIELDS] Element <p> not found in resultColor");
+      }
 
       // Шукаємо кнопку кольору в батьківському елементі (вони siblings)
       const colorBtn = initialColorField.parentElement?.querySelector(
@@ -1386,11 +1396,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const resultBtn = resultColor.querySelector(
           ".model_form-color-btn-res",
         );
-        resultBtn.style.backgroundColor = bgColor;
-        resultBtn.style.backgroundImage = bgImage !== "none" ? bgImage : "";
-        resultBtn.style.backgroundPosition = "50% 50%";
-        resultBtn.style.backgroundSize = "auto";
-        resultBtn.style.backgroundRepeat = "no-repeat";
+        if (resultBtn) {
+          resultBtn.style.backgroundColor = bgColor;
+          resultBtn.style.backgroundImage = bgImage !== "none" ? bgImage : "";
+          resultBtn.style.backgroundPosition = "50% 50%";
+          resultBtn.style.backgroundSize = "auto";
+          resultBtn.style.backgroundRepeat = "no-repeat";
+        } else {
+          console.warn("[COLOR FIELDS] Element .model_form-color-btn-res not found in resultColor");
+        }
       }
 
       // Початковий колір буде застосовано після завантаження 3D моделі
