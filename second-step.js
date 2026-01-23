@@ -1,3 +1,5 @@
+console.log("hi");
+
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025":
