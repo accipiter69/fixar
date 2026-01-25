@@ -1788,6 +1788,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function filterSurveyByCategory() {
       if (!surveyBlock) return;
 
+      // Always hide survey block for "Search and rescue operations"
+      if (application === "Search and rescue operations") {
+        surveyBlock.style.display = "none";
+        resetSurveyCheckboxes();
+        resetAllSurveyResultBlocks();
+        return;
+      }
+
       // Find active module input
       const activeModuleInput = document.querySelector(
         ".modules-item input:checked",
