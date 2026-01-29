@@ -8,133 +8,26 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG(9.01.26).glb",
 };
 
-const selectedApplications = {
-  "Detecting illegal activities": {
-    subtitle:
-      "Identify and track illegal activities such as fishing, poaching, and drug cultivation in remote areas",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8fa7e332be8f6ac88deb8_Frame%201484582887_converted.avif",
-    survey: true,
-  },
-  "Pursuit and tracking": {
-    subtitle:
-      "AI tracking ensures continuous suspect surveillance while reducing officer risk and enabling dynamic target following",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68ff6f36865952d21f742392_%D0%94%D1%80%D0%BE%D0%BD-025-%D0%B23.avif",
-    survey: false,
-  },
-  "Evidence collection": {
-    subtitle:
-      "Capture high-resolution aerial imagery and 3D scene mapping for crime scene analysis and detailed forensic reconstructions",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876954cf9022d6a691d0d9_Evidence-collection.avif",
-    survey: true,
-  },
-  "SWAT and tactical operations": {
-    subtitle:
-      "Live aerial video for high-risk missions like hostage rescues, enabling detailed recon of buildings and areas before entry",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68be86a84e3ca14874219b60_SWAT.avif",
-    survey: false,
-  },
-  "Traffic and road safety": {
-    subtitle:
-      "Enhance road safety through live traffic monitoring, automated violation detection, and rapid response to accidents",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876a0c0e177409e21d018e_Traffic-and-road-safety.avif",
-    survey: false,
-  },
-  "Border patrol and surveillance": {
-    subtitle:
-      "Detect unauthorized crossings and smuggling operations by monitoring vast border areas in real time",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876a48d7024ee7afd43ed1_Border-patrol-and-surveillance2%20(1).avif",
-    survey: true,
-  },
-  "Wildlife observation on land and water": {
-    subtitle:
-      "Monitor wildlife, track migration, and habitat changes on land and water without disturbing ecosystems",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8faa1072523dbebd23fb6_Frame%201484582886_converted.avif",
-    survey: true,
-  },
-  "Infrastructure monitoring": {
-    subtitle:
-      "Automated inspections of critical infrastructure such as gold mining sites, oil and gas pipelines, bridges, power lines, and facilities to reduce costs and enhance safety",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68877ce33e087d22c7971f3d_Infrastructure-monitoring3.avif",
-    survey: true,
-  },
-  "Precision agriculture and forest valuation": {
-    subtitle:
-      "Optimize crop management and forest valuation via aerial monitoring, detecting vegetation index, soil conditions, moisture levels, drainage forecasting, supporting organic farming, and refining field boundaries and maps",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876aa8c59d57c9a4cd91a9_Precision-agriculture-and-forest-valuation.avif",
-    survey: true,
-  },
-  Mapping: {
-    subtitle:
-      "Capture high-resolution aerial images and geospatial data to deliver RGB/multispectral photos. Resulting in orthomosaics and 3D models (DSM, DEM), produced for construction, urban planning, moisture control, flood monitoring, surface mines, etc.",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68878cbc1205f2d260010945_Photogrammetry2.avif",
-    survey: true,
-  },
-  "LiDAR scanning": {
-    subtitle:
-      "High-precision aerial laser scanning for terrain mapping and 3D models, even in remote, dense forests, or hard-to-reach areas",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876acbc028951b445d2f06_LiDAR-scanning-and-mapping.avif",
-    survey: true,
-  },
-  "Medical and vital goods delivery": {
-    subtitle:
-      "Fast, reliable transport of medical supplies, vaccines, and essential goods to remote areas or during emergencies",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876d423500090723b351e0_Medical%20and%20vital%20goods%20delivery.avif",
-  },
-  "Fire response and incident assessment": {
-    subtitle:
-      "Deliver real-time aerial intelligence on critical situations such as fires, hazardous material spills, or structural collapses",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/6887891f2ece7bf624258a86_Incident-assessment2.avif",
-    survey: true,
-  },
-  "Disaster management and recovery": {
-    subtitle:
-      "Assess damage from natural disasters like floods, earthquakes, or wildfires, and identify survivors in need of rescue",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876b758f85e9d081c317a8_Disaster-management-and-recovery2%20(1).avif",
-    survey: true,
-  },
-  "Remote communication and control": {
-    subtitle:
-      "Utilize UAVs as mobile communication mesh in areas with limited infrastructure or during large-scale emergencies",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68e8fac1fa22351df00bb027_Frame%201484582888_converted.avif",
-    survey: false,
-  },
-  "Emergency response": {
-    subtitle:
-      "Eyes in the air, aid on the way. FIXAR drones provide first responders with real-time aerial visibility, route optimization, and remote coordination in chaotic or inaccessible environments",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876af7afd1e08bedb9882c_Emergency-response-.avif",
-    survey: false,
-  },
-  "Search and rescue operations": {
-    subtitle:
-      "Deploy thermal imaging and night vision payloads to locate missing persons in remote or hard-to-reach areas",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/68876b9fb300f80b5d5c522f_Search%20and%20rescue%20operations%20(1).avif",
-    survey: false,
-  },
-  "Surveillance and monitoring": {
-    subtitle:
-      "Monitor large public gatherings, protests, or events to identify potential disturbances and manage crowd behavior in real time",
-    imageSrc:
-      "https://cdn.prod.website-files.com/68499960a31d60de178103d5/688795a05c6589af1992a10a_Surveillance-and-monitoring2.avif",
-    survey: false,
-  },
-};
+const validApplications = [
+  "Detecting illegal activities",
+  "Pursuit and tracking",
+  "Evidence collection",
+  "SWAT and tactical operations",
+  "Traffic and road safety",
+  "Border patrol and surveillance",
+  "Wildlife observation on land and water",
+  "Infrastructure monitoring",
+  "Precision agriculture and forest valuation",
+  "Mapping",
+  "LiDAR scanning",
+  "Medical and vital goods delivery",
+  "Fire response and incident assessment",
+  "Disaster management and recovery",
+  "Remote communication and control",
+  "Emergency response",
+  "Search and rescue operations",
+  "Surveillance and monitoring",
+];
 
 const surveyParameters = {
   categories: {
@@ -193,20 +86,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Заповнюємо дані обраного модуля з першого кроку
   const application = sessionStorage.getItem("application");
-  if (application && selectedApplications[application]) {
-    const appData = selectedApplications[application];
-    const selectedImg = document.getElementById("selected-img");
+  if (application && validApplications.includes(application)) {
     const selectedTitle = document.getElementById("selected-title");
-    const selectedDescription = document.getElementById("selected-description");
 
-    if (selectedImg && appData.imageSrc) {
-      selectedImg.src = appData.imageSrc;
-    }
     if (selectedTitle) {
       selectedTitle.textContent = application;
-    }
-    if (selectedDescription && appData.subtitle) {
-      selectedDescription.textContent = appData.subtitle;
     }
   }
 
@@ -225,6 +109,186 @@ document.addEventListener("DOMContentLoaded", () => {
     "[data-choice='Data processing software']",
   );
   const surveyBlock = document.querySelector("[data-survey-element]");
+
+  // ============================================
+  // STEP PROGRESS SYSTEM
+  // ============================================
+  const percentValue = document.querySelector("#percent-value");
+  const stepBtn = document.querySelector("#step-btn");
+
+  // Track completed steps independently
+  // Base: 36% from first step
+  // Color: +12%, Module: +12%, Survey: +12% (if visible), DataLink: remaining to 100%
+  const completedSteps = {
+    color: false,
+    module: false,
+    survey: false,
+    dataLink: false,
+  };
+
+  // Store original button text
+  const btnTextElement = stepBtn ? stepBtn.querySelector(".btn-text") : null;
+  const originalBtnText = btnTextElement ? btnTextElement.textContent : "Next";
+
+  function animatePercent(targetValue) {
+    if (!percentValue) return;
+    gsap.to(percentValue, {
+      innerText: targetValue,
+      duration: 0.5,
+      snap: { innerText: 1 },
+      ease: "power2.out",
+    });
+  }
+
+  function scrollToElement(selector) {
+    const element = document.querySelector(selector);
+    if (element) {
+      const offsetTop =
+        element.getBoundingClientRect().top + window.scrollY - 100;
+      window.scrollTo({ top: offsetTop, behavior: "smooth" });
+    }
+  }
+
+  function isSurveyVisible() {
+    return surveyBlock && surveyBlock.style.display !== "none";
+  }
+
+  function isSurveyRequired() {
+    // Survey is required only if it's visible
+    return isSurveyVisible();
+  }
+
+  function getCompletedCount() {
+    let count = 0;
+    if (completedSteps.color) count++;
+    if (completedSteps.module) count++;
+    if (isSurveyRequired() && completedSteps.survey) count++;
+    if (completedSteps.dataLink) count++;
+    return count;
+  }
+
+  function getTotalSteps() {
+    // 3 steps if no survey, 4 if survey visible
+    return isSurveyRequired() ? 4 : 3;
+  }
+
+  function calculatePercent() {
+    // Base: 36% from first step
+    // Remaining 64% split among steps
+    const base = 36;
+    const remaining = 64;
+    const totalSteps = getTotalSteps();
+    const completed = getCompletedCount();
+
+    if (completed === totalSteps) {
+      return 100;
+    }
+
+    // Each step adds proportional amount
+    const perStep = remaining / totalSteps;
+    return Math.round(base + completed * perStep);
+  }
+
+  function updateProgress() {
+    const percent = calculatePercent();
+    animatePercent(percent);
+    updateStepBtn();
+  }
+
+  function updateStepBtn() {
+    if (!stepBtn) return;
+
+    const allCompleted =
+      completedSteps.color &&
+      completedSteps.module &&
+      (!isSurveyRequired() || completedSteps.survey) &&
+      completedSteps.dataLink;
+
+    if (allCompleted) {
+      // All steps done - button triggers submit
+      stepBtn.classList.remove("is--disabled");
+      if (btnTextElement) {
+        btnTextElement.textContent = "Order Now";
+      }
+    } else if (getCompletedCount() === 0) {
+      // No steps completed - button goes to first step
+      stepBtn.classList.remove("is--disabled");
+      if (btnTextElement) {
+        btnTextElement.textContent = originalBtnText;
+      }
+    } else {
+      // Find next uncompleted step in hierarchy
+      stepBtn.classList.remove("is--disabled");
+      if (btnTextElement) {
+        btnTextElement.textContent = originalBtnText;
+      }
+    }
+  }
+
+  function getNextStepTarget() {
+    // Return the next uncompleted step in hierarchy order
+    if (!completedSteps.color) {
+      return "#step-four";
+    } else if (!completedSteps.module) {
+      return "#step-five";
+    } else if (isSurveyRequired() && !completedSteps.survey) {
+      return "#step-six";
+    } else if (!completedSteps.dataLink) {
+      return "#step-seven";
+    }
+    return null; // All completed
+  }
+
+  // Function to check and initialize completed steps based on pre-selected values
+  function initializeCompletedSteps() {
+    // Check if color is already selected
+    const colorInputs = document.querySelectorAll(".radio_input-color");
+    const hasColorSelected = Array.from(colorInputs).some(
+      (input) => input.checked,
+    );
+    if (hasColorSelected) {
+      completedSteps.color = true;
+    }
+
+    // Check if module is already selected
+    const moduleInputs = document.querySelectorAll(".modules-item input");
+    const hasModuleSelected = Array.from(moduleInputs).some(
+      (input) => input.checked,
+    );
+    if (hasModuleSelected) {
+      completedSteps.module = true;
+    }
+
+    // Check if survey item is already selected (will be re-checked when survey becomes visible)
+    if (surveyBlock) {
+      const surveyInputs = surveyBlock.querySelectorAll(
+        ".modules_survay-item input",
+      );
+      const hasSurveySelected = Array.from(surveyInputs).some(
+        (input) => input.checked,
+      );
+      if (hasSurveySelected) {
+        completedSteps.survey = true;
+      }
+    }
+
+    // Check if data link is already selected
+    const dataLinkInputs = document.querySelectorAll(
+      ".modules-link input:not(#optional input)",
+    );
+    const hasDataLinkSelected = Array.from(dataLinkInputs).some(
+      (input) => input.checked,
+    );
+    if (hasDataLinkSelected) {
+      completedSteps.dataLink = true;
+    }
+
+    // Update progress based on initial state
+    updateProgress();
+  }
+
+  // Initialize step button
+  updateStepBtn();
 
   const resultModuleBadge = document.querySelector(".model_scene-gimbal");
   const resultLinkBadge = document.querySelector(".range-selected");
@@ -301,38 +365,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const orderTooltip = document.querySelector(".order-now-tooltip");
-  const orderBtn = orderTooltip.querySelector(".u-btn-order");
 
-  orderBtn.addEventListener("click", () => {
-    submitBtn.click();
-  });
-
-  const orderTooltipTl = gsap.timeline({ paused: true });
-
-  // Use fromTo to define both visible and hidden states
-  orderTooltipTl.fromTo(
-    orderTooltip,
-    { opacity: 1, pointerEvents: "auto" }, // FROM: visible state (position 0)
-    { opacity: 0, pointerEvents: "none", duration: 0.3 }, // TO: hidden state (position 1)
-  );
-
-  // Initialize timeline to hidden state (position 1)
-  // This allows reverse() to work correctly
-  orderTooltipTl.progress(1);
-
-  // Створюємо ScrollTrigger
-  ScrollTrigger.create({
-    trigger: ".model_form",
-    //markers: true,
-    start: "top center",
-    end: "bottom bottom",
-    onLeave: () => {
-      orderTooltipTl.play();
-    },
-    onEnterBack: () => {
-      orderTooltipTl.reverse();
-    },
-  });
+  // Tooltip is always visible - no hide/show animation needed
+  // Just ensure it's visible from the start
+  if (orderTooltip) {
+    orderTooltip.style.opacity = "1";
+    orderTooltip.style.pointerEvents = "auto";
+    orderTooltip.style.display = "flex";
+  }
   // ============================================
   // THREE.JS - 3D МОДЕЛЬ
   // ============================================
@@ -1557,6 +1597,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Зберігаємо оновлену конфігурацію
         updateAndSaveConfiguration();
+
+        // Progress update for color selection
+        if (!completedSteps.color) {
+          completedSteps.color = true;
+          updateProgress();
+        }
       });
     });
 
@@ -1717,6 +1763,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       // Ховаємо link badge
       // updateLinkBadge(null);
+
+      // Reset dataLink completion status
+      if (completedSteps.dataLink) {
+        completedSteps.dataLink = false;
+        updateProgress();
+      }
     }
 
     // Функція фільтрації modules-link блоків по категорії modules-item
@@ -1850,17 +1902,32 @@ document.addEventListener("DOMContentLoaded", () => {
         setupSurveyCheckboxes("included");
         // Update result blocks for all survey items
         updateAllSurveyResultBlocks();
+        // Mark survey as completed (auto-checked)
+        if (!completedSteps.survey) {
+          completedSteps.survey = true;
+          updateProgress();
+        }
       } else if (isOptional) {
         // Show survey block, checkboxes freely toggleable
         surveyBlock.style.display = "flex";
         setupSurveyCheckboxes("optional");
         // Reset result blocks (user can choose)
         resetAllSurveyResultBlocks();
+        // Reset survey completion (user needs to select)
+        if (completedSteps.survey) {
+          completedSteps.survey = false;
+          updateProgress();
+        }
       } else {
         // Hide survey block
         surveyBlock.style.display = "none";
         resetSurveyCheckboxes();
         resetAllSurveyResultBlocks();
+        // Survey not required, reset state
+        if (completedSteps.survey) {
+          completedSteps.survey = false;
+          updateProgress();
+        }
       }
     }
 
@@ -2028,6 +2095,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
           // Recalculate prices and save configuration
           updateAndSaveConfiguration();
+
+          // Progress update for survey item selection
+          if (checkbox.checked) {
+            if (!completedSteps.survey) {
+              completedSteps.survey = true;
+              updateProgress();
+            }
+          } else {
+            // Check if any other survey item is still checked
+            const otherChecked = Array.from(
+              surveyBlock.querySelectorAll(".modules_survay-item input"),
+            ).some((input) => input.checked);
+            if (!otherChecked && completedSteps.survey) {
+              completedSteps.survey = false;
+              updateProgress();
+            }
+          }
         });
       });
     }
@@ -2092,6 +2176,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Зберігаємо оновлену конфігурацію
             updateAndSaveConfiguration();
+
+            // Progress update for data link selection
+            if (!completedSteps.dataLink) {
+              completedSteps.dataLink = true;
+              updateProgress();
+            }
           } else {
             // Якщо дізчекнули - ховаємо optional та result блок
             if (optional) {
@@ -2104,6 +2194,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Зберігаємо оновлену конфігурацію
             updateAndSaveConfiguration();
+
+            // Progress update - data link unchecked
+            if (completedSteps.dataLink) {
+              completedSteps.dataLink = false;
+              updateProgress();
+            }
           }
         });
       });
@@ -2240,59 +2336,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /**
      * Shows or hides orderTooltip based on whether any module is selected
-     * Works cooperatively with ScrollTrigger
-     * Only works on screens > 991px
+     * Tooltip is always visible now - this function is kept for compatibility
+     * but does nothing
      */
     function updateOrderTooltipVisibility() {
-      // Safety check: ensure tooltip and timeline exist
-      if (!orderTooltip || !orderTooltipTl) {
-        console.warn("orderTooltip or orderTooltipTl is not defined");
-        return;
-      }
-
-      let mmTooltip = gsap.matchMedia();
-
-      // Desktop only (> 991px)
-      mmTooltip.add("(min-width: 992px)", () => {
-        const modulesList = document.querySelectorAll(".modules-item");
-        let hasSelectedModule = false;
-
-        modulesList.forEach((moduleItem) => {
-          const input = moduleItem.querySelector("input");
-          if (input && input.checked) {
-            hasSelectedModule = true;
-            console.log("✅ Found checked module:", input.value);
-          }
-        });
-
-        console.log("📊 Module selected:", hasSelectedModule);
-
-        if (hasSelectedModule) {
-          // Show tooltip: set display and reverse timeline to visible state
-          console.log("👁️ Showing tooltip - setting display: flex");
-          orderTooltip.style.display = "flex";
-          console.log("🎬 Reversing timeline to show tooltip");
-
-          // Reverse the timeline to position 0 (visible state)
-          orderTooltipTl.reverse();
-        } else {
-          // Hide tooltip: animate, then set display none
-          console.log("🚫 Hiding tooltip - playing timeline");
-          orderTooltipTl.play();
-          // Set display none after animation completes
-          setTimeout(() => {
-            if (orderTooltipTl.progress() === 1) {
-              console.log("✅ Animation complete - setting display: none");
-              orderTooltip.style.display = "none";
-            }
-          }, 300); // Match animation duration
-        }
-      });
-
-      // Mobile and tablet (<= 991px) - hide tooltip
-      mmTooltip.add("(max-width: 991px)", () => {
-        orderTooltip.style.display = "none";
-      });
+      // Tooltip is always visible - no action needed
     }
 
     /**
@@ -2451,6 +2499,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Зберігаємо оновлену конфігурацію
             updateAndSaveConfiguration();
+
+            // Progress update for module selection
+            if (!completedSteps.module) {
+              completedSteps.module = true;
+              updateProgress();
+            }
           } else {
             // Якщо дізчекнули - ховаємо блок і зупиняємо всі анімації крім flight
             if (resultModule) {
@@ -2481,6 +2535,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Зберігаємо оновлену конфігурацію
             updateAndSaveConfiguration();
+
+            // Progress update - module unchecked
+            if (completedSteps.module) {
+              completedSteps.module = false;
+              // Also reset dependent steps
+              completedSteps.survey = false;
+              completedSteps.dataLink = false;
+              updateProgress();
+            }
           }
         });
       }
@@ -2759,26 +2822,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Apply application selection from URL parameter
   function applyApplicationSelection(applicationTitle) {
-    const appData = selectedApplications[applicationTitle];
-    if (!appData) {
+    if (!validApplications.includes(applicationTitle)) {
       console.warn(
-        `Application "${applicationTitle}" not found in selectedApplications`,
+        `Application "${applicationTitle}" not found in validApplications`,
       );
       return;
     }
 
-    const selectedImg = document.getElementById("selected-img");
     const selectedTitle = document.getElementById("selected-title");
-    const selectedDescription = document.getElementById("selected-description");
 
-    if (selectedImg && appData.imageSrc) {
-      selectedImg.src = appData.imageSrc;
-    }
     if (selectedTitle) {
       selectedTitle.textContent = applicationTitle;
-    }
-    if (selectedDescription && appData.subtitle) {
-      selectedDescription.textContent = appData.subtitle;
     }
 
     console.log(`Applied application from URL: ${applicationTitle}`);
@@ -2953,10 +3007,47 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize share button
   initShareButton();
 
+  // ============================================
+  // STEP BUTTON CLICK HANDLER
+  // ============================================
+  if (stepBtn) {
+    stepBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Always prevent default navigation
+
+      // If button is disabled, do nothing
+      if (stepBtn.classList.contains("is--disabled")) {
+        return;
+      }
+
+      const allCompleted =
+        completedSteps.color &&
+        completedSteps.module &&
+        (!isSurveyRequired() || completedSteps.survey) &&
+        completedSteps.dataLink;
+
+      // All steps completed - submit
+      if (allCompleted && submitBtn) {
+        submitBtn.click();
+        return;
+      }
+
+      // Navigate to next uncompleted step
+      const nextTarget = getNextStepTarget();
+      if (nextTarget) {
+        scrollToElement(nextTarget);
+      }
+    });
+  }
+
   // Apply URL parameters after a delay to ensure DOM is ready
-  setTimeout(() => {
-    applyUrlParameters();
+  setTimeout(async () => {
+    await applyUrlParameters();
+    // Initialize completed steps after URL params are applied
+    initializeCompletedSteps();
   }, 1500);
+
+  // Also initialize immediately for HTML defaults (before URL params)
+  initializeCompletedSteps();
 
   // ============================================
   // MOBILE HEADER/MODELCONTAIN SCROLL BEHAVIOR
