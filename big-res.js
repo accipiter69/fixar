@@ -1,5 +1,3 @@
-console.log("penis");
-
 // Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025":
@@ -128,9 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
     dataLink: false,
   };
 
-  // Flag to track if we're waiting for user to complete next step
-  let awaitingStepCompletion = false;
-
   // Store original button text
   const btnTextElement = stepBtn ? stepBtn.querySelector(".btn-text") : null;
   const originalBtnText = btnTextElement ? btnTextElement.textContent : "Next";
@@ -167,14 +162,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let count = 0;
     if (completedSteps.color) count++;
     if (completedSteps.module) count++;
-    // Survey is optional - does not count towards progress
+    if (isSurveyRequired() && completedSteps.survey) count++;
     if (completedSteps.dataLink) count++;
     return count;
   }
 
   function getTotalSteps() {
-    // Always 3 steps (color, module, dataLink) - survey is optional pass-through
-    return 3;
+    // 3 steps if no survey, 4 if survey visible
+    return isSurveyRequired() ? 4 : 3;
   }
 
   function calculatePercent() {
@@ -203,39 +198,26 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateStepBtn() {
     if (!stepBtn) return;
 
-    // Survey is optional pass-through - not required for completion
     const allCompleted =
       completedSteps.color &&
       completedSteps.module &&
+      (!isSurveyRequired() || completedSteps.survey) &&
       completedSteps.dataLink;
-
-    console.log(
-      "[updateStepBtn] Called. completedSteps:",
-      JSON.stringify(completedSteps),
-      "awaiting:",
-      awaitingStepCompletion,
-      "allCompleted:",
-      allCompleted,
-    );
 
     if (allCompleted) {
       // All steps done - button triggers submit
-      console.log("[updateStepBtn] All completed - enabling for submit");
-      awaitingStepCompletion = false;
       stepBtn.classList.remove("is--disabled");
       if (btnTextElement) {
         btnTextElement.textContent = "Order Now";
       }
-    } else if (awaitingStepCompletion) {
-      // Waiting for user to complete current step - disabled
-      console.log("[updateStepBtn] Awaiting step completion - disabling");
-      stepBtn.classList.add("is--disabled");
+    } else if (getCompletedCount() === 0) {
+      // No steps completed - button goes to first step
+      stepBtn.classList.remove("is--disabled");
       if (btnTextElement) {
         btnTextElement.textContent = originalBtnText;
       }
     } else {
-      // Navigate to next uncompleted step
-      console.log("[updateStepBtn] Partial completion - enabling navigation");
+      // Find next uncompleted step in hierarchy
       stepBtn.classList.remove("is--disabled");
       if (btnTextElement) {
         btnTextElement.textContent = originalBtnText;
@@ -246,14 +228,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function getNextStepTarget() {
     // Return the next uncompleted step in hierarchy order
     if (!completedSteps.color) {
-      return { target: "#step-four", isSurvey: false };
+      return "#step-four";
     } else if (!completedSteps.module) {
-      return { target: "#step-five", isSurvey: false };
-    } else if (isSurveyVisible() && !completedSteps.survey) {
-      // Survey is optional pass-through - scroll but don't wait
-      return { target: "#step-six", isSurvey: true };
+      return "#step-five";
+    } else if (isSurveyRequired() && !completedSteps.survey) {
+      return "#step-six";
     } else if (!completedSteps.dataLink) {
-      return { target: "#step-seven", isSurvey: false };
+      return "#step-seven";
     }
     return null; // All completed
   }
@@ -1618,13 +1599,9 @@ document.addEventListener("DOMContentLoaded", () => {
         updateAndSaveConfiguration();
 
         // Progress update for color selection
-        console.log("[color change] Resetting awaitingStepCompletion to false");
-        awaitingStepCompletion = false;
         if (!completedSteps.color) {
           completedSteps.color = true;
           updateProgress();
-        } else {
-          updateStepBtn();
         }
       });
     });
@@ -1926,12 +1903,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Update result blocks for all survey items
         updateAllSurveyResultBlocks();
         // Mark survey as completed (auto-checked)
-        awaitingStepCompletion = false;
         if (!completedSteps.survey) {
           completedSteps.survey = true;
           updateProgress();
-        } else {
-          updateStepBtn();
         }
       } else if (isOptional) {
         // Show survey block, checkboxes freely toggleable
@@ -1940,12 +1914,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reset result blocks (user can choose)
         resetAllSurveyResultBlocks();
         // Reset survey completion (user needs to select)
-        awaitingStepCompletion = false;
         if (completedSteps.survey) {
           completedSteps.survey = false;
           updateProgress();
-        } else {
-          updateStepBtn();
         }
       } else {
         // Hide survey block
@@ -1953,12 +1924,9 @@ document.addEventListener("DOMContentLoaded", () => {
         resetSurveyCheckboxes();
         resetAllSurveyResultBlocks();
         // Survey not required, reset state
-        awaitingStepCompletion = false;
         if (completedSteps.survey) {
           completedSteps.survey = false;
           updateProgress();
-        } else {
-          updateStepBtn();
         }
       }
     }
@@ -2129,13 +2097,10 @@ document.addEventListener("DOMContentLoaded", () => {
           updateAndSaveConfiguration();
 
           // Progress update for survey item selection
-          awaitingStepCompletion = false;
           if (checkbox.checked) {
             if (!completedSteps.survey) {
               completedSteps.survey = true;
               updateProgress();
-            } else {
-              updateStepBtn();
             }
           } else {
             // Check if any other survey item is still checked
@@ -2213,15 +2178,9 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAndSaveConfiguration();
 
             // Progress update for data link selection
-            console.log(
-              "[dataLink change] Resetting awaitingStepCompletion to false",
-            );
-            awaitingStepCompletion = false;
             if (!completedSteps.dataLink) {
               completedSteps.dataLink = true;
               updateProgress();
-            } else {
-              updateStepBtn();
             }
           } else {
             // Якщо дізчекнули - ховаємо optional та result блок
@@ -2237,12 +2196,9 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAndSaveConfiguration();
 
             // Progress update - data link unchecked
-            awaitingStepCompletion = false;
             if (completedSteps.dataLink) {
               completedSteps.dataLink = false;
               updateProgress();
-            } else {
-              updateStepBtn();
             }
           }
         });
@@ -2545,15 +2501,9 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAndSaveConfiguration();
 
             // Progress update for module selection
-            console.log(
-              "[module change] Resetting awaitingStepCompletion to false",
-            );
-            awaitingStepCompletion = false;
             if (!completedSteps.module) {
               completedSteps.module = true;
               updateProgress();
-            } else {
-              updateStepBtn();
             }
           } else {
             // Якщо дізчекнули - ховаємо блок і зупиняємо всі анімації крім flight
@@ -2587,15 +2537,12 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAndSaveConfiguration();
 
             // Progress update - module unchecked
-            awaitingStepCompletion = false;
             if (completedSteps.module) {
               completedSteps.module = false;
               // Also reset dependent steps
               completedSteps.survey = false;
               completedSteps.dataLink = false;
               updateProgress();
-            } else {
-              updateStepBtn();
             }
           }
         });
@@ -3072,10 +3019,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Survey is optional pass-through - not required for completion
       const allCompleted =
         completedSteps.color &&
         completedSteps.module &&
+        (!isSurveyRequired() || completedSteps.survey) &&
         completedSteps.dataLink;
 
       // All steps completed - submit
@@ -3085,23 +3032,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Navigate to next uncompleted step
-      const nextStep = getNextStepTarget();
-      console.log("[stepBtn click] nextStep:", nextStep);
-      if (nextStep) {
-        if (nextStep.isSurvey) {
-          // Survey is pass-through - scroll but don't disable button
-          console.log("[stepBtn click] Survey step - scrolling without disabling");
-          scrollToElement(nextStep.target);
-          // Mark survey as "seen" so next click goes to dataLink
-          completedSteps.survey = true;
-        } else {
-          // Regular step - disable button until completed
-          console.log("[stepBtn click] Setting awaitingStepCompletion = true, adding is--disabled");
-          awaitingStepCompletion = true;
-          stepBtn.classList.add("is--disabled");
-          console.log("[stepBtn click] Classes after:", stepBtn.className);
-          scrollToElement(nextStep.target);
-        }
+      const nextTarget = getNextStepTarget();
+      if (nextTarget) {
+        scrollToElement(nextTarget);
       }
     });
   }
