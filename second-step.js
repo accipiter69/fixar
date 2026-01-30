@@ -149,9 +149,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const element = document.querySelector(selector);
     if (element) {
       // Add extra offset for mobile < 480px due to sticky block
-      const mobileOffset = window.innerWidth < 480 ? window.innerHeight * 0.31 : 0;
+      const mobileOffset =
+        window.innerWidth < 480 ? window.innerHeight * 0.3 : 0;
       const offsetTop =
-        element.getBoundingClientRect().top + window.scrollY - 100 - mobileOffset;
+        element.getBoundingClientRect().top +
+        window.scrollY -
+        100 -
+        mobileOffset;
       window.scrollTo({ top: offsetTop, behavior: "smooth" });
     }
   }
@@ -207,9 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Survey is optional pass-through - not required for completion
     const allCompleted =
-      completedSteps.color &&
-      completedSteps.module &&
-      completedSteps.dataLink;
+      completedSteps.color && completedSteps.module && completedSteps.dataLink;
 
     console.log(
       "[updateStepBtn] Called. completedSteps:",
@@ -3092,13 +3094,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (nextStep) {
         if (nextStep.isSurvey) {
           // Survey is pass-through - scroll but don't disable button
-          console.log("[stepBtn click] Survey step - scrolling without disabling");
+          console.log(
+            "[stepBtn click] Survey step - scrolling without disabling",
+          );
           scrollToElement(nextStep.target);
           // Mark survey as "seen" so next click goes to dataLink
           completedSteps.survey = true;
         } else {
           // Regular step - disable button until completed
-          console.log("[stepBtn click] Setting awaitingStepCompletion = true, adding is--disabled");
+          console.log(
+            "[stepBtn click] Setting awaitingStepCompletion = true, adding is--disabled",
+          );
           awaitingStepCompletion = true;
           stepBtn.classList.add("is--disabled");
           console.log("[stepBtn click] Classes after:", stepBtn.className);
