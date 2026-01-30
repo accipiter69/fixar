@@ -184,20 +184,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function calculatePercent() {
-    // Base: 36% from first step
-    // Remaining 64% split among steps
     const base = 48;
-    const remaining = 52;
-    const totalSteps = getTotalSteps();
+    const stepValues = [16, 16, 20]; // color, module, dataLink
     const completed = getCompletedCount();
 
-    if (completed === totalSteps) {
-      return 100;
+    let percent = base;
+    for (let i = 0; i < completed; i++) {
+      percent += stepValues[i];
     }
 
-    // Each step adds proportional amount
-    const perStep = remaining / totalSteps;
-    return Math.round(base + completed * perStep);
+    return percent;
   }
 
   function updateProgress() {
