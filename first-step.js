@@ -133,6 +133,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize from form state (handles browser back/forward)
   initializeCompletedSteps();
 
+  // Handle bfcache (back-forward cache) - reinitialize when returning via back button
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+      console.log("[pageshow] Page restored from bfcache, reinitializing...");
+      initializeCompletedSteps();
+    }
+  });
+
   // Show/hide modules by Industry selection
   function showModulesByIndustry(industryValue, skipScroll = false) {
     console.log("[showModulesByIndustry] Called with value:", industryValue, "skipScroll:", skipScroll);
