@@ -148,8 +148,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function scrollToElement(selector) {
     const element = document.querySelector(selector);
     if (element) {
+      // Add extra offset for mobile < 480px due to sticky block
+      const mobileOffset = window.innerWidth < 480 ? window.innerHeight * 0.31 : 0;
       const offsetTop =
-        element.getBoundingClientRect().top + window.scrollY - 100;
+        element.getBoundingClientRect().top + window.scrollY - 100 - mobileOffset;
       window.scrollTo({ top: offsetTop, behavior: "smooth" });
     }
   }
