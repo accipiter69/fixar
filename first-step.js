@@ -311,8 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (allCompleted && submitBtn) {
         e.preventDefault();
         submitBtn.click();
+      } else {
+        // After navigation, disable button until next step is completed
+        stepBtn.classList.add("is--disabled");
       }
-      // Otherwise allow default href navigation to next uncompleted step
     });
   }
 });

@@ -1,17 +1,18 @@
-console.log("[first-step.js] Script loaded");
 document.addEventListener("DOMContentLoaded", () => {
   console.log("[first-step.js] DOMContentLoaded fired");
   // Pre-select model from URL param
   const urlParams = new URLSearchParams(window.location.search);
   const sourceModel = urlParams.get("source-model");
 
+  let modelPreselected = false;
   if (sourceModel) {
     const normalizedSource = sourceModel.trim().toUpperCase();
-    const modelInputs = document.querySelectorAll('input[name="model"]');
+    const modelInputsInit = document.querySelectorAll('input[name="model"]');
 
-    modelInputs.forEach((input) => {
+    modelInputsInit.forEach((input) => {
       if (input.value.trim().toUpperCase() === normalizedSource) {
         input.checked = true;
+        modelPreselected = true;
       }
     });
   }
@@ -27,48 +28,71 @@ document.addEventListener("DOMContentLoaded", () => {
     list.classList.add("hidden-now");
   });
 
-  // Order tooltip setup
-  const orderTooltip = document.querySelector(".order-now-tooltip");
-  let orderTooltipTl = null;
+  // Progress elements
+  const percentValue = document.querySelector("#percent-value");
+  const stepBtn = document.querySelector("#step-btn");
 
-  if (orderTooltip) {
-    orderTooltipTl = gsap.timeline({ paused: true });
+  // Track completed steps independently
+  const completedSteps = {
+    industry: false,
+    application: false,
+    model: modelPreselected,
+  };
 
-    orderTooltipTl.fromTo(
-      orderTooltip,
-      { opacity: 1, pointerEvents: "auto" },
-      { opacity: 0, pointerEvents: "none", duration: 0.3 },
-    );
-
-    orderTooltipTl.progress(1);
+  function animatePercent(targetValue) {
+    if (!percentValue) return;
+    gsap.to(percentValue, {
+      innerText: targetValue,
+      duration: 0.5,
+      snap: { innerText: 1 },
+      ease: "power2.out",
+    });
   }
 
-  function updateOrderTooltipVisibility() {
-    if (!orderTooltip || !orderTooltipTl) {
-      return;
-    }
+  function getCompletedCount() {
+    return Object.values(completedSteps).filter(Boolean).length;
+  }
 
-    const modulesList = document.querySelectorAll(".modules-item");
-    let hasSelectedModule = false;
+  function updateProgress() {
+    const count = getCompletedCount();
+    animatePercent(count * 12);
+    updateStepBtn();
+  }
 
-    modulesList.forEach((moduleItem) => {
-      const input = moduleItem.querySelector("input");
-      if (input && input.checked) {
-        hasSelectedModule = true;
-      }
-    });
+  function updateStepBtn() {
+    if (!stepBtn) return;
 
-    if (hasSelectedModule) {
-      orderTooltip.style.display = "flex";
-      orderTooltipTl.reverse();
+    const allCompleted =
+      completedSteps.industry &&
+      completedSteps.application &&
+      completedSteps.model;
+
+    if (allCompleted) {
+      // All steps done - button triggers submit
+      stepBtn.classList.remove("is--disabled");
+      stepBtn.removeAttribute("href");
+    } else if (getCompletedCount() === 0) {
+      // No steps completed - disabled
+      stepBtn.classList.add("is--disabled");
+      stepBtn.removeAttribute("href");
     } else {
-      orderTooltipTl.play();
-      setTimeout(() => {
-        if (orderTooltipTl.progress() === 1) {
-          orderTooltip.style.display = "none";
-        }
-      }, 300);
+      // Find next uncompleted step in hierarchy
+      stepBtn.classList.remove("is--disabled");
+      if (!completedSteps.industry) {
+        stepBtn.setAttribute("href", "#step-one");
+      } else if (!completedSteps.application) {
+        stepBtn.setAttribute("href", "#step-two");
+      } else if (!completedSteps.model) {
+        stepBtn.setAttribute("href", "#step-three");
+      }
     }
+  }
+
+  // Initialize step button and progress
+  if (modelPreselected) {
+    updateProgress();
+  } else {
+    updateStepBtn();
   }
 
   // Show/hide modules by Industry selection
@@ -107,40 +131,57 @@ document.addEventListener("DOMContentLoaded", () => {
       if (listName === industryValue) {
         console.log("[showModulesByIndustry] SHOWING:", listName);
         list.classList.remove("hidden-now");
+
+        // Scroll to the block on mobile (<992px)
+        if (window.innerWidth < 992) {
+          setTimeout(() => {
+            const offsetTop =
+              list.getBoundingClientRect().top + window.scrollY - 200;
+            window.scrollTo({ top: offsetTop, behavior: "smooth" });
+          }, 100);
+        }
       } else {
         console.log("[showModulesByIndustry] HIDING:", listName);
         list.classList.add("hidden-now");
       }
     });
 
-    // Update tooltip and submit button state
-    updateOrderTooltipVisibility();
+    // Update submit button state
     updateSubmitButtonState();
   }
 
-  // Modules item selection listener
-  const moduleItems = document.querySelectorAll(".modules-item");
-  moduleItems.forEach((moduleItem) => {
-    const input = moduleItem.querySelector("input");
-    if (input) {
-      input.addEventListener("change", () => {
-        updateOrderTooltipVisibility();
-      });
-    }
+  // Model inputs reference
+  const modelInputs = document.querySelectorAll('input[name="model"]');
+
+  // Model input progress handler
+  modelInputs.forEach((modelInput) => {
+    modelInput.addEventListener("change", () => {
+      if (!completedSteps.model) {
+        completedSteps.model = true;
+        updateProgress();
+      }
+    });
   });
 
-  // Hide Order tooltip when model input is focused or clicked
-  const modelInputs = document.querySelectorAll('input[name="model"]');
-  if (orderTooltip && orderTooltipTl) {
-    modelInputs.forEach((modelInput) => {
-      modelInput.addEventListener("focus", () => {
-        orderTooltipTl.play();
+  // Scroll to submit button on model click (mobile only, if not pre-selected)
+  if (!sourceModel) {
+    const submitElement = document.querySelector(".submit");
+    if (submitElement) {
+      modelInputs.forEach((modelInput) => {
+        modelInput.addEventListener("click", () => {
+          if (window.innerWidth < 992) {
+            setTimeout(() => {
+              const offsetTop =
+                submitElement.getBoundingClientRect().top +
+                window.scrollY -
+                window.innerHeight +
+                100;
+              window.scrollTo({ top: offsetTop, behavior: "smooth" });
+            }, 120);
+          }
+        });
       });
-      // Для мобільних пристроїв додаємо click
-      modelInput.addEventListener("click", () => {
-        orderTooltipTl.play();
-      });
-    });
+    }
   }
 
   // Industry filter listener
@@ -157,6 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
         input.value,
       );
       showModulesByIndustry(input.value);
+
+      // Progress update for industry selection
+      if (!completedSteps.industry) {
+        completedSteps.industry = true;
+        updateProgress();
+      }
     });
   });
 
@@ -203,7 +250,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Слухачі для оновлення стану кнопки
     applicationInputs.forEach((input) => {
-      input.addEventListener("change", updateSubmitButtonState);
+      input.addEventListener("change", () => {
+        updateSubmitButtonState();
+
+        // Progress update for application selection
+        if (!completedSteps.application) {
+          completedSteps.application = true;
+          updateProgress();
+        }
+      });
     });
     modelInputsForSubmit.forEach((input) => {
       input.addEventListener("change", updateSubmitButtonState);
@@ -225,25 +280,6 @@ document.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem("application", application);
         }
 
-        // Зберігаємо дані обраного модуля
-        const selectedApplication = document.querySelector(
-          ".model_form-module:has(input:checked)",
-        );
-        if (selectedApplication) {
-          const img = selectedApplication.querySelector("img");
-          const h4 = selectedApplication.querySelector("h4");
-          const p = selectedApplication.querySelector("p");
-          const moduleData = {
-            imgSrc: img ? img.src : "",
-            title: h4 ? h4.textContent.trim() : "",
-            description: p ? p.textContent.trim() : "",
-          };
-          sessionStorage.setItem(
-            "selectedApplication",
-            JSON.stringify(moduleData),
-          );
-        }
-
         // Редірект на відповідну сторінку залежно від моделі
         const normalizedModel = normalizeKey(model || "");
         const redirectUrl = Object.entries(redirectUrls).find(
@@ -255,5 +291,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
+  }
+
+  // Step button click handler
+  if (stepBtn) {
+    stepBtn.addEventListener("click", (e) => {
+      // If button is disabled, do nothing
+      if (stepBtn.classList.contains("is--disabled")) {
+        e.preventDefault();
+        return;
+      }
+
+      const allCompleted =
+        completedSteps.industry &&
+        completedSteps.application &&
+        completedSteps.model;
+
+      // All steps completed - submit
+      if (allCompleted && submitBtn) {
+        e.preventDefault();
+        submitBtn.click();
+      }
+      // Otherwise allow default href navigation to next uncompleted step
+    });
   }
 });
