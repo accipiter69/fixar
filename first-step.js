@@ -97,16 +97,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Initialize step button and progress
-  if (modelPreselected) {
+  // Function to initialize completed steps from current form state (for browser back/forward)
+  function initializeCompletedSteps() {
+    console.log("[initializeCompletedSteps] Checking form state...");
+
+    // Check if industry is already selected
+    const selectedIndustry = document.querySelector('input[name="Industry"]:checked');
+    if (selectedIndustry) {
+      console.log("[initializeCompletedSteps] Industry already selected:", selectedIndustry.value);
+      completedSteps.industry = true;
+      // Show the correct modules list for this industry (skip scroll and uncheck during init)
+      showModulesByIndustry(selectedIndustry.value, true);
+    }
+
+    // Check if application is already selected
+    const selectedApplication = document.querySelector('input[name="application"]:checked');
+    if (selectedApplication) {
+      console.log("[initializeCompletedSteps] Application already selected:", selectedApplication.value);
+      completedSteps.application = true;
+    }
+
+    // Check if model is already selected (not from URL param)
+    const selectedModel = document.querySelector('input[name="model"]:checked');
+    if (selectedModel) {
+      console.log("[initializeCompletedSteps] Model already selected:", selectedModel.value);
+      completedSteps.model = true;
+    }
+
+    console.log("[initializeCompletedSteps] Final state:", JSON.stringify(completedSteps));
+
+    // Update progress based on initialized state
     updateProgress();
-  } else {
-    updateStepBtn();
   }
 
+  // Initialize from form state (handles browser back/forward)
+  initializeCompletedSteps();
+
   // Show/hide modules by Industry selection
-  function showModulesByIndustry(industryValue) {
-    console.log("[showModulesByIndustry] Called with value:", industryValue);
+  function showModulesByIndustry(industryValue, skipScroll = false) {
+    console.log("[showModulesByIndustry] Called with value:", industryValue, "skipScroll:", skipScroll);
     const modulesLists = document.querySelectorAll("[data-list-name]");
     console.log(
       "[showModulesByIndustry] Found containers:",
@@ -122,8 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
         industryValue,
       );
 
-      // Uncheck inputs in lists that will be hidden
-      if (listName !== industryValue) {
+      // Uncheck inputs in lists that will be hidden (but not during initialization)
+      if (listName !== industryValue && !skipScroll) {
         const inputs = list.querySelectorAll(".modules-item input");
         inputs.forEach((input) => {
           if (input.checked) {
@@ -141,8 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("[showModulesByIndustry] SHOWING:", listName);
         list.classList.remove("hidden-now");
 
-        // Scroll to the block on mobile (<992px)
-        if (window.innerWidth < 992) {
+        // Scroll to the block on mobile (<992px) - skip during initialization
+        if (!skipScroll && window.innerWidth < 992) {
           setTimeout(() => {
             const offsetTop =
               list.getBoundingClientRect().top + window.scrollY - 200;
