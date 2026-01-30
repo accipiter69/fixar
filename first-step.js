@@ -39,6 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
     model: modelPreselected,
   };
 
+  // Flag to track if we're waiting for user to complete next step
+  let awaitingStepCompletion = false;
+
   function animatePercent(targetValue) {
     if (!percentValue) return;
     gsap.to(percentValue, {
@@ -67,16 +70,22 @@ document.addEventListener("DOMContentLoaded", () => {
       completedSteps.application &&
       completedSteps.model;
 
+    console.log("[updateStepBtn] Called. completedSteps:", JSON.stringify(completedSteps), "awaiting:", awaitingStepCompletion);
+
     if (allCompleted) {
       // All steps done - button triggers submit
+      console.log("[updateStepBtn] All completed - enabling for submit");
+      awaitingStepCompletion = false;
       stepBtn.classList.remove("is--disabled");
       stepBtn.removeAttribute("href");
-    } else if (getCompletedCount() === 0) {
-      // No steps completed - disabled
+    } else if (getCompletedCount() === 0 || awaitingStepCompletion) {
+      // No steps completed OR waiting for next step - disabled
+      console.log("[updateStepBtn] Disabling (none completed or awaiting)");
       stepBtn.classList.add("is--disabled");
       stepBtn.removeAttribute("href");
     } else {
       // Find next uncompleted step in hierarchy
+      console.log("[updateStepBtn] Partial completion - enabling navigation");
       stepBtn.classList.remove("is--disabled");
       if (!completedSteps.industry) {
         stepBtn.setAttribute("href", "#step-one");
@@ -158,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modelInput.addEventListener("change", () => {
       if (!completedSteps.model) {
         completedSteps.model = true;
+        awaitingStepCompletion = false;
         updateProgress();
       }
     });
@@ -202,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Progress update for industry selection
       if (!completedSteps.industry) {
         completedSteps.industry = true;
+        awaitingStepCompletion = false;
         updateProgress();
       }
     });
@@ -256,6 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Progress update for application selection
         if (!completedSteps.application) {
           completedSteps.application = true;
+          awaitingStepCompletion = false;
           updateProgress();
         }
       });
@@ -313,6 +325,8 @@ document.addEventListener("DOMContentLoaded", () => {
         submitBtn.click();
       } else {
         // After navigation, disable button until next step is completed
+        console.log("[stepBtn] Setting awaitingStepCompletion = true");
+        awaitingStepCompletion = true;
         stepBtn.classList.add("is--disabled");
       }
     });
