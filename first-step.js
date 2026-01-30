@@ -165,10 +165,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Model input progress handler
   modelInputs.forEach((modelInput) => {
     modelInput.addEventListener("change", () => {
+      awaitingStepCompletion = false;
       if (!completedSteps.model) {
         completedSteps.model = true;
-        awaitingStepCompletion = false;
         updateProgress();
+      } else {
+        updateStepBtn();
       }
     });
   });
@@ -210,10 +212,12 @@ document.addEventListener("DOMContentLoaded", () => {
       showModulesByIndustry(input.value);
 
       // Progress update for industry selection
+      awaitingStepCompletion = false;
       if (!completedSteps.industry) {
         completedSteps.industry = true;
-        awaitingStepCompletion = false;
         updateProgress();
+      } else {
+        updateStepBtn();
       }
     });
   });
@@ -265,10 +269,12 @@ document.addEventListener("DOMContentLoaded", () => {
         updateSubmitButtonState();
 
         // Progress update for application selection
+        awaitingStepCompletion = false;
         if (!completedSteps.application) {
           completedSteps.application = true;
-          awaitingStepCompletion = false;
           updateProgress();
+        } else {
+          updateStepBtn();
         }
       });
     });
