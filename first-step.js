@@ -169,15 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (listName === industryValue) {
         console.log("[showModulesByIndustry] SHOWING:", listName);
         list.classList.remove("hidden-now");
-
-        // Scroll to the block on mobile (<992px) - skip during initialization
-        if (!skipScroll && window.innerWidth < 992) {
-          setTimeout(() => {
-            const offsetTop =
-              list.getBoundingClientRect().top + window.scrollY - 200;
-            window.scrollTo({ top: offsetTop, behavior: "smooth" });
-          }, 100);
-        }
       } else {
         console.log("[showModulesByIndustry] HIDING:", listName);
         list.classList.add("hidden-now");
@@ -204,26 +195,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Scroll to submit button on model click (mobile only, if not pre-selected)
-  if (!sourceModel) {
-    const submitElement = document.querySelector(".submit");
-    if (submitElement) {
-      modelInputs.forEach((modelInput) => {
-        modelInput.addEventListener("click", () => {
-          if (window.innerWidth < 992) {
-            setTimeout(() => {
-              const offsetTop =
-                submitElement.getBoundingClientRect().top +
-                window.scrollY -
-                window.innerHeight +
-                100;
-              window.scrollTo({ top: offsetTop, behavior: "smooth" });
-            }, 120);
-          }
-        });
-      });
-    }
-  }
 
   // Industry filter listener
   const industryInputs = document.querySelectorAll('input[name="Industry"]');
