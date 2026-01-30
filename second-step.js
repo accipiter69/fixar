@@ -186,8 +186,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function calculatePercent() {
     // Base: 36% from first step
     // Remaining 64% split among steps
-    const base = 36;
-    const remaining = 64;
+    const base = 48;
+    const remaining = 52;
     const totalSteps = getTotalSteps();
     const completed = getCompletedCount();
 
