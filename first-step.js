@@ -219,14 +219,18 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       showModulesByIndustry(input.value);
 
+      // Reset application when industry changes (application list changes)
+      if (completedSteps.application) {
+        console.log("[Industry Listener] Resetting application step");
+        completedSteps.application = false;
+      }
+
       // Progress update for industry selection
       awaitingStepCompletion = false;
       if (!completedSteps.industry) {
         completedSteps.industry = true;
-        updateProgress();
-      } else {
-        updateStepBtn();
       }
+      updateProgress();
     });
   });
 
