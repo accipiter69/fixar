@@ -260,9 +260,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const redirectUrls = {
-    "FIXAR 025": "/configurator-v-2/configurator-025",
-    "FIXAR 007 LE": "/configurator-v-2/configurator-007-le",
-    "FIXAR 007 NG": "/configurator-v-2/configurator-007-ng",
+    "FIXAR 025": "/configurator/configurator-025",
+    "FIXAR 007 LE": "/configurator/configurator-007-le",
+    "FIXAR 007 NG": "/configurator/configurator-007-ng",
   };
 
   const normalizeKey = (str) => str.trim().toUpperCase();
