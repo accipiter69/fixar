@@ -741,6 +741,15 @@ function populateFormFields(params, sessionConfig) {
       }
     });
 
+    // Add application as hidden field
+    if (sessionConfig.application) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "Application";
+      input.value = sessionConfig.application;
+      form.appendChild(input);
+    }
+
     // Add survey items as hidden fields
     if (sessionConfig.surveyItems) {
       // Survey item checkboxes and prices

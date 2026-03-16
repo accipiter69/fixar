@@ -999,6 +999,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function collectConfigurationData() {
     const configData = {
       timestamp: Date.now(),
+      application: sessionStorage.getItem("application") || null,
       drone: null,
       color: null,
       module: null,
