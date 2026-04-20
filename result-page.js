@@ -1,4 +1,3 @@
-// Мапінг моделей дронів
 const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
@@ -8,7 +7,6 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG(9.01.26).glb",
 };
 
-// Мапінг кольорів
 const colorMap = {
   Red: "#FF0000",
   Green: "#50533c",
@@ -16,47 +14,45 @@ const colorMap = {
   Gray: "#C2C2C2",
 };
 
-// Нормалізує рядок: видаляє зайві пробіли та конвертує кирилицю в латиницю
+const CYRILLIC_TO_LATIN = {
+  А: "A",
+  В: "B",
+  Е: "E",
+  К: "K",
+  М: "M",
+  Н: "H",
+  О: "O",
+  Р: "P",
+  С: "C",
+  Т: "T",
+  Х: "X",
+  а: "a",
+  е: "e",
+  о: "o",
+  р: "p",
+  с: "c",
+  у: "y",
+  х: "x",
+};
+
 function normalizeString(str) {
   if (!str) return str;
-
-  // Мапінг схожих кирилічних та латинських символів
-  const cyrillicToLatin = {
-    А: "A",
-    В: "B",
-    Е: "E",
-    К: "K",
-    М: "M",
-    Н: "H",
-    О: "O",
-    Р: "P",
-    С: "C",
-    Т: "T",
-    Х: "X",
-    а: "a",
-    е: "e",
-    о: "o",
-    р: "p",
-    с: "c",
-    у: "y",
-    х: "x",
-  };
-
-  // Видаляємо зайві пробіли
-  let normalized = str.trim().replace(/\s+/g, " ");
-
-  // Замінюємо кирилічні символи на латинські
-  normalized = normalized
-    .split("")
-    .map((char) => cyrillicToLatin[char] || char)
-    .join("");
-
-  return normalized;
+  const trimmed = str.trim().replace(/\s+/g, " ");
+  let out = "";
+  for (let i = 0; i < trimmed.length; i++) {
+    const ch = trimmed[i];
+    out += CYRILLIC_TO_LATIN[ch] || ch;
+  }
+  return out;
 }
 
-// ============================================
-// URL PARAMETER PARSER
-// ============================================
+function getDroneScale(droneName) {
+  const base =
+    droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
+  if (window.innerWidth >= 768) return base;
+  return droneName === "FIXAR 025" ? base * 1.2 : base * 1.5;
+}
+
 function parseUrlParameters() {
   const urlParams = new URLSearchParams(window.location.search);
   return {
@@ -68,268 +64,172 @@ function parseUrlParameters() {
   };
 }
 
-// ============================================
-// SESSION STORAGE FUNCTIONS
-// ============================================
-
-/**
- * Читає дані конфігурації з SessionStorage
- * @returns {Object|null} Дані конфігурації або null якщо не знайдено/невалідні
- */
 function readConfigurationFromSession() {
   try {
-    if (typeof sessionStorage === "undefined") {
-      return null;
-    }
-
+    if (typeof sessionStorage === "undefined") return null;
     const jsonData = sessionStorage.getItem("fixar_configuration");
-    if (!jsonData) {
-      return null;
-    }
-
+    if (!jsonData) return null;
     const configData = JSON.parse(jsonData);
-    if (!configData || typeof configData !== "object") {
-      return null;
-    }
+    if (!configData || typeof configData !== "object") return null;
 
-    // Перевірка застарілих даних (старіше 1 години)
     const ONE_HOUR = 60 * 60 * 1000;
     if (configData.timestamp && Date.now() - configData.timestamp > ONE_HOUR) {
       sessionStorage.removeItem("fixar_configuration");
       return null;
     }
-
     return configData;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
 
-/**
- * Приховує всі result блоки перед їх заповненням
- */
-function hideAllResultBlocks() {
-  const resultBlocks = [
-    document.querySelector("[data-choice=drone]"),
-    document.querySelector("[data-choice=color]"),
-    document.querySelector("[data-choice=module]"),
-    document.querySelector("[data-choice=link]"),
-    document.querySelector("[data-choice=link-optional]"),
-    document.querySelector("[data-choice='PPK Receiver']"),
-    document.querySelector("[data-choice='Ground base station']"),
-    document.querySelector("[data-choice='Data processing software']"),
-  ];
+const RESULT_BLOCK_SELECTORS = [
+  "[data-choice=drone]",
+  "[data-choice=color]",
+  "[data-choice=module]",
+  "[data-choice=link]",
+  "[data-choice=link-optional]",
+  "[data-choice='PPK Receiver']",
+  "[data-choice='Ground base station']",
+  "[data-choice='Data processing software']",
+];
 
-  resultBlocks.forEach((block) => {
-    if (block) block.style.display = "none";
+function hideAllResultBlocks() {
+  RESULT_BLOCK_SELECTORS.forEach((sel) => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = "none";
   });
 }
 
-/**
- * Заповнює data-choice елементи даними з конфігурації
- * @param {Object} configData - Дані конфігурації з SessionStorage
- */
+function setImageSrc(parent, src) {
+  if (!src || typeof src !== "string" || src.trim() === "") return;
+  const img = parent.querySelector("img");
+  if (img) img.setAttribute("src", src);
+}
+
+function populateColorBlock(data) {
+  if (!data) return;
+  const el = document.querySelector("[data-choice=color]");
+  if (!el) return;
+
+  const nameEl = el.querySelector("[data-res-color-name]");
+  const descEl = el.querySelector("p");
+  const swatch = el.querySelector(".model_form-color-btn-res");
+
+  if (nameEl) nameEl.textContent = data.name;
+  if (descEl) descEl.textContent = data.description;
+
+  if (swatch) {
+    if (data.value) swatch.style.backgroundColor = data.value;
+    if (data.backgroundImage) {
+      swatch.style.backgroundImage = data.backgroundImage;
+      swatch.style.backgroundPosition = "50% 50%";
+      swatch.style.backgroundSize = "auto";
+      swatch.style.backgroundRepeat = "no-repeat";
+    } else {
+      swatch.style.backgroundImage = "";
+    }
+  }
+
+  if (data.name) el.style.display = "flex";
+}
+
+function populateLinkBlock(selector, data) {
+  if (!data) return;
+  const el = document.querySelector(selector);
+  if (!el) return;
+
+  if (data.title) {
+    const t = el.querySelector("h3");
+    if (t) t.textContent = data.title;
+  }
+  if (data.descriptionHTML) {
+    const horiz = el.querySelector(".horiz-8");
+    if (horiz) horiz.innerHTML = data.descriptionHTML;
+  }
+  setImageSrc(el, data.image);
+
+  if (data.title || data.descriptionHTML) el.style.display = "flex";
+}
+
+function populateSurveyItem(selector, itemData) {
+  if (!itemData?.checked) return;
+  const el = document.querySelector(selector);
+  if (!el) return;
+
+  if (itemData.title) {
+    const t = el.querySelector("h3");
+    if (t) t.textContent = itemData.title;
+  }
+  if (itemData.description) {
+    const d = el.querySelector("p");
+    if (d) d.textContent = itemData.description;
+  }
+  if (itemData.image) {
+    const img = el.querySelector("img");
+    if (img) {
+      img.setAttribute("src", itemData.image);
+      img.removeAttribute("srcset");
+    }
+  }
+  el.style.display = "flex";
+}
+
 function populateDataChoiceElements(configData) {
-  if (!configData) {
-    return;
-  }
+  if (!configData) return;
 
-  // Заповнення Drone
   if (configData.drone) {
-    const droneElement = document.querySelector("[data-choice=drone]");
-    if (droneElement) {
-      const nameElement = droneElement.querySelector("h3");
-      const descElement = droneElement.querySelector("p");
-      const imgElement = droneElement.querySelector("img");
-
-      if (nameElement) nameElement.textContent = configData.drone.name;
-      if (descElement) descElement.textContent = configData.drone.description;
-      if (
-        imgElement &&
-        configData.drone.image &&
-        configData.drone.image.trim() !== ""
-      ) {
-        imgElement.setAttribute("src", configData.drone.image);
+    const el = document.querySelector("[data-choice=drone]");
+    if (el) {
+      if (configData.drone.name) {
+        const t = el.querySelector("h3");
+        if (t) t.textContent = configData.drone.name;
       }
-
-      // Показувати тільки якщо є name або description
+      if (configData.drone.description != null) {
+        const d = el.querySelector("p");
+        if (d) d.textContent = configData.drone.description;
+      }
+      setImageSrc(el, configData.drone.image);
       if (configData.drone.name || configData.drone.description) {
-        droneElement.style.display = "flex";
+        el.style.display = "flex";
       }
     }
   }
 
-  // Заповнення Color
-  if (configData.color) {
-    const colorElement = document.querySelector("[data-choice=color]");
-    if (colorElement) {
-      const nameElement = colorElement.querySelector("[data-res-color-name]");
-      const descElement = colorElement.querySelector("p");
-      const swatchElement = colorElement.querySelector(
-        ".model_form-color-btn-res",
-      );
+  populateColorBlock(configData.color);
 
-      if (nameElement) nameElement.textContent = configData.color.name;
-      if (descElement) descElement.textContent = configData.color.description;
-      if (swatchElement) {
-        if (configData.color.value) {
-          swatchElement.style.backgroundColor = configData.color.value;
-        }
-        if (configData.color.backgroundImage) {
-          swatchElement.style.backgroundImage =
-            configData.color.backgroundImage;
-          swatchElement.style.backgroundPosition = "50% 50%";
-          swatchElement.style.backgroundSize = "auto";
-          swatchElement.style.backgroundRepeat = "no-repeat";
-        } else {
-          swatchElement.style.backgroundImage = "";
-        }
-      }
-
-      // Показувати тільки якщо є name
-      if (configData.color.name) {
-        colorElement.style.display = "flex";
-      }
-    }
-  }
-
-  // Заповнення Module
   if (configData.module) {
-    const moduleElement = document.querySelector("[data-choice=module]");
-    if (moduleElement) {
-      const titleElement = moduleElement.querySelector("h3");
-      const descElement =
-        moduleElement.querySelector("[data-module-description]") ||
-        moduleElement.querySelector("p");
-      const imgElement = moduleElement.querySelector("img");
-
-      if (titleElement) titleElement.textContent = configData.module.title;
-      if (descElement) descElement.textContent = configData.module.description;
-      if (
-        imgElement &&
-        configData.module.image &&
-        configData.module.image.trim() !== ""
-      ) {
-        imgElement.setAttribute("src", configData.module.image);
+    const el = document.querySelector("[data-choice=module]");
+    if (el) {
+      if (configData.module.title) {
+        const t = el.querySelector("h3");
+        if (t) t.textContent = configData.module.title;
       }
-
-      // Показувати тільки якщо є title або description
+      if (configData.module.description != null) {
+        const d =
+          el.querySelector("[data-module-description]") ||
+          el.querySelector("p");
+        if (d) d.textContent = configData.module.description;
+      }
+      setImageSrc(el, configData.module.image);
       if (configData.module.title || configData.module.description) {
-        moduleElement.style.display = "flex";
+        el.style.display = "flex";
       }
     }
   }
 
-  // Заповнення Data Link
-  if (configData.dataLink) {
-    const linkElement = document.querySelector("[data-choice=link]");
-    if (linkElement) {
-      const titleElement = linkElement.querySelector("h3");
-      const horizElement = linkElement.querySelector(".horiz-8");
-      const imgElement = linkElement.querySelector("img");
+  populateLinkBlock("[data-choice=link]", configData.dataLink);
+  populateLinkBlock("[data-choice=link-optional]", configData.dataLinkOptional);
 
-      if (titleElement) titleElement.textContent = configData.dataLink.title;
-
-      // Заповнюємо .horiz-8 HTML вмістом
-      if (horizElement && configData.dataLink.descriptionHTML) {
-        horizElement.innerHTML = configData.dataLink.descriptionHTML;
-      }
-
-      if (
-        imgElement &&
-        configData.dataLink.image &&
-        configData.dataLink.image.trim() !== ""
-      ) {
-        imgElement.setAttribute("src", configData.dataLink.image);
-      }
-
-      // Показувати тільки якщо є title або descriptionHTML
-      if (configData.dataLink.title || configData.dataLink.descriptionHTML) {
-        linkElement.style.display = "flex";
-      }
-    }
-  }
-
-  // Заповнення Optional Data Link
-  if (configData.dataLinkOptional) {
-    const optionalElement = document.querySelector(
-      "[data-choice=link-optional]",
-    );
-    if (optionalElement) {
-      const titleElement = optionalElement.querySelector("h3");
-      const horizElement = optionalElement.querySelector(".horiz-8");
-      const imgElement = optionalElement.querySelector("img");
-
-      if (titleElement)
-        titleElement.textContent = configData.dataLinkOptional.title;
-
-      // Заповнюємо .horiz-8 HTML вмістом
-      if (horizElement && configData.dataLinkOptional.descriptionHTML) {
-        horizElement.innerHTML = configData.dataLinkOptional.descriptionHTML;
-      }
-
-      if (
-        imgElement &&
-        configData.dataLinkOptional.image &&
-        configData.dataLinkOptional.image.trim() !== ""
-      ) {
-        imgElement.setAttribute("src", configData.dataLinkOptional.image);
-      }
-
-      // Показувати тільки якщо є title або descriptionHTML
-      if (
-        configData.dataLinkOptional.title ||
-        configData.dataLinkOptional.descriptionHTML
-      ) {
-        optionalElement.style.display = "flex";
-      }
-    }
-  }
-
-  // Заповнення Survey Items (PPK, Station, Software)
   if (configData.surveyItems) {
-    // Helper function to populate survey item
-    const populateSurveyItem = (selector, itemData) => {
-      if (!itemData || !itemData.checked) return;
-
-      const element = document.querySelector(selector);
-      if (!element) return;
-
-      // Set title
-      const titleElement = element.querySelector("h3");
-      if (titleElement && itemData.title) {
-        titleElement.textContent = itemData.title;
-      }
-
-      // Set description
-      const descElement = element.querySelector("p");
-      if (descElement && itemData.description) {
-        descElement.textContent = itemData.description;
-      }
-
-      // Set image and clear srcset
-      const imgElement = element.querySelector("img");
-      if (imgElement && itemData.image) {
-        imgElement.setAttribute("src", itemData.image);
-        imgElement.removeAttribute("srcset");
-      }
-
-      element.style.display = "flex";
-    };
-
-    // PPK Receiver
     populateSurveyItem(
       "[data-choice='PPK Receiver']",
       configData.surveyItems.ppk,
     );
-
-    // Ground base station
     populateSurveyItem(
       "[data-choice='Ground base station']",
       configData.surveyItems.station,
     );
-
-    // Data processing software
     populateSurveyItem(
       "[data-choice='Data processing software']",
       configData.surveyItems.software,
@@ -337,98 +237,52 @@ function populateDataChoiceElements(configData) {
   }
 }
 
-/**
- * Populates price displays from SessionStorage configuration
- * @param {Object} configData - Configuration data with price fields
- */
+const formatPrice = (price) => {
+  if (typeof price !== "number") return "0";
+  return price.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
+function setPriceAt(selector, price) {
+  if (price === undefined) return;
+  const elem = document.querySelector(selector);
+  if (elem) elem.textContent = formatPrice(price);
+}
+
 function populatePriceDisplays(configData) {
-  if (!configData) {
-    return;
-  }
+  if (!configData) return;
 
-  const formatPrice = (price) => {
-    if (typeof price !== "number") {
-      return "0";
-    }
-    return price.toLocaleString("en-US", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-  };
+  setPriceAt("[data-choice=drone] .price_elem-num", configData.dronePrice);
+  setPriceAt("[data-choice=module] .price_elem-num", configData.modulePrice);
+  setPriceAt("[data-choice=link] .price_elem-num", configData.dataLinkPrice);
+  setPriceAt(
+    "[data-choice=link-optional] .price_elem-num",
+    configData.dataLinkOptionalPrice,
+  );
+  setPriceAt(
+    "[data-choice='PPK Receiver'] .price_elem-num",
+    configData.ppkPrice,
+  );
+  setPriceAt(
+    "[data-choice='Ground base station'] .price_elem-num",
+    configData.stationPrice,
+  );
+  setPriceAt(
+    "[data-choice='Data processing software'] .price_elem-num",
+    configData.softwarePrice,
+  );
 
-  // Update individual prices in result blocks
-  if (configData.dronePrice !== undefined) {
-    const elem = document.querySelector("[data-choice=drone] .price_elem-num");
-    if (elem) {
-      elem.textContent = formatPrice(configData.dronePrice);
-    }
-  }
-
-  if (configData.modulePrice !== undefined) {
-    const elem = document.querySelector("[data-choice=module] .price_elem-num");
-    if (elem) {
-      elem.textContent = formatPrice(configData.modulePrice);
-    }
-  }
-
-  if (configData.dataLinkPrice !== undefined) {
-    const elem = document.querySelector("[data-choice=link] .price_elem-num");
-    if (elem) {
-      elem.textContent = formatPrice(configData.dataLinkPrice);
-    }
-  }
-
-  if (configData.dataLinkOptionalPrice !== undefined) {
-    const elem = document.querySelector(
-      "[data-choice=link-optional] .price_elem-num",
-    );
-    if (elem) {
-      elem.textContent = formatPrice(configData.dataLinkOptionalPrice);
-    }
-  }
-
-  // Update survey item prices
-  if (configData.ppkPrice !== undefined) {
-    const elem = document.querySelector(
-      "[data-choice='PPK Receiver'] .price_elem-num",
-    );
-    if (elem) {
-      elem.textContent = formatPrice(configData.ppkPrice);
-    }
-  }
-
-  if (configData.stationPrice !== undefined) {
-    const elem = document.querySelector(
-      "[data-choice='Ground base station'] .price_elem-num",
-    );
-    if (elem) {
-      elem.textContent = formatPrice(configData.stationPrice);
-    }
-  }
-
-  if (configData.softwarePrice !== undefined) {
-    const elem = document.querySelector(
-      "[data-choice='Data processing software'] .price_elem-num",
-    );
-    if (elem) {
-      elem.textContent = formatPrice(configData.softwarePrice);
-    }
-  }
-
-  // Update total price displays
   if (configData.totalPrice !== undefined) {
-    const elems = document.querySelectorAll(
-      "[data-choice=total] .price_elem-num",
-    );
-    elems.forEach((elem) => {
-      elem.textContent = formatPrice(configData.totalPrice);
-    });
+    document
+      .querySelectorAll("[data-choice=total] .price_elem-num")
+      .forEach((elem) => {
+        elem.textContent = formatPrice(configData.totalPrice);
+      });
   }
 }
 
-// ============================================
-// THREE.JS SCENE INITIALIZATION
-// ============================================
 function initThreeScene(container) {
   const scene = new THREE.Scene();
 
@@ -451,32 +305,16 @@ function initThreeScene(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.enableZoom = false;
-
-  // Обмеження вертикального кута обертання
   controls.minPolarAngle = 0;
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180;
 
-  // Рівномірне ambient освітлення
   const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(ambientLight);
 
-  // Directional світло зверху
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
-  // // SpotLight - прожекторне світло
-  // const spotLight = new THREE.SpotLight(0xffffff, 1.0);
-  // spotLight.position.set(0, 10, 0);
-  // spotLight.angle = Math.PI / 6;
-  // spotLight.penumbra = 0.3;
-  // spotLight.distance = 50;
-  // spotLight.decay = 2;
-  // spotLight.target.position.set(0, 0, 0);
-  // scene.add(spotLight);
-  // scene.add(spotLight.target);
-
-  // Позиція камери
   camera.position.set(0, 2, 8);
   camera.lookAt(0, 0, 0);
   controls.target.set(0, 0, 0);
@@ -484,9 +322,6 @@ function initThreeScene(container) {
   return { scene, camera, renderer, controls };
 }
 
-// ============================================
-// DRACO LOADER SETUP
-// ============================================
 function initLoaders() {
   const dracoLoader = new THREE.DRACOLoader();
   dracoLoader.setDecoderPath(
@@ -499,10 +334,16 @@ function initLoaders() {
   return { loader, dracoLoader };
 }
 
-// ============================================
-// DRONE MODEL LOADING
-// ============================================
-async function loadDroneModel(
+function removeProgressBar(progressBarContainer) {
+  if (!progressBarContainer) return;
+  progressBarContainer.style.transition = "opacity 0.5s ease-out";
+  progressBarContainer.style.opacity = "0";
+  setTimeout(() => {
+    progressBarContainer.parentNode?.removeChild(progressBarContainer);
+  }, 500);
+}
+
+function loadDroneModel(
   droneName,
   loader,
   progressBarFill = null,
@@ -510,155 +351,92 @@ async function loadDroneModel(
 ) {
   return new Promise((resolve, reject) => {
     const modelUrl = droneModels[droneName];
-
     if (!modelUrl) {
       reject(new Error(`Model URL not found for ${droneName}`));
       return;
     }
 
-    // Progress callback
-    const onProgressCallback = (xhr) => {
+    const onProgress = (xhr) => {
       if (progressBarFill && xhr.lengthComputable) {
-        const percentComplete = (xhr.loaded / xhr.total) * 100;
-        progressBarFill.style.width = percentComplete + "%";
+        progressBarFill.style.width = (xhr.loaded / xhr.total) * 100 + "%";
       }
     };
 
-    // Load callback
-    const onLoadCallback = (gltf) => {
+    const onLoad = (gltf) => {
       const model = gltf.scene;
+      model.scale.setScalar(getDroneScale(droneName));
 
-      // Базовий скейл для desktop
-      let baseScale =
-        droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-
-      // Адаптивний скейл для мобільних пристроїв (< 768px)
-      if (window.innerWidth < 768) {
-        if (droneName === "FIXAR 025") {
-          baseScale = baseScale * 1.2; // 3 * 1.2 = 3.6
-        } else {
-          baseScale = baseScale * 1.5; // 5 * 1.5 = 7.5
-        }
-      }
-
-      model.scale.setScalar(baseScale);
-
-      // Виключаємо frustum culling для всіх мешів
       model.traverse((child) => {
-        if (child.isMesh) {
-          child.frustumCulled = false;
-        }
+        if (child.isMesh) child.frustumCulled = false;
       });
 
-      // Ховаємо прогрес-бар після завантаження
-      if (progressBarContainer) {
-        progressBarContainer.style.transition = "opacity 0.5s ease-out";
-        progressBarContainer.style.opacity = "0";
-
-        setTimeout(() => {
-          if (progressBarContainer && progressBarContainer.parentNode) {
-            progressBarContainer.parentNode.removeChild(progressBarContainer);
-          }
-        }, 500);
-      }
-
+      removeProgressBar(progressBarContainer);
       resolve({ model, animations: gltf.animations || [] });
     };
 
-    // Error callback
-    const onErrorCallback = (error) => {
+    const onError = (error) => {
       console.error(`Помилка завантаження моделі ${droneName}:`, error);
-
-      // Ховаємо прогрес-бар при помилці
-      if (progressBarContainer) {
-        progressBarContainer.style.opacity = "0";
-        setTimeout(() => {
-          if (progressBarContainer && progressBarContainer.parentNode) {
-            progressBarContainer.parentNode.removeChild(progressBarContainer);
-          }
-        }, 500);
-      }
-
+      removeProgressBar(progressBarContainer);
       reject(error);
     };
 
-    loader.load(modelUrl, onLoadCallback, onProgressCallback, onErrorCallback);
+    loader.load(modelUrl, onLoad, onProgress, onError);
   });
 }
 
-// ============================================
-// COLOR APPLICATION
-// ============================================
 function applyColorToModel(model, colorName, droneName) {
   const hexColor = colorMap[colorName] || "#FF0000";
+  const hexInt = parseInt(hexColor.replace("#", ""), 16);
+  const upperHex = hexColor.toUpperCase();
+  const isRedColor = upperHex === "#FF0000" || upperHex === "#F00";
+  const boardNames = ["board_001", "board_002", "board_003"];
 
-  // Змінюємо колір матеріалів з назвою "red"
   model.traverse((child) => {
-    if (child.isMesh && child.material) {
-      const matName = child.material.name || "";
-      if (matName === "red") {
-        if (child.material.color) {
-          child.material.color.setHex(parseInt(hexColor.replace("#", ""), 16));
-        }
-      }
+    if (!child.isMesh || !child.material) return;
+    const matName = child.material.name || "";
+    if (matName === "red" && child.material.color) {
+      child.material.color.setHex(hexInt);
+    }
+
+    if (
+      droneName === "FIXAR 025" &&
+      !isRedColor &&
+      boardNames.includes(child.name) &&
+      child.material.color
+    ) {
+      child.material.color.setHex(hexInt);
     }
   });
-
-  // Спеціальна обробка board частин для FIXAR 025
-  if (droneName === "FIXAR 025") {
-    const isRedColor =
-      hexColor.toUpperCase() === "#FF0000" || hexColor.toUpperCase() === "#F00";
-    const boardNames = ["board_001", "board_002", "board_003"];
-
-    model.traverse((child) => {
-      if (child.isMesh && boardNames.includes(child.name)) {
-        if (child.material && child.material.color) {
-          if (!isRedColor) {
-            // Якщо НЕ червоний - фарбуємо в обраний колір
-            child.material.color.setHex(
-              parseInt(hexColor.replace("#", ""), 16),
-            );
-          }
-        }
-      }
-    });
-  }
 }
 
-// ============================================
-// ANIMATION SETUP
-// ============================================
 function setupAnimations(model, animations, moduleName) {
-  if (!animations || animations.length === 0) {
-    return null;
-  }
+  if (!animations?.length) return null;
 
   const mixer = new THREE.AnimationMixer(model);
+  const normalizedModuleName = moduleName ? normalizeString(moduleName) : null;
 
   animations.forEach((animation) => {
     const action = mixer.clipAction(animation);
     action.timeScale = 1;
 
-    const isFlightAnimation = animation.name.toLowerCase().includes("flight");
+    const lowerName = animation.name.toLowerCase();
+    const isFlight = lowerName.includes("flight");
+    const isSelectedModule =
+      normalizedModuleName &&
+      normalizeString(animation.name) === normalizedModuleName;
 
-    if (isFlightAnimation) {
-      // Анімація пропелерів - запускаємо одразу з безкінечним циклом
+    if (isFlight) {
       action.setLoop(THREE.LoopRepeat, Infinity);
       action.enabled = true;
       action.weight = 1;
       action.play();
-    } else if (
-      moduleName &&
-      normalizeString(animation.name) === normalizeString(moduleName)
-    ) {
-      // Анімація модуля - програємо один раз (з нормалізацією пробілів)
+    } else if (isSelectedModule) {
       action.setLoop(THREE.LoopOnce);
       action.clampWhenFinished = true;
       action.enabled = true;
       action.weight = 1;
       action.play();
     } else {
-      // Інші анімації - не запускаємо
       action.enabled = false;
       action.weight = 0;
     }
@@ -667,39 +445,31 @@ function setupAnimations(model, animations, moduleName) {
   return mixer;
 }
 
-// ============================================
-// ANIMATION LOOP
-// ============================================
 const clock = new THREE.Clock();
 
 function startAnimationLoop(mixer, controls, renderer, scene, camera) {
   function animate() {
     requestAnimationFrame(animate);
-
     const delta = clock.getDelta();
-
-    if (mixer) {
-      mixer.update(delta);
-    }
-
+    if (mixer) mixer.update(delta);
     controls.update();
     renderer.render(scene, camera);
   }
-
   animate();
 }
 
-// ============================================
-// FORM POPULATION
-// ============================================
+function appendHiddenInput(form, name, value) {
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = value;
+  form.appendChild(input);
+}
+
 function populateFormFields(params, sessionConfig) {
   const form = document.querySelector("form");
+  if (!form) return;
 
-  if (!form) {
-    return;
-  }
-
-  // Мапінг ключів параметрів на назви полів форми з великої букви
   const fieldNameMap = {
     droneModel: "Model",
     color: "Color",
@@ -708,165 +478,71 @@ function populateFormFields(params, sessionConfig) {
     dataLinkOptional: "Data Link Optional",
   };
 
-  // Додаємо hidden input для кожного параметра
   Object.entries(params).forEach(([key, value]) => {
-    if (value) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = fieldNameMap[key] || key;
-      input.value = value;
-      form.appendChild(input);
+    if (!value) return;
+    appendHiddenInput(form, fieldNameMap[key] || key, value);
+  });
+
+  if (!sessionConfig) return;
+
+  const priceFields = [
+    { name: "Drone price", value: sessionConfig.dronePrice },
+    { name: "Module price", value: sessionConfig.modulePrice },
+    { name: "Data link price", value: sessionConfig.dataLinkPrice },
+    { name: "Data link optional", value: sessionConfig.dataLinkOptionalPrice },
+    { name: "Total price", value: sessionConfig.totalPrice },
+  ];
+  priceFields.forEach(({ name, value }) => {
+    if (value !== undefined && value !== null) {
+      appendHiddenInput(form, name, value);
     }
   });
 
-  // Add price fields from SessionStorage
-  if (sessionConfig) {
-    const priceFields = [
-      { name: "Drone price", value: sessionConfig.dronePrice },
-      { name: "Module price", value: sessionConfig.modulePrice },
-      { name: "Data link price", value: sessionConfig.dataLinkPrice },
-      {
-        name: "Data link optional",
-        value: sessionConfig.dataLinkOptionalPrice,
-      },
-      { name: "Total price", value: sessionConfig.totalPrice },
-    ];
-
-    priceFields.forEach(({ name, value }) => {
-      if (value !== undefined && value !== null) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      }
-    });
-
-    // Add application as hidden field
-    if (sessionConfig.application) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = "Application";
-      input.value = sessionConfig.application;
-      form.appendChild(input);
-    }
-
-    // Add survey items as hidden fields
-    if (sessionConfig.surveyItems) {
-      // Survey item checkboxes and prices
-      const surveyFields = [
-        {
-          name: "PPK Receiver",
-          priceName: "PPK Receiver price",
-          data: sessionConfig.surveyItems.ppk,
-        },
-        {
-          name: "Ground base station",
-          priceName: "Ground base station price",
-          data: sessionConfig.surveyItems.station,
-        },
-        {
-          name: "Data processing software",
-          priceName: "Data processing software price",
-          data: sessionConfig.surveyItems.software,
-        },
-      ];
-
-      surveyFields.forEach(({ name, priceName, data }) => {
-        if (data && data.checked) {
-          // Add checkbox field (value "on" to simulate checked checkbox)
-          const checkboxInput = document.createElement("input");
-          checkboxInput.type = "hidden";
-          checkboxInput.name = name;
-          checkboxInput.value = "on";
-          form.appendChild(checkboxInput);
-
-          // Add price field
-          if (data.price !== undefined && data.price !== null) {
-            const priceInput = document.createElement("input");
-            priceInput.type = "hidden";
-            priceInput.name = priceName;
-            priceInput.value = data.price;
-            form.appendChild(priceInput);
-          }
-        }
-      });
-    }
+  if (sessionConfig.application) {
+    appendHiddenInput(form, "Application", sessionConfig.application);
   }
+
+  if (!sessionConfig.surveyItems) return;
+
+  const surveyFields = [
+    {
+      name: "PPK Receiver",
+      priceName: "PPK Receiver price",
+      data: sessionConfig.surveyItems.ppk,
+    },
+    {
+      name: "Ground base station",
+      priceName: "Ground base station price",
+      data: sessionConfig.surveyItems.station,
+    },
+    {
+      name: "Data processing software",
+      priceName: "Data processing software price",
+      data: sessionConfig.surveyItems.software,
+    },
+  ];
+
+  surveyFields.forEach(({ name, priceName, data }) => {
+    if (!data?.checked) return;
+    appendHiddenInput(form, name, "on");
+    if (data.price !== undefined && data.price !== null) {
+      appendHiddenInput(form, priceName, data.price);
+    }
+  });
 }
 
-// ============================================
-// WINDOW RESIZE HANDLER
-// ============================================
 function setupResizeHandler(camera, renderer, container, model, droneName) {
-  // Функція для оновлення скейлу моделі
-  function updateModelScale() {
-    if (!model) return;
-
-    const isMobile = window.innerWidth < 768;
-
-    // Базовий скейл
-    let baseScale =
-      droneName === "FIXAR 007 LE" || droneName === "FIXAR 007 NG" ? 5 : 3;
-
-    // Адаптивний скейл для мобільних
-    if (isMobile) {
-      if (droneName === "FIXAR 025") {
-        baseScale = baseScale * 1.2; // 3.6
-      } else {
-        baseScale = baseScale * 1.5; // 7.5
-      }
-    }
-
-    model.scale.setScalar(baseScale);
-  }
-
   window.addEventListener("resize", () => {
-    if (container) {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-
-      // Оновлюємо скейл моделі при зміні розміру
-      updateModelScale();
-    }
+    if (!container) return;
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    if (model) model.scale.setScalar(getDroneScale(droneName));
   });
 }
 
-// ============================================
-// MAIN INITIALIZATION
-// ============================================
-document.addEventListener("DOMContentLoaded", async () => {
-  // 1. Parse URL parameters
-  const params = parseUrlParameters();
-
-  // 2. Читання SessionStorage конфігурації
-  const sessionConfig = readConfigurationFromSession();
-
-  // 3. Початково ховаємо всі result блоки
-  hideAllResultBlocks();
-
-  // 4. Заповнення data-choice елементів
-  if (sessionConfig) {
-    populateDataChoiceElements(sessionConfig);
-    // Populate price displays
-    populatePriceDisplays(sessionConfig);
-  }
-
-  // 4. Check container exists (ІСНУЮЧЕ - БЕЗ ЗМІН)
-  const container = document.getElementById("three-container");
-  if (!container) {
-    return;
-  }
-
-  // ============================================
-  // ПРОГРЕС-БАР ЗАВАНТАЖЕННЯ 3D МОДЕЛІ
-  // ============================================
-  let progressBarContainer = null;
-  let progressBarFill = null;
-
-  // Створення прогрес-бару
-  progressBarContainer = document.createElement("div");
+function createProgressBar(container) {
+  const progressBarContainer = document.createElement("div");
   progressBarContainer.id = "model-loading-progress-container";
   progressBarContainer.style.cssText = `
     position: absolute;
@@ -891,7 +567,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     position: relative;
   `;
 
-  progressBarFill = document.createElement("div");
+  const progressBarFill = document.createElement("div");
   progressBarFill.style.cssText = `
     width: 0%;
     height: 100%;
@@ -900,19 +576,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     transition: width 0.3s ease-out;
   `;
 
-  // Зібрати та додати до DOM
   progressBarTrack.appendChild(progressBarFill);
   progressBarContainer.appendChild(progressBarTrack);
   container.appendChild(progressBarContainer);
 
-  try {
-    // 3. Initialize Three.js scene
-    const { scene, camera, renderer, controls } = initThreeScene(container);
+  return { progressBarContainer, progressBarFill };
+}
 
-    // 4. Setup loaders
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = parseUrlParameters();
+  const sessionConfig = readConfigurationFromSession();
+
+  hideAllResultBlocks();
+
+  if (sessionConfig) {
+    populateDataChoiceElements(sessionConfig);
+    populatePriceDisplays(sessionConfig);
+  }
+
+  const container = document.getElementById("three-container");
+  if (!container) return;
+
+  const { progressBarContainer, progressBarFill } =
+    createProgressBar(container);
+
+  try {
+    const { scene, camera, renderer, controls } = initThreeScene(container);
     const { loader } = initLoaders();
 
-    // 5. Load drone model (await)
     const { model, animations } = await loadDroneModel(
       params.droneModel,
       loader,
@@ -921,16 +612,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     scene.add(model);
 
-    // 6. Apply color
     applyColorToModel(model, params.color, params.droneModel);
 
-    // 7. Setup animations
     const mixer = setupAnimations(model, animations, params.module);
 
-    // 8. Start animation loop
     startAnimationLoop(mixer, controls, renderer, scene, camera);
 
-    // 9. Setup resize handler
     setupResizeHandler(camera, renderer, container, model, params.droneModel);
   } catch (error) {
     console.error("Помилка ініціалізації 3D моделі:", error);
@@ -938,10 +625,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       '<p style="color: red; padding: 20px;">Unable to load 3D model. Please try again.</p>';
   }
 
-  // 10. Populate form fields (незалежно від 3D)
   populateFormFields(params, sessionConfig);
 
-  // 11. Обробник кнопки "Назад"
   const backButton = document.querySelector(".model_form-back");
   if (backButton) {
     backButton.addEventListener("click", (e) => {
