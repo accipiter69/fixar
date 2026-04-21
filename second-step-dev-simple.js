@@ -265,18 +265,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("change", (e) => {
     const input = e.target;
     if (!input || !input.matches || !input.matches(BG_INPUT_SELECTOR)) return;
-    if (input.checked) {
-      applyCategoryBg(getCategoryForInput(input));
-    } else {
-      const anyStillChecked = document.querySelector(
-        ".modules-item input:checked, .modules_survay-item input:checked, .modules-link input:checked",
-      );
-      if (!anyStillChecked) applyCategoryBg(null);
-    }
-    reconcileSceneBadges();
+    // if (input.checked) {
+    //   applyCategoryBg(getCategoryForInput(input));
+    // } else {
+    //   const anyStillChecked = document.querySelector(
+    //     ".modules-item input:checked, .modules_survay-item input:checked, .modules-link input:checked",
+    //   );
+    //   if (!anyStillChecked) applyCategoryBg(null);
+    // }
+    // reconcileSceneBadges();
   });
 
-  reconcileSceneBadges();
+  // reconcileSceneBadges();
 
   applyCategoryBg(null);
 
@@ -889,14 +889,14 @@ document.addEventListener("DOMContentLoaded", () => {
   loadDroneModel(currentDroneModel, true);
 
   zoomButtonsRef = Array.from(document.querySelectorAll(".zoom_btn"));
-  zoomButtonsRef.forEach((btn, idx) => {
-    btn.addEventListener("click", () => {
-      if (btn.classList.contains("is--active")) return;
-      setActiveZoomButton(idx);
-      camera.zoom = idx === 0 ? ZOOM_LEVEL_DEFAULT : ZOOM_LEVEL_CLOSE;
-      camera.updateProjectionMatrix();
-    });
-  });
+  // zoomButtonsRef.forEach((btn, idx) => {
+  //   btn.addEventListener("click", () => {
+  //     if (btn.classList.contains("is--active")) return;
+  //     setActiveZoomButton(idx);
+  //     camera.zoom = idx === 0 ? ZOOM_LEVEL_DEFAULT : ZOOM_LEVEL_CLOSE;
+  //     camera.updateProjectionMatrix();
+  //   });
+  // });
 
   function openWhatsElsePopup(technologyItem) {
     if (!whatsElsePopap || !technologyItem) return;
@@ -1694,7 +1694,7 @@ document.addEventListener("DOMContentLoaded", () => {
           filterSurveyByCategory();
 
           window.playAnimationByName?.(input.value);
-          animateToModuleView();
+          // animateToModuleView();
           updateAndSaveConfiguration();
           markStepComplete("module");
         } else {
@@ -1707,7 +1707,7 @@ document.addEventListener("DOMContentLoaded", () => {
           filterSurveyByCategory();
 
           window.animations?.stopAll?.();
-          animateToDefaultView();
+          // animateToDefaultView();
           updateAndSaveConfiguration();
 
           awaitingStepCompletion = false;
