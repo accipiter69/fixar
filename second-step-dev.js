@@ -1,3 +1,5 @@
+console.log("hi");
+
 const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
@@ -54,6 +56,35 @@ const SURVEY_INCLUDED_LOWER = surveyParameters.categories.included.map((s) =>
 const SURVEY_OPTIONAL_LOWER = surveyParameters.categories.optional.map((s) =>
   s.toLowerCase(),
 );
+
+const ZOOM_LEVEL_DEFAULT = 1;
+const ZOOM_LEVEL_CLOSE = 1.7;
+
+const MODULE_VIEW_AZIMUTH_DEG = 30;
+const MODULE_VIEW_POLAR_DEG = 93;
+const MODULE_VIEW_ZOOM = ZOOM_LEVEL_CLOSE;
+const MODULE_VIEW_DURATION_MS = 800;
+
+const CATEGORY_BACKGROUNDS = {
+  "Gimbal video cameras":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a488ac0718892ad539_2_converted.avif",
+  "RGB mapping cameras":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a3f57cdfcd90033769_1_converted.avif",
+  "Multispectral imaging":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a31e73c2408faf689d_3_converted.avif",
+  "360° Spherical video cameras":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a3bfbaaca1b7468d91_5_converted.avif",
+  LiDAR:
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a3c0fae2e97f56adc1_4_converted.avif",
+  "Step 6. Choose additional equipment":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69cf95af00ae3b7d575209f9_bg.avif",
+  "Telemetry-only links":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/68ad959d1008d5b152a505ab_BLOS.avif",
+  "Telemetry and video links":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/68c2c9bfc29637d94c6fd9c8_FIXAR-Elbrus_converted.avif",
+  "Optional LTE backup layer":
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/68c2bbc555da8bdae5b438ca_Magnetic-anomalies-map-1024x551.webp",
+};
 
 const CYRILLIC_TO_LATIN = {
   А: "A",
@@ -154,6 +185,102 @@ document.addEventListener("DOMContentLoaded", () => {
     "[data-choice='Data processing software']",
   );
   const surveyBlock = document.querySelector("[data-survey-element]");
+
+  const modelBg = document.querySelector(".model-bg");
+  const BG_ITEM_SELECTOR = ".modules-item, .modules_survay-item, .modules-link";
+  const BG_INPUT_SELECTOR =
+    ".modules-item input, .modules_survay-item input, .modules-link input";
+
+  let currentBgCategory = null;
+  function applyCategoryBg(category) {
+    if (!modelBg) return;
+    if (category === currentBgCategory) return;
+    currentBgCategory = category;
+    const url = category ? CATEGORY_BACKGROUNDS[category] : null;
+    if (!url) {
+      modelBg.style.backgroundImage = "";
+      return;
+    }
+    modelBg.style.backgroundImage = `url("${url}")`;
+    modelBg.style.backgroundSize = "cover";
+    modelBg.style.backgroundRepeat = "no-repeat";
+    modelBg.style.backgroundPosition = "center";
+  }
+
+  function getCategoryForInput(input) {
+    const item = input.closest(BG_ITEM_SELECTOR);
+    const h2 = findCategoryH2(item);
+    return h2 ? h2.textContent.trim() : null;
+  }
+
+  const modelSceneGimbals = document.querySelector(".model_scene-gimbals");
+  const badgeTemplate = modelSceneGimbals?.querySelector(
+    ".model_scene-selected",
+  );
+
+  const BADGE_SOURCE_SELECTOR =
+    ".modules_survay-item input, .modules-link input";
+  const BADGE_ITEM_SELECTOR = ".modules_survay-item, .modules-link";
+  const badgeByInput = new Map();
+
+  function createBadgeForInput(input) {
+    if (!badgeTemplate) return null;
+    const item = input.closest(BADGE_ITEM_SELECTOR);
+    if (!item) return null;
+    const badge = badgeTemplate.cloneNode(true);
+    badge.classList.remove("hidden");
+    const text = badge.querySelector(".text-16");
+    if (text) {
+      const isSurvey = item.matches(".modules_survay-item");
+      const label = isSurvey
+        ? item.querySelector(".title-24")?.textContent?.trim() || ""
+        : input.value || "";
+      text.textContent = label;
+    }
+    const imgEl = badge.querySelector(".model_scene-selected_image");
+    if (imgEl) {
+      const srcImg = item.querySelector("img");
+      const src = srcImg?.getAttribute("src");
+      if (src) imgEl.setAttribute("src", src);
+    }
+    return badge;
+  }
+
+  function reconcileSceneBadges() {
+    if (!modelSceneGimbals || !badgeTemplate) return;
+    const inputs = document.querySelectorAll(BADGE_SOURCE_SELECTOR);
+    inputs.forEach((input) => {
+      const existing = badgeByInput.get(input);
+      if (input.checked && !existing) {
+        const badge = createBadgeForInput(input);
+        if (badge) {
+          modelSceneGimbals.appendChild(badge);
+          badgeByInput.set(input, badge);
+        }
+      } else if (!input.checked && existing) {
+        existing.remove();
+        badgeByInput.delete(input);
+      }
+    });
+  }
+
+  document.addEventListener("change", (e) => {
+    const input = e.target;
+    if (!input || !input.matches || !input.matches(BG_INPUT_SELECTOR)) return;
+    if (input.checked) {
+      applyCategoryBg(getCategoryForInput(input));
+    } else {
+      const anyStillChecked = document.querySelector(
+        ".modules-item input:checked, .modules_survay-item input:checked, .modules-link input:checked",
+      );
+      if (!anyStillChecked) applyCategoryBg(null);
+    }
+    reconcileSceneBadges();
+  });
+
+  reconcileSceneBadges();
+
+  applyCategoryBg(null);
 
   const percentValue = document.querySelector("#percent-value");
   const stepBtn = document.querySelector("#step-btn");
@@ -489,6 +616,113 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.minPolarAngle = 0;
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180;
 
+  const defaultSpherical = { azimuth: 0, polar: 0, radius: 0, zoom: 1 };
+  let defaultSphericalCaptured = false;
+  let currentTweenId = null;
+
+  const captureDefaultSpherical = () => {
+    const offset = new THREE.Vector3()
+      .copy(camera.position)
+      .sub(controls.target);
+    const s = new THREE.Spherical().setFromVector3(offset);
+    defaultSpherical.azimuth = s.theta;
+    defaultSpherical.polar = s.phi;
+    defaultSpherical.radius = s.radius;
+    defaultSpherical.zoom = camera.zoom;
+    defaultSphericalCaptured = true;
+  };
+
+  const easeInOutCubic = (t) =>
+    t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  const cancelCameraTween = () => {
+    if (currentTweenId !== null) {
+      cancelAnimationFrame(currentTweenId);
+      currentTweenId = null;
+      controls.enabled = true;
+      controls.enableDamping = true;
+    }
+  };
+
+  const animateCameraTo = ({ azimuth, polar, radius, zoom, duration }) => {
+    if (!defaultSphericalCaptured) return;
+
+    const startOffset = new THREE.Vector3()
+      .copy(camera.position)
+      .sub(controls.target);
+    const startSpherical = new THREE.Spherical().setFromVector3(startOffset);
+    const startAzimuth = startSpherical.theta;
+    const startPolar = startSpherical.phi;
+    const startRadius = startSpherical.radius;
+    const startZoom = camera.zoom;
+
+    const targetAzimuth = azimuth ?? startAzimuth;
+    const targetPolar = polar ?? startPolar;
+    const targetRadius = radius ?? startRadius;
+    const targetZoom = zoom ?? startZoom;
+    const dur = duration ?? MODULE_VIEW_DURATION_MS;
+
+    if (currentTweenId !== null) cancelAnimationFrame(currentTweenId);
+    controls.enabled = false;
+    controls.enableDamping = false;
+
+    const startTime = performance.now();
+
+    const step = () => {
+      const now = performance.now();
+      const t = Math.min(1, (now - startTime) / dur);
+      const k = easeInOutCubic(t);
+
+      const az = startAzimuth + (targetAzimuth - startAzimuth) * k;
+      const po = startPolar + (targetPolar - startPolar) * k;
+      const ra = startRadius + (targetRadius - startRadius) * k;
+      const zo = startZoom + (targetZoom - startZoom) * k;
+
+      const offset = new THREE.Vector3().setFromSphericalCoords(ra, po, az);
+      camera.position.copy(controls.target).add(offset);
+      camera.zoom = zo;
+      camera.updateProjectionMatrix();
+      controls.update();
+
+      if (t < 1) {
+        currentTweenId = requestAnimationFrame(step);
+      } else {
+        currentTweenId = null;
+        controls.enabled = true;
+        controls.enableDamping = true;
+      }
+    };
+
+    currentTweenId = requestAnimationFrame(step);
+  };
+
+  const animateToModuleView = () => {
+    animateCameraTo({
+      azimuth: (MODULE_VIEW_AZIMUTH_DEG * Math.PI) / 180,
+      polar: (MODULE_VIEW_POLAR_DEG * Math.PI) / 180,
+      radius: defaultSpherical.radius,
+      zoom: MODULE_VIEW_ZOOM,
+    });
+    setActiveZoomButton(1);
+  };
+
+  const animateToDefaultView = () => {
+    animateCameraTo({
+      azimuth: defaultSpherical.azimuth,
+      polar: defaultSpherical.polar,
+      radius: defaultSpherical.radius,
+      zoom: defaultSpherical.zoom,
+    });
+    setActiveZoomButton(0);
+  };
+
+  let zoomButtonsRef = [];
+  const setActiveZoomButton = (idx) => {
+    zoomButtonsRef.forEach((b, i) => {
+      b.classList.toggle("is--active", i === idx);
+    });
+  };
+
   const ambientLight = new THREE.AmbientLight(0xc2c2c2, 0.8);
   scene.add(ambientLight);
 
@@ -571,9 +805,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       scene.add(model);
+      cancelCameraTween();
       camera.position.set(0, 2, 8);
       camera.lookAt(0, 0, 0);
       controls.target.set(0, 0, 0);
+      camera.zoom = ZOOM_LEVEL_DEFAULT;
+      camera.updateProjectionMatrix();
+      captureDefaultSpherical();
+      setActiveZoomButton(0);
 
       if (gltf.animations?.length > 0) {
         const modelMixer = new THREE.AnimationMixer(model);
@@ -650,6 +889,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   loadDroneModel(currentDroneModel, true);
+
+  zoomButtonsRef = Array.from(document.querySelectorAll(".zoom_btn"));
+  zoomButtonsRef.forEach((btn, idx) => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("is--active")) return;
+      setActiveZoomButton(idx);
+      camera.zoom = idx === 0 ? ZOOM_LEVEL_DEFAULT : ZOOM_LEVEL_CLOSE;
+      camera.updateProjectionMatrix();
+    });
+  });
 
   function openWhatsElsePopup(technologyItem) {
     if (!whatsElsePopap || !technologyItem) return;
@@ -1447,6 +1696,7 @@ document.addEventListener("DOMContentLoaded", () => {
           filterSurveyByCategory();
 
           window.playAnimationByName?.(input.value);
+          animateToModuleView();
           updateAndSaveConfiguration();
           markStepComplete("module");
         } else {
@@ -1459,6 +1709,7 @@ document.addEventListener("DOMContentLoaded", () => {
           filterSurveyByCategory();
 
           window.animations?.stopAll?.();
+          animateToDefaultView();
           updateAndSaveConfiguration();
 
           awaitingStepCompletion = false;
