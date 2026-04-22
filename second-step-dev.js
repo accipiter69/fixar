@@ -65,23 +65,23 @@ const MODULE_VIEW_DURATION_MS = 800;
 
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a488ac0718892ad539_2_converted.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d291148d9f7bfd52f46c_Gimbal%20video%20cameras.avif",
   "RGB mapping cameras":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a3f57cdfcd90033769_1_converted.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293ec68fe45acba23ad_RGB%20mapping%20cameras.avif",
   "Multispectral imaging":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a31e73c2408faf689d_3_converted.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293e546cdefdbbec0c0_RGB%20mapping%20cameras%20(1).avif",
   "360° Spherical video cameras":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a3bfbaaca1b7468d91_5_converted.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d291148d9f7bfd52f46c_Gimbal%20video%20cameras.avif",
   LiDAR:
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e201a3c0fae2e97f56adc1_4_converted.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293ec68fe45acba23ad_RGB%20mapping%20cameras.avif",
   "Step 6. Choose additional equipment":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69cf95af00ae3b7d575209f9_bg.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293e546cdefdbbec0c0_RGB%20mapping%20cameras%20(1).avif",
   "Telemetry-only links":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/68ad959d1008d5b152a505ab_BLOS.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d291148d9f7bfd52f46c_Gimbal%20video%20cameras.avif",
   "Telemetry and video links":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/68c2c9bfc29637d94c6fd9c8_FIXAR-Elbrus_converted.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293ec68fe45acba23ad_RGB%20mapping%20cameras.avif",
   "Optional LTE backup layer":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/68c2bbc555da8bdae5b438ca_Magnetic-anomalies-map-1024x551.webp",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293e546cdefdbbec0c0_RGB%20mapping%20cameras%20(1).avif",
 };
 
 const CYRILLIC_TO_LATIN = {
