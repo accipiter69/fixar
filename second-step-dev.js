@@ -56,7 +56,7 @@ const SURVEY_OPTIONAL_LOWER = surveyParameters.categories.optional.map((s) =>
 );
 
 const ZOOM_LEVEL_DEFAULT = 1;
-const ZOOM_LEVEL_CLOSE = window.innerWidth < 480 ? 1.2 : 1.7;
+const ZOOM_LEVEL_CLOSE = window.innerWidth < 480 ? 1.25 : 1.7;
 
 const MODULE_VIEW_AZIMUTH_DEG = 30;
 const MODULE_VIEW_POLAR_DEG = 93;
