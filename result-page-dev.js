@@ -305,6 +305,7 @@ function initThreeScene(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.enableZoom = false;
+  controls.enablePan = false;
   controls.minPolarAngle = 0;
   controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180;
 
