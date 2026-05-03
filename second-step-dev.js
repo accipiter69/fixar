@@ -65,23 +65,23 @@ const MODULE_VIEW_DURATION_MS = 800;
 
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d291148d9f7bfd52f46c_Gimbal%20video%20cameras.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f3540d7fbc0fad48bc_Gimbal%20video%20cameras_converted.avif",
   "RGB mapping cameras":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293ec68fe45acba23ad_RGB%20mapping%20cameras.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f4c31b92a89bae1fb3_RGB%20mapping%20cameras_converted.avif",
   "Multispectral imaging":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293e546cdefdbbec0c0_RGB%20mapping%20cameras%20(1).avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f42c4ed1c6a044a15c_Multispectral%20imaging_converted.avif",
   "360° Spherical video cameras":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d291148d9f7bfd52f46c_Gimbal%20video%20cameras.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f40acddf4e56c3f052_360%C2%B0%20Spherical%20video%20cameras_converted.avif",
   LiDAR:
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293ec68fe45acba23ad_RGB%20mapping%20cameras.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f403b8fe493e216398_LiDAR_converted.avif",
   "Step 6. Choose additional equipment":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293e546cdefdbbec0c0_RGB%20mapping%20cameras%20(1).avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f4e21ab599e010683b_Step%206.%20Choose%20additional%20equipment_converted.avif",
   "Telemetry-only links":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d291148d9f7bfd52f46c_Gimbal%20video%20cameras.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f308a7b6620b138422_Telemetry-only%20links_converted.avif",
   "Telemetry and video links":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293ec68fe45acba23ad_RGB%20mapping%20cameras.avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f37261bd708670d7a1_Telemetry%20and%20video%20links_converted.avif",
   "Optional LTE backup layer":
-    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69e8d293e546cdefdbbec0c0_RGB%20mapping%20cameras%20(1).avif",
+    "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f431a22f075113b2da_Optional%20LTE%20backup%20layer_converted.avif",
 };
 
 const CYRILLIC_TO_LATIN = {
