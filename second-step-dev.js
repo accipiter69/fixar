@@ -80,7 +80,7 @@ const CATEGORY_BACKGROUNDS = {
     "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f308a7b6620b138422_Telemetry-only%20links_converted.avif",
   "Telemetry and video links":
     "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f37261bd708670d7a1_Telemetry%20and%20video%20links_converted.avif",
-  "Optional LTE backup layer":
+  "Additional LTE backup layer":
     "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f431a22f075113b2da_Optional%20LTE%20backup%20layer_converted.avif",
 };
 
