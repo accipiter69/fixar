@@ -199,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
       modelBg.style.backgroundImage = "";
       return;
     }
-    modelBg.style.backgroundImage = `url("${url}")`;
+    modelBg.style.backgroundImage = `linear-gradient(rgba(51,55,64,0.7), rgba(51,55,64,0.7)), url("${url}")`;
     modelBg.style.backgroundSize = "cover";
     modelBg.style.backgroundRepeat = "no-repeat";
     modelBg.style.backgroundPosition = "center";
