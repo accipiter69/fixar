@@ -63,6 +63,9 @@ const MODULE_VIEW_POLAR_DEG = 93;
 const MODULE_VIEW_ZOOM = ZOOM_LEVEL_CLOSE;
 const MODULE_VIEW_DURATION_MS = 800;
 
+const BOB_POLAR_OFFSET_DEG = 5;
+const BOB_DURATION_MS = 350;
+
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
     "https://cdn.prod.website-files.com/681db2b316b1e2e6be057a6a/69f734f3540d7fbc0fad48bc_Gimbal%20video%20cameras_converted.avif",
@@ -632,7 +635,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const animateCameraTo = ({ azimuth, polar, radius, zoom, duration }) => {
+  const animateCameraTo = ({
+    azimuth,
+    polar,
+    radius,
+    zoom,
+    duration,
+    onComplete,
+  }) => {
     if (!defaultSphericalCaptured) return;
 
     const startOffset = new THREE.Vector3()
@@ -678,6 +688,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTweenId = null;
         controls.enabled = true;
         controls.enableDamping = true;
+        if (typeof onComplete === "function") onComplete();
       }
     };
 
@@ -685,11 +696,27 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const animateToModuleView = () => {
+    const targetPolarRad = (MODULE_VIEW_POLAR_DEG * Math.PI) / 180;
+    const dipPolarRad =
+      ((MODULE_VIEW_POLAR_DEG - BOB_POLAR_OFFSET_DEG) * Math.PI) / 180;
+
     animateCameraTo({
       azimuth: (MODULE_VIEW_AZIMUTH_DEG * Math.PI) / 180,
-      polar: (MODULE_VIEW_POLAR_DEG * Math.PI) / 180,
+      polar: targetPolarRad,
       radius: defaultSpherical.radius,
       zoom: MODULE_VIEW_ZOOM,
+      onComplete: () => {
+        animateCameraTo({
+          polar: dipPolarRad,
+          duration: BOB_DURATION_MS,
+          onComplete: () => {
+            animateCameraTo({
+              polar: targetPolarRad,
+              duration: BOB_DURATION_MS,
+            });
+          },
+        });
+      },
     });
     setActiveZoomButton(1);
   };
