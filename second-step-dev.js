@@ -206,8 +206,9 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   const BADGE_SOURCE_SELECTOR =
-    ".modules_survay-item input, .modules-link input";
-  const BADGE_ITEM_SELECTOR = ".modules_survay-item, .modules-link";
+    ".modules-item input, .modules_survay-item input, .modules-link input";
+  const BADGE_ITEM_SELECTOR =
+    ".modules-item, .modules_survay-item, .modules-link";
   const badgeByInput = new Map();
 
   function createBadgeForInput(input) {
