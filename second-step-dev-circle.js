@@ -496,6 +496,55 @@ document.addEventListener("DOMContentLoaded", () => {
   progressBarContainer.appendChild(progressBarTrack);
   container.appendChild(progressBarContainer);
 
+  const payloadCircleOverlay = document.createElement("div");
+  payloadCircleOverlay.id = "payload-circle-overlay";
+  payloadCircleOverlay.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  `;
+
+  const payloadCircleSvg = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg",
+  );
+  payloadCircleSvg.setAttribute("width", "99");
+  payloadCircleSvg.setAttribute("height", "99");
+  payloadCircleSvg.setAttribute("viewBox", "0 0 99 99");
+  payloadCircleSvg.setAttribute("fill", "none");
+  payloadCircleSvg.style.cssText = `
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%) rotate(0deg);
+    transform-origin: center center;
+    opacity: 0;
+    display: none;
+    will-change: transform, opacity, left, top;
+  `;
+
+  const payloadCircleShape = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle",
+  );
+  payloadCircleShape.setAttribute("cx", "49.5");
+  payloadCircleShape.setAttribute("cy", "49.5");
+  payloadCircleShape.setAttribute("r", "46");
+  payloadCircleShape.setAttribute("stroke", "white");
+  payloadCircleShape.setAttribute("stroke-opacity", "0.6");
+  payloadCircleShape.setAttribute("stroke-width", "7");
+  payloadCircleShape.setAttribute("stroke-dasharray", "24 24");
+  payloadCircleShape.setAttribute("fill", "none");
+
+  payloadCircleSvg.appendChild(payloadCircleShape);
+  payloadCircleOverlay.appendChild(payloadCircleSvg);
+  container.appendChild(payloadCircleOverlay);
+
   function hideProgressBar() {
     if (!progressBarContainer) return;
     const toRemove = progressBarContainer;
@@ -578,6 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
     action.weight = 1;
     action.reset();
     action.play();
+    playPayloadCircle(animationName);
     return true;
   };
 
@@ -702,6 +752,90 @@ document.addEventListener("DOMContentLoaded", () => {
       zoom: defaultSpherical.zoom,
     });
     setActiveZoomButton(0);
+  };
+
+  const findPayloadObject = (model, animationName) => {
+    if (!model || !animationName) return null;
+    const target = normalizeString(animationName);
+    let found = null;
+    model.traverse((child) => {
+      if (found) return;
+      if (child.name && normalizeString(child.name) === target) {
+        found = child;
+      }
+    });
+    return found;
+  };
+
+  let currentCircleRafId = null;
+  const payloadCircleWorldPos = new THREE.Vector3();
+  const PAYLOAD_CIRCLE_DURATION_MS = 1000;
+  const PAYLOAD_CIRCLE_FADE_MS = 200;
+
+  const playPayloadCircle = (animationName) => {
+    if (!payloadCircleOverlay || !payloadCircleSvg) return;
+
+    const model = loadedModels[window.animations.currentModel];
+    const payloadObj = findPayloadObject(model, animationName);
+    const fallbackTarget = controls.target;
+
+    if (currentCircleRafId !== null) {
+      cancelAnimationFrame(currentCircleRafId);
+      currentCircleRafId = null;
+    }
+
+    payloadCircleSvg.style.display = "block";
+    payloadCircleSvg.style.opacity = "0";
+
+    const startTime = performance.now();
+
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / PAYLOAD_CIRCLE_DURATION_MS);
+
+      if (payloadObj) {
+        payloadObj.getWorldPosition(payloadCircleWorldPos);
+      } else {
+        payloadCircleWorldPos.copy(fallbackTarget);
+      }
+      payloadCircleWorldPos.project(camera);
+
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const x = (payloadCircleWorldPos.x + 1) * 0.5 * w;
+      const y = (1 - payloadCircleWorldPos.y) * 0.5 * h;
+
+      const fadeRatio = PAYLOAD_CIRCLE_FADE_MS / PAYLOAD_CIRCLE_DURATION_MS;
+      let opacity;
+      if (t < fadeRatio) {
+        opacity = t / fadeRatio;
+      } else if (t > 1 - fadeRatio) {
+        opacity = (1 - t) / fadeRatio;
+      } else {
+        opacity = 1;
+      }
+      opacity = Math.max(0, Math.min(1, opacity));
+
+      const rotation = t * 360;
+
+      payloadCircleSvg.style.left = x + "px";
+      payloadCircleSvg.style.top = y + "px";
+      payloadCircleSvg.style.opacity = String(opacity);
+      payloadCircleSvg.style.transform =
+        `translate(-50%, -50%) rotate(${rotation}deg)`;
+
+      if (t < 1) {
+        currentCircleRafId = requestAnimationFrame(step);
+      } else {
+        currentCircleRafId = null;
+        payloadCircleSvg.style.opacity = "0";
+        payloadCircleSvg.style.display = "none";
+        payloadCircleSvg.style.transform =
+          "translate(-50%, -50%) rotate(0deg)";
+      }
+    };
+
+    currentCircleRafId = requestAnimationFrame(step);
   };
 
   let zoomButtonsRef = [];
