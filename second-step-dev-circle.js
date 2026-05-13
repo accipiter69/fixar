@@ -61,10 +61,10 @@ const ZOOM_LEVEL_CLOSE = window.innerWidth < 480 ? 1.25 : 1.7;
 const MODULE_VIEW_AZIMUTH_DEG = 30;
 const MODULE_VIEW_POLAR_DEG = 93;
 const MODULE_VIEW_ZOOM = ZOOM_LEVEL_CLOSE;
-const MODULE_VIEW_DURATION_MS = 800;
+const MODULE_VIEW_DURATION_MS = 400;
 
-const BOB_POLAR_OFFSET_DEG = 5;
-const BOB_DURATION_MS = 350;
+const BOB_POLAR_OFFSET_DEG = 15;
+const BOB_DURATION_MS = 175;
 
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
@@ -605,7 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
   controls.enableZoom = false;
   controls.enablePan = false;
   controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180;
+  controls.maxPolarAngle = Math.PI;
 
   const defaultSpherical = { azimuth: 0, polar: 0, radius: 0, zoom: 1 };
   let defaultSphericalCaptured = false;
@@ -698,7 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const animateToModuleView = () => {
     const targetPolarRad = (MODULE_VIEW_POLAR_DEG * Math.PI) / 180;
     const dipPolarRad =
-      ((MODULE_VIEW_POLAR_DEG - BOB_POLAR_OFFSET_DEG) * Math.PI) / 180;
+      ((MODULE_VIEW_POLAR_DEG + BOB_POLAR_OFFSET_DEG) * Math.PI) / 180;
 
     animateCameraTo({
       azimuth: (MODULE_VIEW_AZIMUTH_DEG * Math.PI) / 180,
