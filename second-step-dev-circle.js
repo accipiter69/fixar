@@ -64,7 +64,7 @@ const MODULE_VIEW_ZOOM = ZOOM_LEVEL_CLOSE;
 const MODULE_VIEW_DURATION_MS = 400;
 
 const BOB_POLAR_OFFSET_DEG = 15;
-const BOB_DURATION_MS = 350;
+const BOB_DURATION_MS = 700;
 
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
