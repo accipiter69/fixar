@@ -64,7 +64,7 @@ const MODULE_VIEW_ZOOM = ZOOM_LEVEL_CLOSE;
 const MODULE_VIEW_DURATION_MS = 400;
 
 const BOB_POLAR_OFFSET_DEG = 15;
-const BOB_DURATION_MS = 700;
+const BOB_DURATION_MS = 1400;
 
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
@@ -610,6 +610,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const defaultSpherical = { azimuth: 0, polar: 0, radius: 0, zoom: 1 };
   let defaultSphericalCaptured = false;
   let currentTweenId = null;
+  let moduleSeqToken = 0;
 
   const captureDefaultSpherical = () => {
     const offset = new THREE.Vector3()
@@ -695,10 +696,67 @@ document.addEventListener("DOMContentLoaded", () => {
     currentTweenId = requestAnimationFrame(step);
   };
 
-  const animateToModuleView = () => {
+  const animateToModuleView = (animationName = null) => {
     const targetPolarRad = (MODULE_VIEW_POLAR_DEG * Math.PI) / 180;
     const dipPolarRad =
       ((MODULE_VIEW_POLAR_DEG + BOB_POLAR_OFFSET_DEG) * Math.PI) / 180;
+
+    // Invalidate any in-flight module sequence (stale finished-handlers / timers).
+    moduleSeqToken += 1;
+    const seq = moduleSeqToken;
+
+    // Step 3: drone descends (camera polar returns to module-view angle).
+    const descend = () => {
+      if (seq !== moduleSeqToken) return; // a newer sequence (or deselect) superseded us
+      animateCameraTo({
+        polar: targetPolarRad,
+        duration: BOB_DURATION_MS,
+      });
+    };
+
+    // Step 2: change payload (play the GLB clip), then descend once it finishes.
+    const changePayloadThenDescend = () => {
+      if (seq !== moduleSeqToken) return;
+
+      const model =
+        window.animations?.models?.[window.animations.currentModel];
+      const mixer = model?.mixer;
+
+      const played =
+        animationName != null
+          ? window.playAnimationByName?.(animationName)
+          : false;
+
+      // Fallback: descend anyway if no clip matched or there is no mixer.
+      const FALLBACK_MS = BOB_DURATION_MS;
+      if (!played || !mixer) {
+        setTimeout(descend, FALLBACK_MS);
+        return;
+      }
+
+      const target = normalizeString(animationName);
+      const action = model.actions.find(
+        (a) => normalizeString(a.getClip().name) === target,
+      );
+      const ts = action ? Math.abs(action.timeScale) || 0.025 : 0.025;
+      const clipMs = action
+        ? (action.getClip().duration / ts) * 1000
+        : FALLBACK_MS;
+
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        mixer.removeEventListener("finished", onFinished);
+        clearTimeout(safetyId);
+        descend();
+      };
+      const onFinished = () => finish();
+
+      mixer.addEventListener("finished", onFinished);
+      // Safety net in case the 'finished' event never arrives.
+      const safetyId = setTimeout(finish, clipMs + 250);
+    };
 
     animateCameraTo({
       azimuth: (MODULE_VIEW_AZIMUTH_DEG * Math.PI) / 180,
@@ -706,15 +764,11 @@ document.addEventListener("DOMContentLoaded", () => {
       radius: defaultSpherical.radius,
       zoom: MODULE_VIEW_ZOOM,
       onComplete: () => {
+        // Step 1: drone rises (camera polar dips).
         animateCameraTo({
           polar: dipPolarRad,
           duration: BOB_DURATION_MS,
-          onComplete: () => {
-            animateCameraTo({
-              polar: targetPolarRad,
-              duration: BOB_DURATION_MS,
-            });
-          },
+          onComplete: changePayloadThenDescend,
         });
       },
     });
@@ -836,7 +890,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gltf.animations.forEach((animation) => {
           const action = modelMixer.clipAction(animation);
           const isFlight = animation.name.toLowerCase().includes("flight");
-          action.timeScale = isFlight ? 1 : 0.05;
+          action.timeScale = isFlight ? 1 : 0.025;
 
           if (isFlight) {
             action.setLoop(THREE.LoopRepeat, Infinity);
@@ -1710,8 +1764,7 @@ document.addEventListener("DOMContentLoaded", () => {
           filterModulesLinksByCategory();
           filterSurveyByCategory();
 
-          window.playAnimationByName?.(input.value);
-          animateToModuleView();
+          animateToModuleView(input.value);
           updateAndSaveConfiguration();
           markStepComplete("module");
         } else {
@@ -1723,6 +1776,7 @@ document.addEventListener("DOMContentLoaded", () => {
           filterModulesLinksByCategory();
           filterSurveyByCategory();
 
+          moduleSeqToken += 1; // invalidate any pending module-view sequence
           window.animations?.stopAll?.();
           animateToDefaultView();
           updateAndSaveConfiguration();
