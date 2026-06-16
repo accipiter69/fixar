@@ -532,6 +532,73 @@ function populateFormFields(params, sessionConfig) {
   });
 }
 
+// ── PDF spec service ───────────────────────────────────────────
+// On final form submit, fire the configuration + contact to the FIXAR PDF
+// service (generates the spec PDF, emails it, pushes the lead to CRM). This is
+// purely additive: we do NOT preventDefault, so the native Webflow submit (lead
+// capture + success state) proceeds untouched. `keepalive` lets the request
+// outlive the page navigation that Webflow performs on submit.
+// TODO: set this to the deployed Vercel URL before going live.
+const PDF_SERVICE_ENDPOINT = "https://YOUR-PROJECT.vercel.app/api/generate";
+
+function readContactFromForm(form) {
+  const fd = new FormData(form);
+  const get = (...names) => {
+    for (const n of names) {
+      const v = fd.get(n);
+      if (v && String(v).trim()) return String(v).trim();
+    }
+    return "";
+  };
+
+  // Prefer an explicit email input; fall back to common field names.
+  let email = "";
+  const emailEl = form.querySelector('input[type="email"]');
+  if (emailEl && emailEl.value) email = emailEl.value.trim();
+  if (!email) email = get("Email", "email", "Email-Address", "Email Address");
+
+  return {
+    email,
+    name: get("Name", "name", "Full-Name", "Full Name", "First-Name", "Name-2"),
+    company: get("Company", "company", "Company-Name", "Company Name"),
+    phone: get("Phone", "phone", "Phone-Number", "Phone Number", "Tel"),
+  };
+}
+
+function setupPdfServiceHook(sessionConfig) {
+  if (!sessionConfig) return;
+  // Guard against firing before the real endpoint is configured.
+  if (!PDF_SERVICE_ENDPOINT || PDF_SERVICE_ENDPOINT.includes("YOUR-PROJECT")) {
+    return;
+  }
+  const form = document.querySelector("form");
+  if (!form) return;
+
+  let fired = false;
+  form.addEventListener(
+    "submit",
+    () => {
+      if (fired) return; // de-dupe rapid double submits
+      const contact = readContactFromForm(form);
+      if (!contact.email) return; // need at least an email to deliver the PDF
+      fired = true;
+      try {
+        fetch(PDF_SERVICE_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: sessionConfig, contact }),
+          keepalive: true,
+          mode: "cors",
+          credentials: "omit",
+        }).catch(() => {});
+      } catch (_) {
+        /* never block the native submit */
+      }
+    },
+    true, // capture phase: run before Webflow's own submit handling
+  );
+}
+
 function setupResizeHandler(camera, renderer, container, model, droneName) {
   window.addEventListener("resize", () => {
     if (!container) return;
@@ -627,6 +694,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   populateFormFields(params, sessionConfig);
+  setupPdfServiceHook(sessionConfig);
 
   const backButton = document.querySelector(".model_form-back");
   if (backButton) {
