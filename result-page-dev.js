@@ -539,7 +539,7 @@ function populateFormFields(params, sessionConfig) {
 // capture + success state) proceeds untouched. `keepalive` lets the request
 // outlive the page navigation that Webflow performs on submit.
 // TODO: set this to the deployed Vercel URL before going live.
-const PDF_SERVICE_ENDPOINT = "https://YOUR-PROJECT.vercel.app/api/generate";
+const PDF_SERVICE_ENDPOINT = "https://fixar-pdf-service-weld.vercel.app/api/generate";
 
 function readContactFromForm(form) {
   const fd = new FormData(form);
