@@ -1,3 +1,5 @@
+console.log("penis");
+
 const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
@@ -61,10 +63,10 @@ const ZOOM_LEVEL_CLOSE = window.innerWidth < 480 ? 1.25 : 1.7;
 const MODULE_VIEW_AZIMUTH_DEG = 30;
 const MODULE_VIEW_POLAR_DEG = 93;
 const MODULE_VIEW_ZOOM = ZOOM_LEVEL_CLOSE;
-const MODULE_VIEW_DURATION_MS = 400;
+const MODULE_VIEW_DURATION_MS = 666;
 
-const BOB_POLAR_OFFSET_DEG = 15;
-const BOB_DURATION_MS = 1400;
+const BOB_POLAR_OFFSET_DEG = 10;
+const BOB_DURATION_MS = 2000;
 
 const CATEGORY_BACKGROUNDS = {
   "Gimbal video cameras":
@@ -718,8 +720,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const changePayloadThenDescend = () => {
       if (seq !== moduleSeqToken) return;
 
-      const model =
-        window.animations?.models?.[window.animations.currentModel];
+      const model = window.animations?.models?.[window.animations.currentModel];
       const mixer = model?.mixer;
 
       const played =
@@ -738,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const action = model.actions.find(
         (a) => normalizeString(a.getClip().name) === target,
       );
-      const ts = action ? Math.abs(action.timeScale) || 0.025 : 0.025;
+      const ts = action ? Math.abs(action.timeScale) || 1 : 1;
       const clipMs = action
         ? (action.getClip().duration / ts) * 1000
         : FALLBACK_MS;
@@ -890,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gltf.animations.forEach((animation) => {
           const action = modelMixer.clipAction(animation);
           const isFlight = animation.name.toLowerCase().includes("flight");
-          action.timeScale = isFlight ? 1 : 0.025;
+          action.timeScale = isFlight ? 1 : 0.066;
 
           if (isFlight) {
             action.setLoop(THREE.LoopRepeat, Infinity);
