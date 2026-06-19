@@ -694,6 +694,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   populateFormFields(params, sessionConfig);
+
+  const application = sessionConfig?.application;
+  if (application) {
+    const missionEl = document.querySelector("[data-mission='true']");
+    if (missionEl) {
+      const h3 = missionEl.querySelector("h3");
+      let combinedText = application;
+      if (h3) {
+        const original = h3.textContent.trim();
+        combinedText = application + (original ? " " + original : "");
+        h3.textContent = combinedText;
+      }
+      const input = missionEl.querySelector("input");
+      if (input) input.name = combinedText;
+    }
+  }
+
   setupPdfServiceHook(sessionConfig);
 
   const backButton = document.querySelector(".model_form-back");
