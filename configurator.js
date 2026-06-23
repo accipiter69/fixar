@@ -516,15 +516,15 @@ document.addEventListener("DOMContentLoaded", () => {
     0.1,
     1000,
   );
-  // ============ РЕНДЕРЕР (правка 1/2: ACES + exposure + sRGB + кап pixelRatio) ============
+  // ============ РЕНДЕРЕР (правка 1/2: NoToneMapping + sRGB — красный остаётся красным) ============
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // кап для мобилок: меньше нагрузка
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMapping = THREE.NoToneMapping; // без ACES: красный остаётся красным, не уходит в оранжевый/выгоревший
+  renderer.toneMappingExposure = 1.0;
   if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
   else if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding; // старые сборки three
   container.appendChild(renderer.domElement);
@@ -693,7 +693,7 @@ document.addEventListener("DOMContentLoaded", () => {
       b.classList.toggle("is--active", i === idx);
     });
   };
-  // ============ СВЕТ (правка 2/2: студийное окружение RoomEnvironment, встроено) ============
+  // ============ СВЕТ (правка 2/2: RoomEnvironment + мягкие лампы, без ACES) ============
   // Встроено, чтобы работать с глобальным THREE и без скачивания файлов.
   function buildRoomEnvironment(renderer) {
     const env = new THREE.Scene();
@@ -745,18 +745,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // мягче: приглушаем светящиеся панели -> меньше резких бликов
   _env.traverse((o) => {
     if (o.isMesh && o.material && o.material.isMeshBasicMaterial)
-      o.material.color.multiplyScalar(0.6);
-    if (o.isPointLight) o.intensity *= 0.6;
+      o.material.color.multiplyScalar(0.5);
+    if (o.isPointLight) o.intensity *= 0.5;
   });
   scene.environment = _pmrem.fromScene(_env, 0.1).texture; // только отражения; фон/прозрачность не трогаем
   _pmrem.dispose();
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
   keyLight.position.set(3, 6, 4);
   scene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
   fillLight.position.set(-4, 2, -3);
   scene.add(fillLight);
   // =====================================================================================

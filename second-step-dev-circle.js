@@ -2,7 +2,7 @@ console.log("penis");
 
 const droneModels = {
   "FIXAR 025":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/FIXAR_025_v2_23%3A06%3A26.glb",
   "FIXAR 007 LE":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/FIXAR_007LE_v4_230626.glb",
   // "FIXAR 007 NG":
