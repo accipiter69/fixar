@@ -5,8 +5,10 @@ const droneModels = {
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/025+final(8.01.26).glb",
   "FIXAR 007 LE":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+LE(9.01.26).glb",
+  // "FIXAR 007 NG":
+  //   "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG(9.01.26).glb",
   "FIXAR 007 NG":
-    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007+NG(9.01.26).glb",
+    "https://fixar-dron.s3.us-east-2.amazonaws.com/models/007NG+(23%3A06%3A26).glb",
 };
 const DRONE_NAMES = Object.keys(droneModels);
 
