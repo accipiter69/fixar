@@ -309,12 +309,12 @@ function initThreeScene(container) {
   controls.enableZoom = false;
   controls.enablePan = false;
   controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI / 2 + (5 * Math.PI) / 180;
+  controls.maxPolarAngle = Math.PI;
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+  const ambientLight = new THREE.AmbientLight(0xc2c2c2, 0.8);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
   directionalLight.position.set(0, 2, 0);
   scene.add(directionalLight);
 
