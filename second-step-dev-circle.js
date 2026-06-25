@@ -601,6 +601,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
+  if (THREE.SRGBColorSpace !== undefined) {
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+  }
   container.appendChild(renderer.domElement);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);

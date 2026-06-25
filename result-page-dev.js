@@ -301,6 +301,10 @@ function initThreeScene(container) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+  else if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -311,12 +315,69 @@ function initThreeScene(container) {
   controls.minPolarAngle = 0;
   controls.maxPolarAngle = Math.PI;
 
-  const ambientLight = new THREE.AmbientLight(0xc2c2c2, 0.8);
-  scene.add(ambientLight);
+  function buildRoomEnvironment(renderer) {
+    const env = new THREE.Scene();
+    const g = new THREE.BoxGeometry();
+    g.deleteAttribute("uv");
+    const roomMat = new THREE.MeshStandardMaterial({ side: THREE.BackSide });
+    const boxMat = new THREE.MeshStandardMaterial();
+    let intensity = 5;
+    if (renderer && renderer._useLegacyLights === false) intensity = 900;
+    const mainLight = new THREE.PointLight(0xffffff, intensity, 28, 2);
+    mainLight.position.set(0.418, 16.199, 0.3);
+    env.add(mainLight);
+    const box = (p, r, s) => {
+      const mesh = new THREE.Mesh(g, boxMat);
+      mesh.position.set(p[0], p[1], p[2]);
+      mesh.rotation.set(r[0], r[1], r[2]);
+      mesh.scale.set(s[0], s[1], s[2]);
+      env.add(mesh);
+    };
+    const room = new THREE.Mesh(g, roomMat);
+    room.position.set(-0.757, 13.219, 0.717);
+    room.scale.set(31.713, 28.305, 28.591);
+    env.add(room);
+    box([-10.906, 2.009, 1.846], [0, -0.195, 0], [2.328, 7.905, 4.651]);
+    box([-5.607, -0.754, -0.758], [0, 0.994, 0], [1.97, 1.534, 3.955]);
+    box([6.167, 0.857, 7.803], [0, 0.561, 0], [3.927, 6.285, 3.687]);
+    box([-2.017, 0.018, 6.124], [0, 0.333, 0], [2.002, 4.566, 2.064]);
+    box([2.291, -0.756, -2.621], [0, -0.286, 0], [1.546, 1.552, 1.496]);
+    box([-2.193, -0.369, -5.547], [0, 0.516, 0], [3.875, 3.487, 2.986]);
+    const light = (i, p, s) => {
+      const mat = new THREE.MeshBasicMaterial();
+      mat.color.setScalar(i);
+      const mesh = new THREE.Mesh(g, mat);
+      mesh.position.set(p[0], p[1], p[2]);
+      mesh.scale.set(s[0], s[1], s[2]);
+      env.add(mesh);
+    };
+    light(50, [-16.116, 14.37, 8.208], [0.1, 2.428, 2.739]);
+    light(50, [-16.109, 18.021, -8.207], [0.1, 2.425, 2.751]);
+    light(17, [14.904, 12.198, -1.832], [0.15, 4.265, 6.331]);
+    light(43, [-0.462, 8.89, 14.52], [4.38, 5.441, 0.088]);
+    light(20, [3.235, 11.486, -12.541], [2.5, 2.0, 0.1]);
+    light(100, [0.0, 20.0, 0.0], [1.0, 0.1, 1.0]);
+    return env;
+  }
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  directionalLight.position.set(0, 2, 0);
-  scene.add(directionalLight);
+  const _pmrem = new THREE.PMREMGenerator(renderer);
+  const _env = buildRoomEnvironment(renderer);
+  _env.traverse((o) => {
+    if (o.isMesh && o.material && o.material.isMeshBasicMaterial)
+      o.material.color.multiplyScalar(0.5);
+    if (o.isPointLight) o.intensity *= 0.5;
+  });
+  scene.environment = _pmrem.fromScene(_env, 0.1).texture;
+  _pmrem.dispose();
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  keyLight.position.set(3, 6, 4);
+  scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  fillLight.position.set(-4, 2, -3);
+  scene.add(fillLight);
 
   camera.position.set(0, 2, 8);
   camera.lookAt(0, 0, 0);
