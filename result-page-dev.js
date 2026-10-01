@@ -439,7 +439,7 @@ function loadDroneModel(
     };
 
     const onError = (error) => {
-      console.error(`Помилка завантаження моделі ${droneName}:`, error);
+      console.error(`Error loading model ${droneName}:`, error);
       removeProgressBar(progressBarContainer);
       reject(error);
     };
@@ -549,18 +549,19 @@ function populateFormFields(params, sessionConfig) {
 
   if (!sessionConfig) return;
 
-  const priceFields = [
-    { name: "Drone price", value: sessionConfig.dronePrice },
-    { name: "Module price", value: sessionConfig.modulePrice },
-    { name: "Data link price", value: sessionConfig.dataLinkPrice },
-    { name: "Data link optional", value: sessionConfig.dataLinkOptionalPrice },
-    { name: "Total price", value: sessionConfig.totalPrice },
-  ];
-  priceFields.forEach(({ name, value }) => {
-    if (value !== undefined && value !== null) {
-      appendHiddenInput(form, name, value);
-    }
-  });
+  // Prices disabled: the Models collection holds test data only.
+  // const priceFields = [
+  //   { name: "Model Price", value: sessionConfig.dronePrice },
+  //   { name: "Module price", value: sessionConfig.modulePrice },
+  //   { name: "Data link price", value: sessionConfig.dataLinkPrice },
+  //   { name: "Data link optional", value: sessionConfig.dataLinkOptionalPrice },
+  //   { name: "Total price", value: sessionConfig.totalPrice },
+  // ];
+  // priceFields.forEach(({ name, value }) => {
+  //   if (value !== undefined && value !== null) {
+  //     appendHiddenInput(form, name, value);
+  //   }
+  // });
 
   if (sessionConfig.application) {
     appendHiddenInput(form, "Application", sessionConfig.application);
@@ -589,9 +590,10 @@ function populateFormFields(params, sessionConfig) {
   surveyFields.forEach(({ name, priceName, data }) => {
     if (!data?.checked) return;
     appendHiddenInput(form, name, "on");
-    if (data.price !== undefined && data.price !== null) {
-      appendHiddenInput(form, priceName, data.price);
-    }
+    // Prices disabled (test data)
+    // if (data.price !== undefined && data.price !== null) {
+    //   appendHiddenInput(form, priceName, data.price);
+    // }
   });
 }
 
@@ -723,7 +725,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (sessionConfig) {
     populateDataChoiceElements(sessionConfig);
-    populatePriceDisplays(sessionConfig);
+    // populatePriceDisplays(sessionConfig); // prices disabled (test data)
   }
 
   const container = document.getElementById("three-container");
@@ -752,7 +754,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     setupResizeHandler(camera, renderer, container, model, params.droneModel);
   } catch (error) {
-    console.error("Помилка ініціалізації 3D моделі:", error);
+    console.error("Error initializing 3D model:", error);
     container.innerHTML =
       '<p style="color: red; padding: 20px;">Unable to load 3D model. Please try again.</p>';
   }

@@ -1,4 +1,3 @@
-console.log("penis");
 const droneModels = {
   "FIXAR 025":
     "https://fixar-dron.s3.us-east-2.amazonaws.com/models/FIXAR_025_v2_23%3A06%3A26.glb",
@@ -516,17 +515,17 @@ document.addEventListener("DOMContentLoaded", () => {
     0.1,
     1000,
   );
-  // ============ РЕНДЕРЕР (правка 1/2: NoToneMapping + sRGB — красный остаётся красным) ============
+  // ============ RENDERER (fix 1/2: NoToneMapping + sRGB — red stays red) ============
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
-  renderer.toneMapping = THREE.NoToneMapping; // без ACES: красный остаётся красным, не уходит в оранжевый/выгоревший
+  renderer.toneMapping = THREE.NoToneMapping; // no ACES: red stays red instead of shifting to orange/washed out
   renderer.toneMappingExposure = 1.0;
   if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
-  else if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding; // старые сборки three
+  else if (THREE.sRGBEncoding) renderer.outputEncoding = THREE.sRGBEncoding; // older three builds
   container.appendChild(renderer.domElement);
   // =====================================================================================
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -693,8 +692,8 @@ document.addEventListener("DOMContentLoaded", () => {
       b.classList.toggle("is--active", i === idx);
     });
   };
-  // ============ СВЕТ (правка 2/2: RoomEnvironment + мягкие лампы, без ACES) ============
-  // Встроено, чтобы работать с глобальным THREE и без скачивания файлов.
+  // ============ LIGHTING (fix 2/2: RoomEnvironment + soft lights, no ACES) ============
+  // Inlined so it works with the global THREE and without downloading extra files.
   function buildRoomEnvironment(renderer) {
     const env = new THREE.Scene();
     const g = new THREE.BoxGeometry();
@@ -702,7 +701,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const roomMat = new THREE.MeshStandardMaterial({ side: THREE.BackSide });
     const boxMat = new THREE.MeshStandardMaterial();
     let intensity = 5;
-    if (renderer && renderer._useLegacyLights === false) intensity = 900; // авто под новые сборки three
+    if (renderer && renderer._useLegacyLights === false) intensity = 900; // auto-adjust for newer three builds
     const mainLight = new THREE.PointLight(0xffffff, intensity, 28, 2);
     mainLight.position.set(0.418, 16.199, 0.3);
     env.add(mainLight);
@@ -742,13 +741,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const _pmrem = new THREE.PMREMGenerator(renderer);
   const _env = buildRoomEnvironment(renderer);
-  // мягче: приглушаем светящиеся панели -> меньше резких бликов
+  // softer: dim the emissive panels -> fewer harsh highlights
   _env.traverse((o) => {
     if (o.isMesh && o.material && o.material.isMeshBasicMaterial)
       o.material.color.multiplyScalar(0.5);
     if (o.isPointLight) o.intensity *= 0.5;
   });
-  scene.environment = _pmrem.fromScene(_env, 0.1).texture; // только отражения; фон/прозрачность не трогаем
+  scene.environment = _pmrem.fromScene(_env, 0.1).texture; // reflections only; background/transparency left untouched
   _pmrem.dispose();
 
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -870,7 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 100);
     };
     const onError = (error) => {
-      console.error(`Помилка завантаження моделі ${droneName}:`, error);
+      console.error(`Error loading model ${droneName}:`, error);
       hideProgressBar();
     };
     loader.load(modelUrl, onLoad, onProgress, onError);
@@ -1040,26 +1039,27 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       }
     }
-    const droneBtn = document.querySelector(
-      ".nav_config-drones-item.w--current",
-    );
-    const dronePrice = droneBtn
-      ? parsePrice(droneBtn.getAttribute("data-price"))
-      : 0;
-    const modulePrice = priceFromCheckedInput(
-      document.querySelector(".modules-item input:checked"),
-      ".modules-item",
-    );
-    const dataLinkPrice = priceFromCheckedInput(
-      document.querySelector(
-        ".modules-link input:not(#optional input):checked",
-      ),
-      ".modules-link",
-    );
-    const dataLinkOptionalPrice = priceFromCheckedInput(
-      document.querySelector("#optional input:checked"),
-      ".modules-link",
-    );
+    // Prices disabled: the Models collection holds test data only.
+    // const droneBtn = document.querySelector(
+    //   ".nav_config-drones-item.w--current",
+    // );
+    // const dronePrice = droneBtn
+    //   ? parsePrice(droneBtn.getAttribute("data-price"))
+    //   : 0;
+    // const modulePrice = priceFromCheckedInput(
+    //   document.querySelector(".modules-item input:checked"),
+    //   ".modules-item",
+    // );
+    // const dataLinkPrice = priceFromCheckedInput(
+    //   document.querySelector(
+    //     ".modules-link input:not(#optional input):checked",
+    //   ),
+    //   ".modules-link",
+    // );
+    // const dataLinkOptionalPrice = priceFromCheckedInput(
+    //   document.querySelector("#optional input:checked"),
+    //   ".modules-link",
+    // );
     const ppkCheckbox = document.querySelector(
       "[data-survey-item='ppk'] input:checked",
     );
@@ -1069,35 +1069,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const softwareCheckbox = document.querySelector(
       "[data-survey-item='software'] input:checked",
     );
-    const ppkPrice = priceFromCheckedInput(ppkCheckbox, ".modules_survay-item");
-    const stationPrice = priceFromCheckedInput(
-      stationCheckbox,
-      ".modules_survay-item",
-    );
-    const softwarePrice = priceFromCheckedInput(
-      softwareCheckbox,
-      ".modules_survay-item",
-    );
+    // const ppkPrice = priceFromCheckedInput(ppkCheckbox, ".modules_survay-item");
+    // const stationPrice = priceFromCheckedInput(
+    //   stationCheckbox,
+    //   ".modules_survay-item",
+    // );
+    // const softwarePrice = priceFromCheckedInput(
+    //   softwareCheckbox,
+    //   ".modules_survay-item",
+    // );
     configData.surveyItems = {
-      ppk: getSurveyItemData(ppkCheckbox, ppkPrice),
-      station: getSurveyItemData(stationCheckbox, stationPrice),
-      software: getSurveyItemData(softwareCheckbox, softwarePrice),
+      ppk: getSurveyItemData(ppkCheckbox /*, ppkPrice */),
+      station: getSurveyItemData(stationCheckbox /*, stationPrice */),
+      software: getSurveyItemData(softwareCheckbox /*, softwarePrice */),
     };
-    configData.dronePrice = dronePrice;
-    configData.modulePrice = modulePrice;
-    configData.dataLinkPrice = dataLinkPrice;
-    configData.dataLinkOptionalPrice = dataLinkOptionalPrice;
-    configData.ppkPrice = ppkPrice;
-    configData.stationPrice = stationPrice;
-    configData.softwarePrice = softwarePrice;
-    configData.totalPrice =
-      dronePrice +
-      modulePrice +
-      dataLinkPrice +
-      dataLinkOptionalPrice +
-      ppkPrice +
-      stationPrice +
-      softwarePrice;
+    // configData.dronePrice = dronePrice;
+    // configData.modulePrice = modulePrice;
+    // configData.dataLinkPrice = dataLinkPrice;
+    // configData.dataLinkOptionalPrice = dataLinkOptionalPrice;
+    // configData.ppkPrice = ppkPrice;
+    // configData.stationPrice = stationPrice;
+    // configData.softwarePrice = softwarePrice;
+    // configData.totalPrice =
+    //   dronePrice +
+    //   modulePrice +
+    //   dataLinkPrice +
+    //   dataLinkOptionalPrice +
+    //   ppkPrice +
+    //   stationPrice +
+    //   softwarePrice;
     configData.model = configData.drone?.name || null;
     return configData;
   }
@@ -1144,7 +1144,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateAndSaveConfiguration() {
     const configData = collectConfigurationData();
     saveConfigurationToSession(configData);
-    updatePricesInUI(configData);
+    // updatePricesInUI(configData); // prices disabled (test data)
     return configData;
   }
   let updateDataLinkResult = () => {};

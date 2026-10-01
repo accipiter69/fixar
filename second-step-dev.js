@@ -845,7 +845,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const onError = (error) => {
-      console.error(`Помилка завантаження моделі ${droneName}:`, error);
+      console.error(`Error loading model ${droneName}:`, error);
       hideProgressBar();
     };
 
